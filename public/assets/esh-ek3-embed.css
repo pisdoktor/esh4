@@ -1,0 +1,33 @@
+/**
+ * EK-3 PDF gömülü önizleme (ek3_document_embed.php — bağımsız HTML, tema.css yok).
+ */
+html {
+    height: 100%;
+}
+
+html,
+body.esh-ek3-embed-body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+}
+
+.esh-ek3-embed-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.esh-ek3-embed-toolbar {
+    flex: 0 0 auto;
+}
+
+#iframeEk3.esh-ek3-embed-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    display: block;
+    background: #fff;
+}

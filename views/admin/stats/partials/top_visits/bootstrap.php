@@ -1,0 +1,3 @@
+<?php
+/** @var array $rows */
+?>

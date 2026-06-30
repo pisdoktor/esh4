@@ -1,0 +1,21 @@
+{
+  "_aciklama": "Toggleable modül açık/kapalı varsayılanları (config/app-modules.registry.php içinde toggleable:true olanlar). Tam rota kataloğu registry routes alanında.",
+  "version": 1,
+  "modules": {
+    "erapor": true,
+    "randevu": true,
+    "uhds": true,
+    "hasta_ilac_rapor": true,
+    "ilac_rehber": true,
+    "harita": true,
+    "adres_koordinat": true,
+    "eimza_login": true,
+    "archive": true,
+    "ekip": true,
+    "adrestanim": true,
+    "nobet": true,
+    "kps_tc_sorgu": false,
+    "mesajlasma": true,
+    "sms_bildirim": true
+  }
+}

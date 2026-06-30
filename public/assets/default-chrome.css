@@ -1,0 +1,9 @@
+/**
+ * ESH — varsayılan (açık) tema chrome — yalnızca body.theme-default ile yüklenir.
+ * Kurallar ve --esh-ui-* öntanımları: public/assets/esh-page-language.css (bölüm: default-chrome).
+ * Tema köprüsü: templates/default/theme.css
+ */
+
+body.theme-default {
+    --esh-blue: #0d6efd;
+}

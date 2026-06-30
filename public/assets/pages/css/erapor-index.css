@@ -1,0 +1,79 @@
+/**
+ * e-Rapor havuzu — modül özel (yalnızca .esh-page-erapor altında).
+ * Ortak liste/filtre/tablo: public/assets/esh-page-language.css + tema theme.css (--esh-ui-*).
+ */
+
+.esh-page-erapor #eraporTable .esh-erapor-name-cell {
+    min-width: 12rem;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-row-actions .esh-list-actions-dropdown-toggle {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--esh-ui-text-muted);
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-row-actions .esh-list-actions-dropdown-toggle:hover,
+.esh-page-erapor #eraporTable .esh-erapor-row-actions .esh-list-actions-dropdown-toggle:focus {
+    color: var(--esh-ui-text);
+}
+
+.esh-page-erapor #eraporTable .esh-list-actions-dropdown .dropdown-menu {
+    min-width: 9rem;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-adet-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-toggle {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-toggle:hover,
+.esh-page-erapor #eraporTable .esh-erapor-tc-toggle:focus {
+    text-decoration: none;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-chevron {
+    transition: transform 0.15s ease;
+    width: 0.75rem;
+    display: inline-block;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-chevron-open {
+    transform: rotate(90deg);
+}
+
+.esh-page-erapor #eraporTable tr.esh-erapor-tc-parent-open {
+    background-color: color-mix(in srgb, var(--esh-ui-accent) 8%, transparent);
+}
+
+.esh-page-erapor #eraporTable tr.esh-erapor-tc-child td {
+    background-color: color-mix(in srgb, var(--esh-ui-accent) 5%, transparent);
+    border-top-style: dashed;
+}
+
+.esh-page-erapor #eraporTable tr.esh-erapor-tc-child td:first-child {
+    padding-left: 1.25rem;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-tc-child-marker {
+    font-size: 0.85rem;
+    margin-right: 0.15rem;
+}
+
+.esh-page-erapor #eraporTable .esh-erapor-neden-cell {
+    max-width: 12rem;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+}

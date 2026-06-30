@@ -1,0 +1,12 @@
+.esh-pansuman-filter .esh-filter-control,
+.esh-pansuman-filter .input-group-text,
+.esh-pansuman-filter .btn {
+    height: 38px !important;
+    min-height: 38px !important;
+    line-height: 1.25;
+}
+
+.esh-pansuman-list-loading-row td {
+    min-height: 8rem;
+    vertical-align: middle;
+}

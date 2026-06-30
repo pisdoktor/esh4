@@ -1,0 +1,168 @@
+[2026-06-23 21:28:32] insertPrepared Hatası | Ortam: CLI | c:\xampp\htdocs\tools\test_single_row_nakil.php
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:199
+  Mesaj: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '53074185272' for key 'uk_tckimlik'
+  Kod: 23000
+  SQL: INSERT INTO `esh_hastalar` (`kurum_id`,`tckimlik`,`isim`,`soyisim`,`pasif`) VALUES (?,?,?,?,?)
+  İlk-uygulama-çerçevesi: App\Models\BaseModel->store @ C:\xampp\htdocs\tools\test_single_row_nakil.php:255
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(199): PDOStatement->execute()
+  #1 C:\xampp\htdocs\app\Core\Database.php(507): App\Core\Database->runPreparedStatement()
+  #2 C:\xampp\htdocs\app\Models\BaseModel.php(75): App\Core\Database->insertPrepared()
+  #3 C:\xampp\htdocs\tools\test_single_row_nakil.php(255): App\Models\BaseModel->store()
+  #4 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:26:24] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=kapinoadi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'kapinoadi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY kapinoadi ASC, sokakadi ASC, ilceadi ASC, mahalleadi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY kapino...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY kapino...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:26:25] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=kapinoadi&orderdir=DESC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'kapinoadi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY kapinoadi DESC, sokakadi ASC, ilceadi ASC, mahalleadi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY kapino...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY kapino...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:26:27] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=sokakadi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sokakadi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY sokakadi ASC, ilceadi ASC, mahalleadi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY sokaka...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY sokaka...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:26:32] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=ilceadi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ilceadi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY ilceadi ASC, mahalleadi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY ilcead...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY ilcead...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:28:07] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=ilceadi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ilceadi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY ilceadi ASC, mahalleadi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY ilcead...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY ilcead...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-23 22:28:09] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stats/adresPatientFilterRows?orderby=sonizlemtarihi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sonizlemtarihi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu AS ilc ON ilc.id = h.ilce
+
+            LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+
+            LEFT JOIN esh_adrestablosu AS s ON s.id = h.sokak
+
+            LEFT JOIN esh_adrestablosu AS k ON k.id = h.kapino WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY sonizlemtarihi ASC, h.isim ASC, h.soyisim ASC LIMIT 0, 50
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Stats.php:1213
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Stats.php(1213): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.id, h.isim, h...', 'ORDER BY sonizl...', 50, 0, true, false)
+  #5 C:\xampp\htdocs\app\Controllers\StatsController.php(1640): App\Models\Stats->getAdresPatientFilterRows(NULL, NULL, NULL, NULL, NULL, 'ORDER BY sonizl...', 50, 0)
+  #6 C:\xampp\htdocs\public\index.php(125): App\Controllers\StatsController->adresPatientFilterRows()
+  #7 {main}
+--------------------------------------------------------------------------------
+[2026-06-24 16:16:30] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Patient/unifiedRows?status=active&page=1&limit=20&orderby=sonizlemtarihi&orderdir=ASC
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sonizlemtarihi' in 'order clause'
+  Kod: 42S22
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu a1 ON h.ilce = a1.id
+
+            LEFT JOIN esh_adrestablosu a2 ON h.mahalle = a2.id
+
+            LEFT JOIN esh_adrestablosu a3 ON h.sokak = a3.id
+
+            LEFT JOIN esh_adrestablosu a4 ON h.kapino = a4.id WHERE h.pasif = '0' ORDER BY sonizlemtarihi ASC LIMIT 0, 20
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Patient.php:162
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT h.id FRO...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT h.id FRO...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(482): App\Core\Database->executePrepared('SELECT h.id FRO...', Array)
+  #3 C:\xampp\htdocs\app\Helpers\PatientListSqlHelper.php(459): App\Core\Database->fetchColumnListPrepared('SELECT h.id FRO...')
+  #4 C:\xampp\htdocs\app\Models\Patient.php(162): App\Helpers\PatientListSqlHelper::fetchPage(Object(App\Core\Database), 'WHERE h.pasif =...', 'LEFT JOIN #__ad...', 'h.*, a1.adi AS ...', 'ORDER BY sonizl...', 20, 0, true, true)
+  #5 C:\xampp\htdocs\app\Models\Patient.php(618): App\Models\Patient->fetchPatientListPage('WHERE h.pasif =...', 'sonizlemtarihi ...', 20, 0, true, true, false)
+  #6 C:\xampp\htdocs\app\Controllers\PatientController.php(187): App\Models\Patient->getUnified(20, 0, 'sonizlemtarihi ...', 'active', '', '', '', '', '')
+  #7 C:\xampp\htdocs\public\index.php(130): App\Controllers\PatientController->unifiedRows()
+  #8 {main}
+--------------------------------------------------------------------------------

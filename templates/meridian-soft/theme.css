@@ -1,0 +1,911 @@
+﻿/* Meridian Soft — pastel açık palet; önce `meridian/theme.css` yüklenir. Etkinleştirme: `body.theme-meridian.theme-meridian-soft` */
+
+body.theme-meridian.theme-meridian-soft {
+  --mr-bg0: #f2f6fb;
+  --mr-bg1: #e8eff8;
+  --mr-surface: rgba(255, 255, 255, 0.92);
+  --mr-surface2: #ffffff;
+  --mr-border: rgba(15, 23, 42, 0.1);
+  --mr-text: #0f172a;
+  --mr-muted: #5c6b80;
+  --mr-accent: #0d9488;
+  --mr-accent2: #0284c7;
+  --mr-warn: #b45309;
+  --mr-danger: #be123c;
+  --mr-shadow: 0 16px 44px rgba(15, 23, 42, 0.07);
+  --esh-ts-control-bg: #ffffff;
+  --esh-ts-control-border: rgba(15, 23, 42, 0.12);
+  --esh-ts-control-color: var(--mr-text);
+  --esh-ts-control-radius: var(--mr-radius-sm, 0.65rem);
+  --esh-ts-control-focus-border: rgba(13, 148, 136, 0.45);
+  --esh-ts-control-focus-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+  --esh-ts-caret-color: var(--mr-accent);
+  --esh-ts-dropdown-bg: #ffffff;
+  --esh-ts-dropdown-border: var(--mr-border);
+  --esh-ts-dropdown-color: var(--mr-text);
+  --esh-ts-option-active-bg: var(--mr-accent);
+  --esh-ts-option-active-color: #ffffff;
+  --esh-ts-item-bg: rgba(13, 148, 136, 0.11);
+  --esh-ts-item-border: rgba(13, 148, 136, 0.28);
+  --esh-ts-item-color: #0d9488;
+  --esh-ts-item-remove-border: rgba(13, 148, 136, 0.3);
+  --esh-ts-item-remove-hover-bg: rgba(13, 148, 136, 0.14);
+  color: var(--mr-text);
+  background-color: var(--mr-bg0);
+  background-image:
+    radial-gradient(1100px 520px at 8% -8%, rgba(45, 212, 191, 0.18), transparent 58%),
+    radial-gradient(760px 420px at 92% 4%, rgba(56, 189, 248, 0.14), transparent 52%),
+    linear-gradient(180deg, #fbfcfe 0%, var(--mr-bg0) 42%, #eef3f9 100%);
+  background-attachment: fixed;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar.navbar-dark.bg-dark,
+body.theme-meridian.theme-meridian-soft nav.navbar {
+  background: linear-gradient(180deg, #dfe7f2 0%, #eef2f8 48%, #f8fafc 100%) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 10px 28px rgba(15, 23, 42, 0.08);
+  /* Bootstrap 5.3 navbar-dark değişkenleri — aksi halde metin yine açık tonda kalır */
+  --bs-navbar-color: #020617;
+  --bs-navbar-hover-color: #0f766e;
+  --bs-navbar-active-color: #0f766e;
+  --bs-navbar-disabled-color: #64748b;
+  --bs-navbar-brand-color: #020617;
+  --bs-navbar-brand-hover-color: #020617;
+}
+
+/*
+ * global.css — body.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link
+ * beyaz metin !important ile daha yüksek özgüllükte; aynı yolu app-shell + tema ile ezip koyu yapıyoruz.
+ */
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link {
+  color: #020617 !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:hover,
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:focus {
+  color: #0f766e !important;
+  background-color: rgba(255, 255, 255, 0.72);
+  border-radius: 0.5rem;
+}
+
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link.active {
+  color: #0f766e !important;
+}
+
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link.fw-bold:not(.bg-warning) {
+  color: #0f766e !important;
+}
+
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link {
+  color: #020617 !important;
+}
+
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link:hover,
+body.theme-meridian.theme-meridian-soft.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link:focus {
+  color: #0f766e !important;
+}
+
+/* Üst menü: genel yedek (dropdown kökleri vb.) */
+body.theme-meridian.theme-meridian-soft .navbar-dark .nav-link {
+  color: #020617 !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar .nav-link,
+body.theme-meridian.theme-meridian-soft .navbar .navbar-brand {
+  color: #020617 !important;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar .nav-link:hover,
+body.theme-meridian.theme-meridian-soft .navbar .nav-link:focus {
+  color: #0f766e !important;
+  background-color: rgba(255, 255, 255, 0.72);
+  border-radius: 0.5rem;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar .nav-link.active {
+  color: #0f766e !important;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar .nav-link.fw-bold:not(.bg-warning) {
+  color: #0f766e !important;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar-dark .navbar-brand {
+  color: #020617 !important;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar-brand .text-primary {
+  color: #0d9488 !important;
+  font-weight: 800;
+}
+
+body.theme-meridian.theme-meridian-soft .navbar-dark .navbar-toggler {
+  border-color: rgba(15, 23, 42, 0.22);
+}
+
+body.theme-meridian.theme-meridian-soft .navbar-dark .navbar-toggler-icon {
+  filter: invert(35%) sepia(8%) saturate(1200%) hue-rotate(172deg) brightness(95%);
+}
+
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard .btn-group .btn-primary {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--mr-accent);
+  border: 1px solid rgba(13, 148, 136, 0.28);
+  box-shadow: none;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard .btn-group .btn-outline-primary {
+  border-color: rgba(2, 132, 199, 0.28);
+}
+
+body.theme-meridian.theme-meridian-soft .dropdown-menu {
+  background: #ffffff;
+  border: 1px solid var(--mr-border);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-meridian.theme-meridian-soft .dropdown-item {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .dropdown-item:hover,
+body.theme-meridian.theme-meridian-soft .dropdown-item:focus {
+  background: rgba(13, 148, 136, 0.1);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .footer {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-top: 1px solid var(--mr-border) !important;
+  color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.88));
+  box-shadow: var(--mr-shadow);
+  color: var(--mr-text);
+}
+
+/* Üst üste Tom Select (meridian/theme.css overflow:clip ile birlikte) */
+body.theme-meridian.theme-meridian-soft .card:has(.dropdown-active) {
+  overflow: visible !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card-body:has(.dropdown-active) {
+  overflow: visible !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card-header {
+  background: rgba(248, 250, 252, 0.98) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .card-header .text-primary,
+body.theme-meridian.theme-meridian-soft .card-header.text-primary {
+  color: var(--mr-accent2) !important;
+}
+
+/* Bootstrap bg-primary + text-white — genel .card-header açık zemini ezmesin; metin koyu okunur */
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white {
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.2) 0%, rgba(13, 148, 136, 0.1) 100%) !important;
+  border-bottom: 1px solid rgba(13, 148, 136, 0.28) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h1,
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h2,
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h3,
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h4,
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h5,
+body.theme-meridian.theme-meridian-soft .card-header.bg-primary.text-white h6 {
+  color: var(--mr-text) !important;
+}
+
+/* İstatistik özet kartı (Barthel) — genel .card açık zemin + text-white çakışması */
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card {
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.26) 0%, rgba(13, 148, 136, 0.1) 100%) !important;
+  color: var(--mr-text) !important;
+  box-shadow: none;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .esh-stats-metric-card__icon {
+  background: rgba(13, 148, 136, 0.16) !important;
+  color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .esh-stats-metric-card__label,
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .display-3,
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .esh-stats-metric-card__pill,
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .esh-stats-metric-card__pill strong {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-stats-metric-card .esh-stats-metric-card__pill {
+  background: rgba(13, 148, 136, 0.12) !important;
+}
+
+/* Yeni izlem (bg-success + text-white) — açık zemin + beyaz metin çakışması */
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.22) 0%, rgba(22, 163, 74, 0.1) 100%) !important;
+  border-bottom: 1px solid rgba(22, 163, 74, 0.28) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h1,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h2,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h3,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h4,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h5,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white h6,
+body.theme-meridian.theme-meridian-soft .card-header.bg-success.text-white p {
+  color: var(--mr-text) !important;
+}
+
+/* Hasta düzenle — Dosya Seçenekleri (genel açık .card-header kuralını ezmez) */
+body.theme-meridian.theme-meridian-soft #patientForm .card-header.bg-dark.text-white {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.35) !important;
+  color: #f8fafc !important;
+}
+
+body.theme-meridian.theme-meridian-soft .card-footer {
+  background: rgba(241, 245, 249, 0.95) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-white {
+  background-color: #ffffff !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-light {
+  background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+/* Branş randevu takvimi — hafta sonu hücreleri */
+body.theme-meridian.theme-meridian-soft .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-white {
+  background-color: #eef1f5 !important;
+}
+body.theme-meridian.theme-meridian-soft .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-light {
+  background-color: #e4e9ef !important;
+}
+body.theme-meridian.theme-meridian-soft .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.border-primary.border-2 {
+  background-color: rgba(13, 148, 136, 0.18) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-body,
+body.theme-meridian.theme-meridian-soft .bg-body-secondary,
+body.theme-meridian.theme-meridian-soft .bg-body-tertiary {
+  background-color: rgba(241, 245, 249, 0.75) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .bg-body-tertiary.bg-opacity-25,
+body.theme-meridian.theme-meridian-soft .bg-body-tertiary.bg-opacity-50 {
+  background-color: rgba(241, 245, 249, 0.55) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-primary-subtle {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-info-subtle {
+  background-color: rgba(2, 132, 199, 0.1) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #065f46 !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-warning-subtle {
+  background-color: rgba(251, 191, 36, 0.18) !important;
+  color: #92400e !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-danger-subtle {
+  background-color: rgba(251, 113, 133, 0.15) !important;
+  color: #9f1239 !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-secondary-subtle {
+  background-color: rgba(148, 163, 184, 0.2) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .bg-light-subtle {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .bg-light-50 {
+  background-color: rgba(248, 250, 252, 0.9) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .table {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-color: #78350f;
+  --bs-table-striped-bg: rgba(241, 245, 249, 0.85);
+  --bs-table-striped-color: var(--mr-text);
+  --bs-table-hover-bg: rgba(13, 148, 136, 0.08);
+  --bs-table-hover-color: var(--mr-text);
+  --bs-table-border-color: var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft .table.table-light {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-striped-bg: rgba(241, 245, 249, 0.85);
+  --bs-table-hover-bg: rgba(13, 148, 136, 0.08);
+}
+
+body.theme-meridian.theme-meridian-soft .table thead.table-light th,
+body.theme-meridian.theme-meridian-soft .table thead.table-light td {
+  background-color: #f1f5f9 !important;
+  color: var(--mr-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+body.theme-meridian.theme-meridian-soft .table thead:not(.table-light) th,
+body.theme-meridian.theme-meridian-soft .table thead:not(.table-light) td {
+  background-color: #e2e8f0 !important;
+  color: var(--mr-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+body.theme-meridian.theme-meridian-soft .table-warning {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-meridian-soft .table-danger {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-meridian-soft .table-success {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-meridian-soft .table-info {
+  --bs-table-bg: rgba(255, 255, 255, 0.75);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-meridian-soft .table .badge.bg-white,
+body.theme-meridian.theme-meridian-soft .table .badge.rounded-pill.bg-white {
+  background-color: #ffffff !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft .form-control,
+body.theme-meridian.theme-meridian-soft .form-select {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .form-control:focus,
+body.theme-meridian.theme-meridian-soft .form-select:focus {
+  border-color: rgba(13, 148, 136, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+  background: #ffffff;
+}
+
+body.theme-meridian.theme-meridian-soft .input-group-text {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft .btn-primary {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  box-shadow: 0 8px 22px rgba(13, 148, 136, 0.22);
+}
+
+body.theme-meridian.theme-meridian-soft .btn-outline-primary:hover {
+  background: rgba(2, 132, 199, 0.08);
+}
+
+body.theme-meridian.theme-meridian-soft .btn-outline-secondary:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+body.theme-meridian.theme-meridian-soft .alert-success {
+  background: rgba(167, 243, 208, 0.55);
+  color: #14532d;
+}
+
+body.theme-meridian.theme-meridian-soft .alert-danger {
+  background: rgba(254, 202, 202, 0.55);
+  color: #7f1d1d;
+}
+
+body.theme-meridian.theme-meridian-soft .alert-info {
+  background: rgba(186, 230, 253, 0.55);
+  color: #0c4a6e;
+}
+
+body.theme-meridian.theme-meridian-soft .modal-content {
+  background: #ffffff;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .list-group-item {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .list-group-item-action:hover,
+body.theme-meridian.theme-meridian-soft .list-group-item-action:focus {
+  background-color: rgba(13, 148, 136, 0.08);
+}
+
+body.theme-meridian.theme-meridian-soft .page-link {
+  background-color: #ffffff;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .page-link:hover {
+  background-color: rgba(13, 148, 136, 0.1);
+}
+
+body.theme-meridian.theme-meridian-soft .page-item.disabled .page-link {
+  background-color: #f1f5f9;
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-pill {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--mr-accent);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+}
+
+/* Günün planı — yükseklik sol sütun (hasta ara + takvim) ile aynı */
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard > .row {
+  align-items: stretch;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard > .row > .col-lg-4 {
+  display: flex;
+  flex-direction: column;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard .mr-dash-plan {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.85));
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: 100% !important;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .card-header.mr-dash-plan__head {
+  background: rgba(248, 250, 252, 0.98) !important;
+  flex-shrink: 0;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .mr-dash-plan__body {
+  background: rgba(255, 255, 255, 0.55);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .mr-dash-plan__foot {
+  background: rgba(241, 245, 249, 0.95) !important;
+  flex-shrink: 0;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-task-tab-panels {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab {
+  background: #f8fafc;
+  border: 1px solid var(--mr-border);
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab:hover {
+  background: rgba(13, 148, 136, 0.08);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active {
+  background: #ffffff !important;
+  color: var(--mr-text) !important;
+  border-color: rgba(13, 148, 136, 0.35) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--empty {
+  background: #e2e8f0 !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--sabah,
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--ogle,
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--aksam {
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-daily-plan-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-daily-plan-card__badge,
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard #daily-events-container .esh-daily-plan-card__badge {
+  --bs-badge-color: #0f172a;
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-dash-plan .esh-daily-plan-card__meta,
+body.theme-meridian.theme-meridian-soft .esh-page-dashboard #daily-events-container .esh-daily-plan-card__meta {
+  color: #475569 !important;
+}
+
+body.theme-meridian.theme-meridian-soft .dropdown-menu.esh-admin-mega-menu {
+  background: #ffffff !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-admin-mega-menu__col {
+  background: rgba(248, 250, 252, 0.95) !important;
+}
+
+/* Hasta listesi / Tıbbi İşlemler mega menü — Meridian koyu panelini soft palete çek */
+body.theme-meridian.theme-meridian-soft .dropdown-menu.esh-patient-mega-menu {
+  background: #ffffff !important;
+  border: 1px solid var(--mr-border) !important;
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu__head {
+  border-color: var(--mr-border) !important;
+  color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu__col {
+  background: rgba(248, 250, 252, 0.95) !important;
+  border-color: var(--mr-border) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu__col h6 {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu .dropdown-item {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu .dropdown-item:hover,
+body.theme-meridian.theme-meridian-soft .esh-patient-mega-menu .dropdown-item:focus {
+  background: rgba(13, 148, 136, 0.1);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft #adres-hierarchy .hier-column {
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+body.theme-meridian.theme-meridian-soft #adres-hierarchy .hier-list {
+  background: #fafbfc;
+}
+
+body.theme-meridian.theme-meridian-soft #adres-hierarchy .hier-item:hover {
+  background: rgba(13, 148, 136, 0.06);
+}
+
+body.theme-meridian.theme-meridian-soft #adres-hierarchy .hier-item.active {
+  background: rgba(186, 230, 253, 0.55);
+  border-left-color: var(--mr-accent2) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .mr-admin-page .ekip-box {
+  background: #ffffff;
+  border-color: var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft .mr-admin-page .datepicker-container {
+  background: #ffffff;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-vardiya-body--0 {
+  background: linear-gradient(180deg, rgba(253, 230, 138, 0.45), rgba(255, 255, 255, 0.9)) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-vardiya-body--1 {
+  background: linear-gradient(180deg, rgba(186, 230, 253, 0.45), rgba(255, 255, 255, 0.92)) !important;
+}
+
+body.theme-meridian.theme-meridian-soft .esh-vardiya-body--2 {
+  background: linear-gradient(180deg, rgba(226, 232, 240, 0.75), rgba(248, 250, 252, 0.95)) !important;
+}
+
+body.page-login.theme-meridian.theme-meridian-soft.mr-login-page {
+  background-color: var(--mr-bg0);
+  background-image:
+    radial-gradient(1000px 500px at 10% -8%, rgba(45, 212, 191, 0.2), transparent 55%),
+    radial-gradient(720px 380px at 90% 2%, rgba(56, 189, 248, 0.16), transparent 52%),
+    linear-gradient(180deg, #fbfcfe 0%, var(--mr-bg0) 40%, #eef3f9 100%);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-card.card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-brand {
+  background: linear-gradient(165deg, #ccfbf1, #e0f2fe);
+  border-right: 1px solid var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-brand,
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-brand .mr-login-kicker {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-brand-icon {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  color: var(--mr-accent);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-form-col {
+  background: rgba(255, 255, 255, 0.97);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-form-col .text-white,
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-form-col label.text-white {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-version {
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--mr-text);
+  border: 1px solid var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .login-split-panels {
+  align-items: stretch;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card {
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm, 0.75rem);
+  padding: 1rem 1.15rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 22px rgba(15, 23, 42, 0.06);
+  transition: transform 0.16s ease, box-shadow 0.18s ease;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 14px 28px rgba(15, 23, 42, 0.1);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card--normal {
+  border-top: 3px solid var(--mr-accent2);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card--eimza {
+  border-top: 3px solid rgba(148, 163, 184, 0.65);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.92) 100%);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .form-label {
+  color: var(--mr-text);
+  margin-bottom: 0.35rem;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .form-control,
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .input-group-text {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .form-control::placeholder {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .input-group .form-control {
+  border-left: 0;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .input-group-text {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card .mr-login-btn-submit {
+  min-height: 2.65rem;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-eimza-badge {
+  background: rgba(148, 163, 184, 0.22);
+  color: var(--mr-text);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-eimza-hint {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card--eimza .form-control[disabled] {
+  opacity: 0.72;
+  background: #f8fafc;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-mode-card--eimza .btn[disabled] {
+  opacity: 0.65;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-nav.nav-tabs {
+  border-bottom-color: var(--mr-border);
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-nav.nav-tabs .nav-item {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-nav.nav-tabs .nav-link {
+  width: 100%;
+  font-weight: 600;
+  color: var(--mr-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--mr-radius-sm, 0.75rem) var(--mr-radius-sm, 0.75rem) 0 0;
+  padding: 0.6rem 0.5rem;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-nav.nav-tabs .nav-link:hover {
+  color: var(--mr-text);
+  background: rgba(13, 148, 136, 0.06);
+  border-color: var(--mr-border) var(--mr-border) transparent;
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-nav.nav-tabs .nav-link.active {
+  color: var(--mr-text);
+  background: #ffffff;
+  border-color: var(--mr-border) var(--mr-border) #ffffff;
+  box-shadow: inset 0 3px 0 var(--mr-accent2);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-content .mr-login-mode-card {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 1px solid var(--mr-border);
+}
+
+body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-tabs-content .mr-login-mode-card:hover {
+  transform: none;
+}
+
+@media (max-width: 1199.98px) {
+  body.theme-meridian.theme-meridian-soft.mr-login-page .mr-login-form-col > div {
+    min-height: auto !important;
+  }
+}
+
+@media print {
+  body.theme-meridian.theme-meridian-soft {
+    background: #fff;
+    color: #000;
+  }
+}
+
+body.app-shell.theme-meridian.theme-meridian-soft {
+  --esh-ui-text: var(--mr-text);
+  --esh-ui-text-muted: var(--mr-muted);
+  --esh-ui-accent: var(--mr-accent2);
+  --esh-ui-surface: var(--mr-surface);
+  --esh-ui-surface-muted: var(--mr-surface2);
+  --esh-ui-border: var(--mr-border);
+  --esh-ui-radius: var(--mr-radius-sm, 0.65rem);
+  --esh-ui-shadow: var(--mr-shadow);
+  --esh-ui-surface-subtle: #f8f9fa;
+  --esh-ui-surface-warning: #fff9e6;
+  --esh-ui-soft-danger-bg: rgba(248, 215, 218, 0.4);
+  --esh-ui-soft-info-bg: rgba(207, 244, 252, 0.4);
+  --esh-ui-card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  --esh-ui-print-surface: #ffffff;
+  --esh-ui-panel-subtitle-size: 0.8125rem;
+  --esh-ui-table-head-bg: var(--mr-surface2);
+  --esh-ui-table-head-color: var(--mr-muted);
+  --esh-ui-table-head-font-size: 0.7rem;
+  --esh-ui-table-head-letter-spacing: 0.04em;
+  --esh-ui-table-head-padding: 0.75rem 0.5rem;
+  --esh-ui-font-size-xs: 0.68rem;
+  --esh-ui-font-size-sm: 0.78rem;
+  --esh-ui-font-size-badge: 0.62rem;
+  --esh-ui-dropdown-font-size: 0.78rem;
+  --esh-ui-dropdown-header-font-size: 0.65rem;
+  --esh-ui-dropdown-header-letter-spacing: 0.5px;
+  --esh-ui-dropdown-menu-radius: 10px;
+  --esh-ui-filter-control-height: 38px;
+  --esh-ui-navbar-link-font-size: 0.9rem;
+  --esh-ui-navbar-dropdown-font-size: 0.88rem;
+  --esh-ui-table-head-border-bottom: 2px solid #e2e8f0;
+  --esh-ui-tc-code-font-size: 0.75rem;
+  --esh-ui-tc-code-radius: 4px;
+  --esh-ui-status-badge-radius: 8px;
+  --esh-ui-btn-xs-font-size: 0.7rem;
+  --esh-ui-avatar-sm-size: 32px;
+  --esh-ui-avatar-sm-font-size: 0.8rem;
+  --esh-ui-small-text-font-size: 0.75rem;
+  --esh-ui-cal-task-font-size: 0.65rem;
+  --esh-ui-cal-badge-font-size: 0.7rem;
+  --esh-ui-cal-legend-font-size: 0.75rem;
+  --esh-ui-scrollbar-radius: 10px;
+  --esh-ui-dash-plan-tabs-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --esh-ui-daily-plan-badge-font-size: 0.65rem;
+  --esh-ui-daily-plan-meta-font-size: 0.75rem;
+  --esh-ui-daily-section-font-size: 1rem;
+  --esh-ui-route-tab-font-size: 1.05rem;
+  --esh-ui-route-tab-font-size-sm: 0.95rem;
+  --esh-ui-route-tab-font-weight: 600;
+  --esh-ui-route-tab-font-weight-active: 700;
+  --esh-ui-route-tab-badge-font-size: 0.82rem;
+  --esh-ui-route-tab-badge-font-size-sm: 0.75rem;
+  --esh-ui-route-tab-icon-size: 1.15rem;
+  --esh-ui-route-tab-min-height: 3.35rem;
+  --esh-ui-route-tab-min-height-sm: 3rem;
+  --esh-ui-care-item-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --esh-ui-care-label-font-size: 0.68rem;
+  --esh-ui-care-value-font-size: 0.875rem;
+  --esh-ui-care-icon-font-size: 0.95rem;
+  --esh-ui-barthel-tooltip-font-size: 0.8125rem;
+  --esh-ui-barthel-pts-font-size: 0.7rem;
+  --esh-ui-diagnosis-rapor-font-size: 0.58rem;
+  --esh-ui-coords-btn-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+  --esh-ui-coords-btn-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.24);
+  --esh-ui-pansuman-day-font-size: 0.8rem;
+  --esh-ui-mega-menu-head-font-size: 0.78rem;
+  --esh-ui-mega-menu-title-font-size: 0.68rem;
+  --esh-ui-mega-menu-item-font-size: 0.82rem;
+  --esh-ui-login-card-max: 48rem;
+  --esh-ui-login-card-radius: 20px;
+  --esh-ui-login-card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  --esh-ui-login-header-icon-size: 2.75rem;
+  --esh-ui-login-input-radius: 10px;
+  --esh-ui-login-input-padding: 12px;
+  --esh-ui-login-btn-radius: 10px;
+  --esh-ui-login-btn-padding: 12px;
+  --esh-ui-login-split-card-radius: 24px;
+  --esh-ui-login-split-card-shadow: 0 22px 56px rgba(15, 23, 42, 0.18);
+  --esh-ui-login-split-card-border: 1px solid rgba(13, 110, 253, 0.14);
+  --esh-ui-login-split-brand-icon-size: 1.45rem;
+  --esh-ui-login-split-subtitle-font-size: 0.88rem;
+  --esh-ui-hier-column-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --esh-ui-profile-btn-primary-shadow: 0 2px 8px rgba(13, 110, 253, 0.22);
+  --esh-ui-arac-choice-hover-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.08);
+  --esh-ui-font-size-base: 0.9375rem;
+  --esh-ui-line-height: 1.5;
+  --esh-ui-heading-size: 1.35rem;
+  --esh-ui-lead-size: 0.9375rem;
+  --esh-ui-font-weight-heading: 700;
+}

@@ -1,0 +1,9 @@
+.tooltip-inner {
+    background-color: #1e293b; /* Dark-soft arka plan */
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.tooltip .btn-close { color: white; }

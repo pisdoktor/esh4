@@ -1,0 +1,79 @@
+/**
+ * Nord — bootstrap-datepicker (`datepicker-meridian.css` sonrası).
+ */
+
+body.theme-meridian.theme-nord .datepicker.datepicker-dropdown {
+    padding: 0.85rem 1rem !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    color: var(--mr-text) !important;
+    background: linear-gradient(145deg, rgba(67, 76, 94, 0.96), rgba(59, 66, 82, 0.94)) !important;
+    border: 1px solid var(--mr-border) !important;
+    border-radius: var(--mr-radius-sm, 0.65rem) !important;
+    box-shadow: var(--mr-shadow) !important;
+    margin-top: 0.35rem !important;
+    backdrop-filter: blur(12px);
+}
+
+body.theme-meridian.theme-nord .datepicker-dropdown::before,
+body.theme-meridian.theme-nord .datepicker-dropdown::after {
+    border: none !important;
+    content: none !important;
+    display: none !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table {
+    border-collapse: separate;
+    border-spacing: 3px;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr th.prev:hover,
+body.theme-meridian.theme-nord .datepicker table tr th.next:hover,
+body.theme-meridian.theme-nord .datepicker table tr th.datepicker-switch:hover {
+    background: rgba(136, 192, 208, 0.16) !important;
+    color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr th.dow {
+    color: var(--mr-muted) !important;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.day {
+    border-radius: var(--mr-radius-sm, 0.65rem) !important;
+    color: var(--mr-text) !important;
+    border: none !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.day:hover {
+    background: rgba(129, 161, 193, 0.18) !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.today {
+    background-color: rgba(235, 203, 139, 0.22) !important;
+    color: #ebcb8b !important;
+    font-weight: 700;
+    background-image: none !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.active,
+body.theme-meridian.theme-nord .datepicker table tr td.active:hover,
+body.theme-meridian.theme-nord .datepicker table tr td.selected,
+body.theme-meridian.theme-nord .datepicker table tr td.range-start,
+body.theme-meridian.theme-nord .datepicker table tr td.range-end {
+    background: linear-gradient(135deg, #88c0d0, #6aa7bc) !important;
+    color: #2e3440 !important;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(136, 192, 208, 0.28) !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.range {
+    background: rgba(136, 192, 208, 0.12) !important;
+}
+
+body.theme-meridian.theme-nord .datepicker table tr td.old,
+body.theme-meridian.theme-nord .datepicker table tr td.new {
+    opacity: 0.55;
+}

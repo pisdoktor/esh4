@@ -1,0 +1,76 @@
+/**
+ * Old Classic — köşesiz, gri çerçeve, klasik mavi seçim (tema ile uyumlu).
+ */
+body .datepicker.datepicker-dropdown {
+    padding: 10px !important;
+    border-radius: 0 !important;
+    border: 2px outset #f0f0f0 !important;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25) !important;
+    font-family: Tahoma, Verdana, Arial, sans-serif !important;
+    font-size: 12px;
+    background: #ece9d8 !important;
+    color: #000 !important;
+}
+
+body .datepicker-dropdown::before,
+body .datepicker-dropdown::after {
+    display: none !important;
+}
+
+body .datepicker table tr th {
+    border-radius: 0 !important;
+    color: #000 !important;
+    font-weight: 700;
+}
+
+body .datepicker table tr th.prev:hover,
+body .datepicker table tr th.next:hover,
+body .datepicker table tr th.datepicker-switch:hover {
+    background: #d4d0c8 !important;
+    color: #000080 !important;
+}
+
+body .datepicker table tr th.dow {
+    color: #333 !important;
+    text-transform: none;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+body .datepicker table tr td.day {
+    border-radius: 0 !important;
+    color: #000 !important;
+}
+
+body .datepicker table tr td.day:hover {
+    background: #d4d0c8 !important;
+    color: #000 !important;
+}
+
+body .datepicker table tr td.today {
+    background-color: #fffacd !important;
+    color: #000080 !important;
+    font-weight: 700;
+    background-image: none !important;
+}
+
+body .datepicker table tr td.active,
+body .datepicker table tr td.active:hover,
+body .datepicker table tr td.active.active {
+    background: linear-gradient(180deg, #5a9fd4 0%, #316ac5 55%, #25569d 100%) !important;
+    background-image: none !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: none !important;
+}
+
+body .datepicker table tr td.old,
+body .datepicker table tr td.new {
+    color: #999 !important;
+}
+
+body .datepicker table tr th.prev i,
+body .datepicker table tr th.next i {
+    color: #000080 !important;
+    font-size: 11px;
+}

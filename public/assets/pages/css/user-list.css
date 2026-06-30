@@ -1,0 +1,6 @@
+.esh-user-filter .esh-filter-control,
+.esh-user-filter .btn {
+    height: 38px !important;
+    min-height: 38px !important;
+    line-height: 1.25;
+}

@@ -1,0 +1,116 @@
+/**
+ * Catppuccin Mocha — bootstrap-datepicker görünüm katmanı (`datepicker-meridian.css` sonrası).
+ * Seçici: `body.theme-meridian.theme-catppuccin-mocha`
+ */
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker.datepicker-dropdown {
+    padding: 0.85rem 1rem !important;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+    color: var(--mr-text) !important;
+    background: linear-gradient(145deg, rgba(49, 50, 68, 0.95), rgba(24, 24, 37, 0.92)) !important;
+    border: 1px solid var(--mr-border) !important;
+    border-radius: var(--mr-radius-sm, 0.65rem) !important;
+    box-shadow: var(--mr-shadow, 0 22px 56px rgba(17, 17, 27, 0.55)) !important;
+    margin-top: 0.35rem !important;
+    backdrop-filter: blur(12px);
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker-dropdown::before,
+body.theme-meridian.theme-catppuccin-mocha .datepicker-dropdown::after {
+    border: none !important;
+    content: none !important;
+    display: none !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table {
+    border-collapse: separate;
+    border-spacing: 3px;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th {
+    font-weight: 600;
+    color: var(--mr-text) !important;
+    height: 2.25rem;
+    border-radius: var(--mr-radius-sm, 0.65rem) !important;
+    background: transparent !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.prev:hover,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.next:hover,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.datepicker-switch:hover {
+    background: rgba(203, 166, 247, 0.18) !important;
+    color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.dow {
+    color: var(--mr-muted) !important;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.day {
+    width: 2.35rem;
+    height: 2.35rem;
+    line-height: 2.35rem;
+    border-radius: var(--mr-radius-sm, 0.65rem) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--mr-text) !important;
+    border: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.day:hover {
+    background: rgba(116, 199, 236, 0.16) !important;
+    color: var(--mr-text) !important;
+    cursor: pointer;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.today {
+    background-color: rgba(249, 226, 175, 0.22) !important;
+    color: #f9e2af !important;
+    font-weight: 700;
+    background-image: none !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.active,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.active:hover,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.selected,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.range-start,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.range-end {
+    background: linear-gradient(135deg, #cba6f7, #9f7edc) !important;
+    background-image: none !important;
+    color: #11111b !important;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(203, 166, 247, 0.38) !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.range {
+    background: rgba(203, 166, 247, 0.14) !important;
+    color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.old,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.new {
+    color: var(--mr-muted) !important;
+    opacity: 0.55;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.disabled,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr td.disabled:hover {
+    background: transparent !important;
+    opacity: 0.28;
+    cursor: not-allowed;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.prev i,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.next i {
+    color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.prev:hover i,
+body.theme-meridian.theme-catppuccin-mocha .datepicker table tr th.next:hover i {
+    color: var(--mr-accent) !important;
+}

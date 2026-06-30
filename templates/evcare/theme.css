@@ -1,0 +1,1837 @@
+/* Vitality Ev Bakım — sıcak evde sağlık paleti; önce `meridian/theme.css` yüklenir.
+ * Etkinleştirme: `body.theme-meridian.theme-evcare` (`views/partials/header.php`).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Outfit:wght@400;500;600;700&display=swap');
+
+body.theme-meridian.theme-evcare {
+  --mr-bg0: #faf6f0;
+  --mr-bg1: #f3ebe3;
+  --mr-surface: rgba(255, 252, 248, 0.94);
+  --mr-surface2: #fffefb;
+  --mr-border: rgba(61, 47, 38, 0.12);
+  --mr-text: #2c241c;
+  --mr-muted: #6b5d52;
+  --mr-accent: #2f6f64;
+  --mr-accent2: #b8653c;
+  --mr-warn: #a16207;
+  --mr-danger: #b91c3c;
+  --mr-shadow: 0 18px 48px rgba(44, 36, 28, 0.09);
+  --esh-ts-control-bg: #fffefb;
+  --esh-ts-control-border: rgba(61, 47, 38, 0.14);
+  --esh-ts-control-color: var(--mr-text);
+  --esh-ts-control-radius: var(--mr-radius-sm, 0.65rem);
+  --esh-ts-control-focus-border: rgba(47, 111, 100, 0.48);
+  --esh-ts-control-focus-shadow: 0 0 0 0.2rem rgba(47, 111, 100, 0.14);
+  --esh-ts-caret-color: var(--mr-accent);
+  --esh-ts-dropdown-bg: #fffefb;
+  --esh-ts-dropdown-border: var(--mr-border);
+  --esh-ts-dropdown-color: var(--mr-text);
+  --esh-ts-option-active-bg: var(--mr-accent);
+  --esh-ts-option-active-color: #ffffff;
+  --esh-ts-item-bg: rgba(47, 111, 100, 0.12);
+  --esh-ts-item-border: rgba(47, 111, 100, 0.28);
+  --esh-ts-item-color: #2f6f64;
+  --esh-ts-item-remove-border: rgba(47, 111, 100, 0.32);
+  --esh-ts-item-remove-hover-bg: rgba(47, 111, 100, 0.14);
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--mr-text);
+  background-color: var(--mr-bg0);
+  background-image:
+    radial-gradient(980px 460px at 6% -6%, rgba(47, 111, 100, 0.14), transparent 55%),
+    radial-gradient(720px 420px at 94% 8%, rgba(184, 101, 60, 0.12), transparent 52%),
+    linear-gradient(185deg, #fffefb 0%, var(--mr-bg0) 38%, #efe6dc 100%);
+  background-attachment: fixed;
+}
+
+body.theme-meridian.theme-evcare .navbar-brand {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body.theme-meridian.theme-evcare .navbar.navbar-dark.bg-dark,
+body.theme-meridian.theme-evcare nav.navbar {
+  background: linear-gradient(180deg, #fffcf8 0%, #f6efe8 48%, #faf6f0 100%) !important;
+  border-bottom: 1px solid rgba(61, 47, 38, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 12px 32px rgba(44, 36, 28, 0.08);
+  --bs-navbar-color: #2c241c;
+  --bs-navbar-hover-color: #2f6f64;
+  --bs-navbar-active-color: #2f6f64;
+  --bs-navbar-disabled-color: #8a7b70;
+  --bs-navbar-brand-color: #2c241c;
+  --bs-navbar-brand-hover-color: #2c241c;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link {
+  color: #2c241c !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:hover,
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:focus {
+  color: #2f6f64 !important;
+  background-color: rgba(255, 255, 255, 0.78);
+  border-radius: 0.5rem;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link.active {
+  color: #2f6f64 !important;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link.fw-bold:not(.bg-warning) {
+  color: #2f6f64 !important;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link {
+  color: #2c241c !important;
+}
+
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link:hover,
+body.theme-meridian.theme-evcare.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link:focus {
+  color: #2f6f64 !important;
+}
+
+body.theme-meridian.theme-evcare .navbar-dark .nav-link {
+  color: #2c241c !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body.theme-meridian.theme-evcare .navbar .nav-link,
+body.theme-meridian.theme-evcare .navbar .navbar-brand {
+  color: #2c241c !important;
+}
+
+body.theme-meridian.theme-evcare .navbar .nav-link:hover,
+body.theme-meridian.theme-evcare .navbar .nav-link:focus {
+  color: #2f6f64 !important;
+  background-color: rgba(255, 255, 255, 0.72);
+  border-radius: 0.5rem;
+}
+
+body.theme-meridian.theme-evcare .navbar .nav-link.active {
+  color: #2f6f64 !important;
+}
+
+body.theme-meridian.theme-evcare .navbar .nav-link.fw-bold:not(.bg-warning) {
+  color: #2f6f64 !important;
+}
+
+body.theme-meridian.theme-evcare .navbar-dark .navbar-brand {
+  color: #2c241c !important;
+}
+
+body.theme-meridian.theme-evcare .navbar-brand .text-primary {
+  color: #2f6f64 !important;
+  font-weight: 800;
+}
+
+body.theme-meridian.theme-evcare .navbar-dark .navbar-toggler {
+  border-color: rgba(61, 47, 38, 0.22);
+}
+
+body.theme-meridian.theme-evcare .navbar-dark .navbar-toggler-icon {
+  filter: invert(22%) sepia(12%) saturate(900%) hue-rotate(332deg) brightness(92%);
+}
+
+body.theme-meridian.theme-evcare .esh-page-dashboard .btn-group .btn-primary {
+  background: rgba(47, 111, 100, 0.12);
+  color: var(--mr-accent);
+  border: 1px solid rgba(47, 111, 100, 0.28);
+  box-shadow: none;
+}
+
+body.theme-meridian.theme-evcare .esh-page-dashboard .btn-group .btn-outline-primary {
+  border-color: rgba(184, 101, 60, 0.32);
+}
+
+body.theme-meridian.theme-evcare .dropdown-menu {
+  background: #fffefb;
+  border: 1px solid var(--mr-border);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-meridian.theme-evcare .dropdown-item {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .dropdown-item:hover,
+body.theme-meridian.theme-evcare .dropdown-item:focus {
+  background: rgba(47, 111, 100, 0.1);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .footer {
+  background: rgba(255, 254, 251, 0.96) !important;
+  border-top: 1px solid var(--mr-border) !important;
+  color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-evcare .card {
+  background: linear-gradient(148deg, rgba(255, 254, 251, 0.97), rgba(246, 239, 232, 0.88));
+  box-shadow: var(--mr-shadow);
+  color: var(--mr-text);
+  border-color: rgba(61, 47, 38, 0.08);
+}
+
+body.theme-meridian.theme-evcare .card-header {
+  background: rgba(255, 252, 248, 0.98) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .card-header .text-primary,
+body.theme-meridian.theme-evcare .card-header.text-primary {
+  color: var(--mr-accent2) !important;
+}
+
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white {
+  background: linear-gradient(180deg, rgba(47, 111, 100, 0.18) 0%, rgba(47, 111, 100, 0.09) 100%) !important;
+  border-bottom: 1px solid rgba(47, 111, 100, 0.28) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h1,
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h2,
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h3,
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h4,
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h5,
+body.theme-meridian.theme-evcare .card-header.bg-primary.text-white h6 {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-stats-metric-card {
+  background: linear-gradient(180deg, rgba(47, 111, 100, 0.24) 0%, rgba(47, 111, 100, 0.1) 100%) !important;
+  color: var(--mr-text) !important;
+  box-shadow: none;
+}
+
+body.theme-meridian.theme-evcare .esh-stats-metric-card .esh-stats-metric-card__icon {
+  background: rgba(47, 111, 100, 0.16) !important;
+  color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-stats-metric-card .esh-stats-metric-card__label,
+body.theme-meridian.theme-evcare .esh-stats-metric-card .display-3,
+body.theme-meridian.theme-evcare .esh-stats-metric-card .esh-stats-metric-card__pill,
+body.theme-meridian.theme-evcare .esh-stats-metric-card .esh-stats-metric-card__pill strong {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-stats-metric-card .esh-stats-metric-card__pill {
+  background: rgba(47, 111, 100, 0.12) !important;
+}
+
+body.theme-meridian.theme-evcare .card-footer {
+  background: rgba(239, 230, 220, 0.92) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-white {
+  background-color: #fffefb !important;
+}
+
+body.theme-meridian.theme-evcare .bg-light {
+  background-color: rgba(246, 239, 232, 0.88) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-white {
+  background-color: #ebe3da !important;
+}
+
+body.theme-meridian.theme-evcare .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-light {
+  background-color: #e2d9cf !important;
+}
+
+body.theme-meridian.theme-evcare .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.border-primary.border-2 {
+  background-color: rgba(47, 111, 100, 0.16) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-body,
+body.theme-meridian.theme-evcare .bg-body-secondary,
+body.theme-meridian.theme-evcare .bg-body-tertiary {
+  background-color: rgba(239, 230, 220, 0.72) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .bg-body-tertiary.bg-opacity-25,
+body.theme-meridian.theme-evcare .bg-body-tertiary.bg-opacity-50 {
+  background-color: rgba(239, 230, 220, 0.52) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-primary-subtle {
+  background-color: rgba(47, 111, 100, 0.12) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-info-subtle {
+  background-color: rgba(184, 101, 60, 0.1) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-success-subtle {
+  background-color: rgba(47, 111, 100, 0.14) !important;
+  color: #1d4d44 !important;
+}
+
+body.theme-meridian.theme-evcare .bg-warning-subtle {
+  background-color: rgba(251, 191, 36, 0.2) !important;
+  color: #78350f !important;
+}
+
+body.theme-meridian.theme-evcare .bg-danger-subtle {
+  background-color: rgba(251, 113, 133, 0.14) !important;
+  color: #9f1239 !important;
+}
+
+body.theme-meridian.theme-evcare .bg-secondary-subtle {
+  background-color: rgba(148, 163, 184, 0.18) !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .bg-light-subtle {
+  background-color: rgba(255, 252, 248, 0.94) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .bg-light-50 {
+  background-color: rgba(255, 252, 248, 0.9) !important;
+}
+
+body.theme-meridian.theme-evcare .table {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-color: #78350f;
+  --bs-table-striped-bg: rgba(239, 230, 220, 0.82);
+  --bs-table-striped-color: var(--mr-text);
+  --bs-table-hover-bg: rgba(47, 111, 100, 0.07);
+  --bs-table-hover-color: var(--mr-text);
+  --bs-table-border-color: var(--mr-border);
+}
+
+body.theme-meridian.theme-evcare .table.table-light {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-striped-bg: rgba(239, 230, 220, 0.82);
+  --bs-table-hover-bg: rgba(47, 111, 100, 0.07);
+}
+
+body.theme-meridian.theme-evcare .table thead.table-light th,
+body.theme-meridian.theme-evcare .table thead.table-light td {
+  background-color: #efe6dc !important;
+  color: var(--mr-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+body.theme-meridian.theme-evcare .table thead:not(.table-light) th,
+body.theme-meridian.theme-evcare .table thead:not(.table-light) td {
+  background-color: #e5dbd2 !important;
+  color: var(--mr-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+body.theme-meridian.theme-evcare .table-warning {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-evcare .table-danger {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-evcare .table-success {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-evcare .table-info {
+  --bs-table-bg: rgba(255, 254, 251, 0.78);
+  --bs-table-color: #78350f;
+}
+
+body.theme-meridian.theme-evcare .table .badge.bg-white,
+body.theme-meridian.theme-evcare .table .badge.rounded-pill.bg-white {
+  background-color: #fffefb !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border);
+}
+
+body.theme-meridian.theme-evcare .form-control,
+body.theme-meridian.theme-evcare .form-select {
+  background: #fffefb;
+  border: 1px solid rgba(61, 47, 38, 0.14);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .form-control:focus,
+body.theme-meridian.theme-evcare .form-select:focus {
+  border-color: rgba(47, 111, 100, 0.48);
+  box-shadow: 0 0 0 0.2rem rgba(47, 111, 100, 0.14);
+  background: #fffefb;
+}
+
+body.theme-meridian.theme-evcare .input-group-text {
+  background: #faf6f0;
+  border-color: rgba(61, 47, 38, 0.14);
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare .btn-primary {
+  background: linear-gradient(135deg, #3d8578, #2f6f64);
+  border-color: #285f55;
+  box-shadow: 0 8px 22px rgba(47, 111, 100, 0.22);
+}
+
+body.theme-meridian.theme-evcare .btn-primary:hover {
+  background: linear-gradient(135deg, #356f64, #285f55);
+  border-color: #214f47;
+}
+
+body.theme-meridian.theme-evcare .btn-outline-primary:hover {
+  background: rgba(184, 101, 60, 0.08);
+}
+
+body.theme-meridian.theme-evcare .btn-outline-secondary:hover {
+  background: rgba(44, 36, 28, 0.05);
+}
+
+body.theme-meridian.theme-evcare .alert-success {
+  background: rgba(167, 224, 210, 0.52);
+  color: #14532d;
+}
+
+body.theme-meridian.theme-evcare .alert-danger {
+  background: rgba(254, 202, 202, 0.52);
+  color: #7f1d1d;
+}
+
+body.theme-meridian.theme-evcare .alert-info {
+  background: rgba(253, 230, 214, 0.52);
+  color: #7c2d12;
+}
+
+body.theme-meridian.theme-evcare .modal-content {
+  background: #fffefb;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .list-group-item {
+  background-color: rgba(255, 254, 251, 0.88);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .list-group-item-action:hover,
+body.theme-meridian.theme-evcare .list-group-item-action:focus {
+  background-color: rgba(47, 111, 100, 0.07);
+}
+
+body.theme-meridian.theme-evcare .page-link {
+  background-color: #fffefb;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .page-link:hover {
+  background-color: rgba(47, 111, 100, 0.1);
+}
+
+body.theme-meridian.theme-evcare .page-item.disabled .page-link {
+  background-color: #efe6dc;
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare .mr-pill {
+  background: rgba(47, 111, 100, 0.12);
+  color: var(--mr-accent);
+  border: 1px solid rgba(47, 111, 100, 0.24);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan {
+  background: linear-gradient(168deg, rgba(255, 254, 251, 0.96), rgba(239, 230, 220, 0.82));
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .card-header.mr-dash-plan__head {
+  background: rgba(255, 252, 248, 0.98) !important;
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .mr-dash-plan__body {
+  background: rgba(255, 254, 251, 0.52);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .mr-dash-plan__foot {
+  background: rgba(239, 230, 220, 0.92) !important;
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-task-tab-panels {
+  background: rgba(255, 254, 251, 0.92) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab {
+  background: #faf6f0;
+  border: 1px solid var(--mr-border);
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab:hover {
+  background: rgba(47, 111, 100, 0.08);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active {
+  background: #fffefb !important;
+  color: var(--mr-text) !important;
+  border-color: rgba(47, 111, 100, 0.35) !important;
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--empty {
+  background: #e5dbd2 !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border) !important;
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--sabah,
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--ogle,
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--aksam {
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  box-shadow: 0 1px 2px rgba(44, 36, 28, 0.12);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-daily-plan-card {
+  background: rgba(255, 254, 251, 0.94) !important;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare .mr-dash-plan .esh-daily-plan-card__badge {
+  background: #efe6dc !important;
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-evcare .dropdown-menu.esh-admin-mega-menu {
+  background: #fffefb !important;
+}
+
+body.theme-meridian.theme-evcare .esh-admin-mega-menu__col {
+  background: rgba(255, 252, 248, 0.94) !important;
+}
+
+body.theme-meridian.theme-evcare #adres-hierarchy .hier-column {
+  background: #fffefb;
+  box-shadow: 0 8px 28px rgba(44, 36, 28, 0.06);
+}
+
+body.theme-meridian.theme-evcare #adres-hierarchy .hier-list {
+  background: #faf6f0;
+}
+
+body.theme-meridian.theme-evcare #adres-hierarchy .hier-item:hover {
+  background: rgba(47, 111, 100, 0.06);
+}
+
+body.theme-meridian.theme-evcare #adres-hierarchy .hier-item.active {
+  background: rgba(253, 230, 214, 0.55);
+  border-left-color: var(--mr-accent2) !important;
+}
+
+body.theme-meridian.theme-evcare .mr-admin-page .ekip-box {
+  background: #fffefb;
+  border-color: var(--mr-border);
+}
+
+body.theme-meridian.theme-evcare .mr-admin-page .datepicker-container {
+  background: #fffefb;
+}
+
+body.theme-meridian.theme-evcare .esh-vardiya-body--0 {
+  background: linear-gradient(180deg, rgba(253, 230, 138, 0.42), rgba(255, 254, 251, 0.92)) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-vardiya-body--1 {
+  background: linear-gradient(180deg, rgba(253, 230, 214, 0.42), rgba(255, 254, 251, 0.94)) !important;
+}
+
+body.theme-meridian.theme-evcare .esh-vardiya-body--2 {
+  background: linear-gradient(180deg, rgba(226, 217, 206, 0.72), rgba(250, 246, 240, 0.94)) !important;
+}
+
+/* bootstrap-datepicker — Meridian katmanı teal hover; sage ile uyum */
+body.theme-meridian.theme-evcare .datepicker.datepicker-dropdown {
+  background: linear-gradient(145deg, rgba(255, 254, 251, 0.98), rgba(246, 239, 232, 0.92)) !important;
+  border: 1px solid var(--mr-border) !important;
+  box-shadow: var(--mr-shadow) !important;
+  backdrop-filter: blur(8px);
+  font-family: 'Outfit', system-ui, sans-serif !important;
+}
+
+body.theme-meridian.theme-evcare .datepicker table tr th.prev:hover,
+body.theme-meridian.theme-evcare .datepicker table tr th.next:hover,
+body.theme-meridian.theme-evcare .datepicker table tr th.datepicker-switch:hover {
+  background: rgba(47, 111, 100, 0.14) !important;
+  color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-evcare .datepicker table tr td.day:hover {
+  background: rgba(184, 101, 60, 0.14) !important;
+}
+
+body.theme-meridian.theme-evcare .datepicker table tr td.today {
+  background-color: rgba(47, 111, 100, 0.16) !important;
+}
+
+body.theme-meridian.theme-evcare .datepicker table tr td.active,
+body.theme-meridian.theme-evcare .datepicker table tr td.active:hover {
+  background-color: var(--mr-accent) !important;
+  color: #fffefb !important;
+}
+
+/* Oturum aç — Vitality Ev Bakım */
+body.page-login.theme-meridian.theme-evcare.mr-login-page,
+body.page-login.theme-meridian.theme-evcare.ev-login-page {
+  background-color: var(--mr-bg0);
+  background-image:
+    radial-gradient(1000px 500px at 8% -8%, rgba(47, 111, 100, 0.16), transparent 54%),
+    radial-gradient(760px 400px at 92% 4%, rgba(184, 101, 60, 0.14), transparent 50%),
+    linear-gradient(188deg, #fffefb 0%, var(--mr-bg0) 42%, #efe6dc 100%);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-card.card,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-card.card {
+  background: linear-gradient(145deg, rgba(255, 254, 251, 0.99), rgba(246, 239, 232, 0.92));
+  border: 1px solid rgba(61, 47, 38, 0.08);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-brand,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-brand {
+  background: linear-gradient(165deg, #3d8578 0%, #2f6f64 42%, #285f55 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fffefb !important;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-brand .mr-login-kicker,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-brand .mr-login-kicker {
+  color: rgba(255, 254, 251, 0.82) !important;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-brand h2,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-brand h2 {
+  color: #fffefb !important;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-brand .mr-login-highlight,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-brand .mr-login-highlight {
+  color: #fcd9c4 !important;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-brand-icon,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-brand-icon {
+  background: rgba(255, 254, 251, 0.18);
+  border: 1px solid rgba(255, 254, 251, 0.35);
+  color: #fffefb;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-form-col,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-form-col {
+  background: rgba(255, 254, 251, 0.97);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-heading,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-heading {
+  font-family: 'Fraunces', Georgia, serif;
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-sub,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-sub {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-label,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-label {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-addon,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-addon {
+  background: #faf6f0;
+  border-color: rgba(61, 47, 38, 0.14);
+  color: var(--mr-accent);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-input,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-input {
+  background: #fffefb;
+  border-color: rgba(61, 47, 38, 0.14);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-submit,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-submit {
+  background: linear-gradient(135deg, #3d8578, #2f6f64);
+  border: none;
+  box-shadow: 0 10px 26px rgba(47, 111, 100, 0.28);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-footer-note,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-footer-note {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .mr-login-version,
+body.theme-meridian.theme-evcare.ev-login-page .mr-login-version {
+  background: rgba(255, 254, 251, 0.2);
+  color: #fffefb;
+  border: 1px solid rgba(255, 254, 251, 0.35);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-mobile-head .mr-login-highlight,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-mobile-head .mr-login-highlight {
+  color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-mobile-title,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-mobile-title {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-mobile-tag,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-mobile-tag {
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-evcare.mr-login-page .ev-login-mobile-icon,
+body.theme-meridian.theme-evcare.ev-login-page .ev-login-mobile-icon {
+  background: rgba(47, 111, 100, 0.12);
+  border: 1px solid rgba(47, 111, 100, 0.22);
+  color: var(--mr-accent);
+}
+
+/* -------------------------------------------------------------------------
+ * Vitality HTML kabuğu — `templates/evcare/partials/header|footer` +
+ * sayfa şablonları (`templates/evcare/site/**`, kök `ev-sheet` + seçili sayfalarda kahraman bölümleri).
+ * ------------------------------------------------------------------------- */
+
+body.theme-evcare.ev-shell main.ev-main {
+  min-width: 0;
+}
+
+body.theme-evcare.ev-shell .ev-main-sheet {
+  max-width: 100%;
+}
+
+body.theme-evcare.ev-shell .ev-site-footer {
+  background: linear-gradient(180deg, rgba(255, 254, 251, 0.97), rgba(246, 239, 232, 0.92)) !important;
+  border-top-color: var(--mr-border) !important;
+}
+
+body.theme-evcare.ev-shell .ev-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body.theme-evcare.ev-shell .ev-footer-brand__mark {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: rgba(47, 111, 100, 0.12);
+  color: var(--mr-accent);
+}
+
+body.theme-evcare.ev-shell .ev-footer-pill {
+  background: rgba(255, 254, 251, 0.95) !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border) !important;
+  font-weight: 600;
+}
+
+/* Dashboard — yeni DOM */
+body.theme-evcare.ev-shell .ev-dash-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.75rem 1.5rem;
+  margin-bottom: 1.75rem;
+  background: linear-gradient(135deg, rgba(47, 111, 100, 0.12) 0%, rgba(184, 101, 60, 0.08) 100%);
+  border: 1px solid var(--mr-border);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-dash-hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 42rem;
+}
+
+body.theme-evcare.ev-shell .ev-dash-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mr-accent);
+  margin-bottom: 0.35rem;
+}
+
+body.theme-evcare.ev-shell .ev-dash-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.45rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  color: var(--mr-text);
+  margin-bottom: 0.35rem;
+}
+
+body.theme-evcare.ev-shell .ev-dash-hero__lead {
+  margin-bottom: 0;
+  color: var(--mr-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+body.theme-evcare.ev-shell .ev-dash-hero__mesh {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background:
+    radial-gradient(420px 200px at 88% 10%, rgba(47, 111, 100, 0.25), transparent 55%),
+    radial-gradient(360px 220px at 10% 90%, rgba(184, 101, 60, 0.2), transparent 50%);
+  pointer-events: none;
+}
+
+body.theme-evcare.ev-shell .ev-dash-split {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-dash-split {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  }
+
+  body.theme-evcare.ev-shell .ev-plan-card {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+body.theme-evcare.ev-shell .ev-surface {
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(155deg, rgba(255, 254, 251, 0.98), rgba(246, 239, 232, 0.72));
+  box-shadow: var(--mr-shadow);
+  overflow: hidden;
+}
+
+body.theme-evcare.ev-shell .ev-surface__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid rgba(61, 47, 38, 0.08);
+  background: rgba(255, 252, 248, 0.65);
+}
+
+body.theme-evcare.ev-shell .ev-surface__head--row {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.theme-evcare.ev-shell .ev-surface__badge {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.85rem;
+  background: rgba(47, 111, 100, 0.14);
+  color: var(--mr-accent);
+  font-size: 1.15rem;
+}
+
+body.theme-evcare.ev-shell .ev-surface__badge--warm {
+  background: rgba(184, 101, 60, 0.14);
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-surface__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-surface__hint {
+  font-size: 0.82rem;
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-surface__body {
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+body.theme-evcare.ev-shell .ev-surface__body--flush {
+  padding: 0;
+}
+
+body.theme-evcare.ev-shell .ev-input-cluster .input-group-text {
+  background: rgba(255, 252, 248, 0.95);
+}
+
+body.theme-evcare.ev-shell .ev-surface__footer {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid rgba(61, 47, 38, 0.08);
+  background: rgba(239, 230, 220, 0.45);
+}
+
+body.theme-evcare.ev-shell .ev-legend {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.25rem;
+}
+
+body.theme-evcare.ev-shell .ev-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--mr-muted);
+  text-transform: uppercase;
+}
+
+body.theme-evcare.ev-shell .ev-plan-card__head {
+  background: rgba(255, 252, 248, 0.92) !important;
+}
+
+body.theme-evcare.ev-shell .ev-plan-card__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.35), rgba(253, 224, 171, 0.55));
+  color: #92400e;
+  font-size: 1.25rem;
+}
+
+body.theme-evcare.ev-shell .ev-plan-card__body {
+  background: rgba(255, 254, 251, 0.55);
+}
+
+body.theme-evcare.ev-shell .ev-route-btn {
+  box-shadow: 0 10px 28px rgba(47, 111, 100, 0.22);
+}
+
+/* Birleşik hasta listesi — yeni DOM */
+body.theme-evcare.ev-shell .ev-registry-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-registry-head {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  body.theme-evcare.ev-shell .ev-registry-head__intro {
+    flex: 0 0 280px;
+  }
+
+  body.theme-evcare.ev-shell .ev-registry-head__panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+}
+
+body.theme-evcare.ev-shell .ev-registry-head__intro {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(165deg, rgba(47, 111, 100, 0.12), rgba(255, 254, 251, 0.92));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-registry-head__badge {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  background: rgba(255, 254, 251, 0.85);
+  color: var(--mr-accent);
+  border: 1px solid rgba(47, 111, 100, 0.2);
+}
+
+body.theme-evcare.ev-shell .ev-registry-head__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-registry-head__lead {
+  font-size: 0.88rem;
+  color: var(--mr-muted);
+  line-height: 1.45;
+}
+
+body.theme-evcare.ev-shell .ev-registry-filter {
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--mr-border);
+  background: rgba(255, 254, 251, 0.95);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-registry-band {
+  padding: 0.65rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px dashed rgba(47, 111, 100, 0.28);
+  background: rgba(47, 111, 100, 0.05);
+}
+
+body.theme-evcare.ev-shell .ev-registry-table-card .card-body {
+  border-radius: 0 0 1rem 1rem;
+}
+
+/* Profil — yeni DOM */
+body.theme-evcare.ev-shell .ev-profile-welcome__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-profile-welcome__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-profile-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-profile-grid {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  }
+
+  body.theme-evcare.ev-shell .ev-profile-aside {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+body.theme-evcare.ev-shell .ev-profile-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(160deg, rgba(255, 254, 251, 0.98), rgba(239, 230, 220, 0.55));
+  box-shadow: var(--mr-shadow);
+  padding: 1.5rem 1.35rem 1.65rem;
+}
+
+body.theme-evcare.ev-shell .ev-profile-portrait {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto 1rem;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-profile-portrait {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+body.theme-evcare.ev-shell .ev-profile-portrait__img {
+  width: 152px;
+  height: 152px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 254, 251, 0.95);
+  box-shadow: 0 12px 36px rgba(44, 36, 28, 0.12);
+}
+
+body.theme-evcare.ev-shell .ev-profile-portrait__cam {
+  position: absolute;
+  bottom: 0.15rem;
+  right: 0.15rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.theme-evcare.ev-shell .ev-profile-name {
+  text-align: center;
+}
+
+body.theme-evcare.ev-shell .ev-profile-handle {
+  text-align: center;
+  color: var(--mr-muted);
+  font-size: 0.88rem;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-profile-name,
+  body.theme-evcare.ev-shell .ev-profile-handle {
+    text-align: left;
+  }
+}
+
+body.theme-evcare.ev-shell .ev-profile-facts {
+  margin: 0;
+}
+
+body.theme-evcare.ev-shell .ev-profile-facts__row {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 58%);
+  gap: 0.35rem 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(61, 47, 38, 0.08);
+  font-size: 0.88rem;
+}
+
+body.theme-evcare.ev-shell .ev-profile-facts__row:last-of-type {
+  border-bottom: 0;
+}
+
+body.theme-evcare.ev-shell .ev-profile-facts dt {
+  margin: 0;
+  color: var(--mr-muted);
+  font-weight: 600;
+}
+
+body.theme-evcare.ev-shell .ev-profile-facts dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-profile-pill {
+  background: rgba(47, 111, 100, 0.12) !important;
+  color: var(--mr-accent) !important;
+  border: 1px solid rgba(47, 111, 100, 0.22) !important;
+}
+
+body.theme-evcare.ev-shell .ev-profile-footnote {
+  opacity: 0.85;
+}
+
+/* Profil düzenleme — ev-profile ızgarası + form kartları */
+body.theme-evcare.ev-shell .ev-profile-grid--edit {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  body.theme-evcare.ev-shell .ev-profile-grid--edit {
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  }
+}
+
+body.theme-evcare.ev-shell .ev-profile-main--edit .esh-profile-edit-section {
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: rgba(255, 254, 251, 0.96);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-profile-main--edit .esh-profile-edit-section__head {
+  background: linear-gradient(180deg, rgba(255, 254, 251, 0.98), rgba(248, 242, 234, 0.5));
+}
+
+body.theme-evcare.ev-shell .ev-profile-main--edit .esh-profile-edit-actions {
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: rgba(255, 254, 251, 0.98);
+}
+
+/* ev-sheet — kalan site sayfaları (detail, edit, randevu, izlem, rota, nöbet, …) */
+body.theme-evcare.ev-shell .ev-sheet {
+  position: relative;
+}
+
+body.theme-evcare.ev-shell .card:has(.dropdown-active) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .card-body:has(.dropdown-active) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified {
+  overflow: visible;
+}
+
+body.theme-evcare.ev-shell .ev-sheet.mr-page--patient-unified .card {
+  overflow: visible;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified .card-body,
+body.theme-evcare.ev-shell .mr-page--patient-unified .table-responsive,
+body.theme-evcare.ev-shell .mr-page--patient-unified .table,
+body.theme-evcare.ev-shell .mr-page--patient-unified tbody {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified .card:has(.dropdown-menu.show),
+body.theme-evcare.ev-shell .mr-page--patient-unified .table-responsive:has(.dropdown-menu.show) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified .card:has(.dropdown.show) .card-footer {
+  position: relative;
+  z-index: 0;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified tbody tr:has(.dropdown.show) {
+  position: relative;
+  z-index: 20;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified tbody td:has(.dropdown.show),
+body.theme-evcare.ev-shell .mr-page--patient-unified tbody td:has(.esh-patient-mega-dropdown) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--patient-unified .dropdown-menu {
+  z-index: 1065 !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index .card {
+  overflow: visible;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index .card:has(.dropdown-menu.show),
+body.theme-evcare.ev-shell .mr-page--izlem-index .table-responsive:has(.dropdown-menu.show) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index .card-body,
+body.theme-evcare.ev-shell .mr-page--izlem-index .table-responsive,
+body.theme-evcare.ev-shell .mr-page--izlem-index .table,
+body.theme-evcare.ev-shell .mr-page--izlem-index tbody {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index .card:has(.dropdown.show) .card-footer {
+  position: relative;
+  z-index: 0;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index tbody tr:has(.dropdown.show) {
+  position: relative;
+  z-index: 20;
+}
+
+body.theme-evcare.ev-shell .mr-page--izlem-index .dropdown-menu {
+  z-index: 1065 !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index .card {
+  overflow: visible;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index .card:has(.dropdown-menu.show),
+body.theme-evcare.ev-shell .mr-page--planned-index .table-responsive:has(.dropdown-menu.show) {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index .card-body,
+body.theme-evcare.ev-shell .mr-page--planned-index .table-responsive,
+body.theme-evcare.ev-shell .mr-page--planned-index .table,
+body.theme-evcare.ev-shell .mr-page--planned-index tbody {
+  overflow: visible !important;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index .card:has(.dropdown.show) .card-footer {
+  position: relative;
+  z-index: 0;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index tbody tr:has(.dropdown.show) {
+  position: relative;
+  z-index: 20;
+}
+
+body.theme-evcare.ev-shell .mr-page--planned-index .dropdown-menu {
+  z-index: 1065 !important;
+}
+
+body.theme-evcare.ev-shell .ev-detail-hero {
+  border-radius: 1.15rem;
+  padding: 1.15rem 1.35rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(125deg, rgba(47, 111, 100, 0.14), rgba(184, 101, 60, 0.07));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-detail-hero__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent);
+  margin-bottom: 0.25rem;
+}
+
+body.theme-evcare.ev-shell .ev-detail-hero__name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-detail-hero__tc {
+  font-size: 0.95rem;
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-detail-actions-card {
+  border-radius: 1.15rem !important;
+}
+
+body.theme-evcare.ev-shell .ev-edit-banner__inner {
+  border-radius: 1.1rem;
+  padding: 1.15rem 1.35rem;
+  border: 1px solid var(--mr-border);
+  background: rgba(255, 254, 251, 0.95);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-edit-banner__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-edit-banner__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-edit-banner__tc {
+  color: var(--mr-muted);
+  font-size: 0.9rem;
+}
+
+body.theme-evcare.ev-shell .ev-randevu-hero {
+  display: flex;
+  gap: 1.15rem;
+  align-items: flex-start;
+  padding: 1.2rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(145deg, rgba(255, 254, 251, 0.98), rgba(239, 230, 220, 0.65));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-randevu-hero__icon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  background: rgba(47, 111, 100, 0.14);
+  color: var(--mr-accent);
+}
+
+body.theme-evcare.ev-shell .ev-randevu-hero__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-randevu-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-randevu-hero__lead {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .esh-page-randevu .esh-randevu-cal__cell.ring-today {
+  box-shadow: inset 0 0 0 2px rgba(47, 111, 100, 0.45);
+}
+
+body.theme-evcare.ev-shell .ev-nobet-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.2rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(160deg, rgba(253, 230, 214, 0.45), rgba(255, 254, 251, 0.92));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-nobet-hero__badge {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 111, 100, 0.12);
+  color: var(--mr-accent);
+  font-size: 1.2rem;
+}
+
+body.theme-evcare.ev-shell .ev-nobet-hero__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent);
+}
+
+body.theme-evcare.ev-shell .ev-nobet-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-nobet-hero__lead {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-index-head {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--mr-border);
+  background: rgba(47, 111, 100, 0.06);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-index-head__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 111, 100, 0.14);
+  color: var(--mr-accent);
+  font-size: 1.2rem;
+}
+
+body.theme-evcare.ev-shell .ev-izlem-index-head__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-index-head__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-index-head__lead {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(145deg, rgba(255, 254, 251, 0.98), rgba(239, 230, 220, 0.55));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-banner__mark {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 111, 100, 0.14);
+  color: var(--mr-accent);
+  font-size: 1.15rem;
+}
+
+body.theme-evcare.ev-shell .ev-izlem-banner__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-banner__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-banner__hint {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-izlem-create-card,
+body.theme-evcare.ev-shell .ev-izlem-plan-create-card {
+  border-radius: 1.15rem !important;
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  border: 1px solid var(--mr-border);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero__stripe {
+  width: 6px;
+  background: linear-gradient(180deg, var(--mr-accent), var(--mr-accent2));
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero__text {
+  flex: 1;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 254, 251, 0.92);
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent);
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-rota-hero__lead {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-rota-planning-wrap {
+  border-radius: 1.15rem !important;
+}
+
+/* e-Rapor detay (site) */
+body.theme-evcare.ev-shell .ev-erapor-view-hero__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 1.25rem;
+  padding: 1.15rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid var(--mr-border);
+  background: linear-gradient(135deg, rgba(47, 111, 100, 0.1), rgba(184, 101, 60, 0.06));
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-evcare.ev-shell .ev-erapor-view-hero__badge {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 111, 100, 0.14);
+  color: var(--mr-accent);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+body.theme-evcare.ev-shell .ev-erapor-view-hero__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mr-accent2);
+}
+
+body.theme-evcare.ev-shell .ev-erapor-view-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  color: var(--mr-text);
+}
+
+body.theme-evcare.ev-shell .ev-erapor-view-hero__meta {
+  color: var(--mr-muted);
+}
+
+body.theme-evcare.ev-shell .ev-erapor-dl dt {
+  padding-top: 0.15rem;
+}
+
+@media print {
+  body.theme-meridian.theme-evcare {
+    background: #fff;
+    color: #000;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ESH sayfa dili (--esh-ui-*) — docs/ESH_PAGE_LANGUAGE.md
+   -------------------------------------------------------------------------- */
+
+body.app-shell.theme-meridian.theme-evcare {
+  --esh-ui-text: var(--mr-text);
+  --esh-ui-text-muted: var(--mr-muted);
+  --esh-ui-accent: var(--mr-accent2);
+  --esh-ui-surface: var(--mr-surface);
+  --esh-ui-surface-muted: var(--mr-surface2);
+  --esh-ui-border: var(--mr-border);
+  --esh-ui-radius: var(--mr-radius-sm, 0.65rem);
+  --esh-ui-shadow: var(--mr-shadow);
+  --esh-ui-table-head-bg: var(--mr-surface2);
+  --esh-ui-table-head-color: var(--mr-muted);
+  --esh-ui-row-hover: rgba(56, 189, 248, 0.08);
+  --esh-ui-surface-subtle: #f8f9fa;
+  --esh-ui-surface-warning: #fff9e6;
+  --esh-ui-soft-danger-bg: rgba(248, 215, 218, 0.4);
+  --esh-ui-soft-info-bg: rgba(207, 244, 252, 0.4);
+  --esh-ui-card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  --esh-ui-print-surface: #ffffff;
+  --esh-ui-panel-subtitle-size: 0.8125rem;
+  --esh-ui-table-head-font-size: 0.7rem;
+  --esh-ui-table-head-letter-spacing: 0.04em;
+  --esh-ui-table-head-padding: 0.75rem 0.5rem;
+  --esh-ui-font-size-xs: 0.68rem;
+  --esh-ui-font-size-sm: 0.78rem;
+  --esh-ui-font-size-badge: 0.62rem;
+  --esh-ui-dropdown-font-size: 0.78rem;
+  --esh-ui-dropdown-header-font-size: 0.65rem;
+  --esh-ui-dropdown-header-letter-spacing: 0.5px;
+  --esh-ui-dropdown-menu-radius: 10px;
+  --esh-ui-dropdown-menu-border: var(--esh-ui-border);
+  --esh-ui-dropdown-item-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-bg: var(--esh-ui-surface);
+  --esh-ui-btn-ghost-border: var(--esh-ui-border);
+  --esh-ui-btn-ghost-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-hover-color: var(--esh-ui-accent);
+  --esh-ui-filter-control-height: 38px;
+  --esh-ui-alert-success-bg: #d1e7dd;
+  --esh-ui-alert-success-color: #0f5132;
+  --esh-ui-alert-success-border: #badbcc;
+  --esh-ui-alert-warning-bg: #fff3cd;
+  --esh-ui-alert-warning-color: #664d03;
+  --esh-ui-alert-warning-border: #ffecb5;
+  --esh-ui-alert-danger-bg: #f8d7da;
+  --esh-ui-alert-danger-color: #842029;
+  --esh-ui-alert-danger-border: #f5c2c7;
+  --esh-ui-alert-info-bg: #cff4fc;
+  --esh-ui-alert-info-color: #055160;
+  --esh-ui-alert-info-border: #b6effb;
+  --esh-ui-navbar-link-font-size: 0.9rem;
+  --esh-ui-navbar-dropdown-font-size: 0.88rem;
+  --esh-ui-table-head-border-bottom: 2px solid #e2e8f0;
+  --esh-ui-patient-row-hover-bg: #f1f5f9;
+  --esh-ui-tc-code-bg: #f1f5f9;
+  --esh-ui-tc-code-color: #475569;
+  --esh-ui-tc-code-font-size: 0.75rem;
+  --esh-ui-tc-code-radius: 4px;
+  --esh-ui-tc-copy-flash-outline: rgba(13, 110, 253, 0.35);
+  --esh-ui-status-badge-border: #e2e8f0;
+  --esh-ui-status-badge-radius: 8px;
+  --esh-ui-status-badge-bg: #ffffff;
+  --esh-ui-btn-xs-font-size: 0.7rem;
+  --esh-ui-avatar-sm-size: 32px;
+  --esh-ui-avatar-sm-font-size: 0.8rem;
+  --esh-ui-small-text-font-size: 0.75rem;
+  --esh-ui-calendar-day-hover-bg: #f0f4f8;
+  --esh-ui-calendar-day-hover-ring: rgba(13, 110, 253, 0.28);
+  --esh-ui-cal-task-font-size: 0.65rem;
+  --esh-ui-cal-badge-font-size: 0.7rem;
+  --esh-ui-cal-legend-font-size: 0.75rem;
+  --esh-ui-scrollbar-thumb: #e0e0e0;
+  --esh-ui-scrollbar-radius: 10px;
+  --esh-ui-dash-plan-tabs-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --esh-ui-daily-plan-badge-font-size: 0.65rem;
+  --esh-ui-daily-plan-meta-font-size: 0.75rem;
+  --esh-ui-daily-section-font-size: 1rem;
+  --esh-ui-route-tab-font-size: 1.05rem;
+  --esh-ui-route-tab-font-size-sm: 0.95rem;
+  --esh-ui-route-tab-font-weight: 600;
+  --esh-ui-route-tab-font-weight-active: 700;
+  --esh-ui-route-tab-text: #334155;
+  --esh-ui-route-tab-bg: #f1f5f9;
+  --esh-ui-route-tab-border: #e2e8f0;
+  --esh-ui-route-tab-border-hover: #cbd5e1;
+  --esh-ui-route-tab-hover-bg: #ffffff;
+  --esh-ui-route-tab-hover-text: #0f172a;
+  --esh-ui-route-tab-active-text: #0f172a;
+  --esh-ui-route-tab-active-bg: #ffffff;
+  --esh-ui-route-tab-active-shadow: rgba(15, 23, 42, 0.06);
+  --esh-ui-route-tab-accent-sabah: #f59e0b;
+  --esh-ui-route-tab-accent-ogle: #3b82f6;
+  --esh-ui-route-tab-accent-aksam: #6366f1;
+  --esh-ui-route-tab-active-sabah: #b45309;
+  --esh-ui-route-tab-active-ogle: #1d4ed8;
+  --esh-ui-route-tab-active-aksam: #4338ca;
+  --esh-ui-route-tab-badge-empty: #94a3b8;
+  --esh-ui-route-tab-badge-font-size: 0.82rem;
+  --esh-ui-route-tab-badge-font-size-sm: 0.75rem;
+  --esh-ui-route-tab-icon-size: 1.15rem;
+  --esh-ui-route-tab-min-height: 3.35rem;
+  --esh-ui-route-tab-min-height-sm: 3rem;
+  --esh-ui-detail-tabs-bg: linear-gradient(180deg, #f1f3f5 0%, #e9ecef 100%);
+  --esh-ui-detail-tab-active-bar: #0d6efd;
+  --esh-ui-detail-tab-link-bg: rgba(255, 255, 255, 0.35);
+  --esh-ui-detail-tab-hover-bg: #ffffff;
+  --esh-ui-detail-tab-hover-inset: rgba(13, 110, 253, 0.35);
+  --esh-ui-detail-tab-active-bg: #ffffff;
+  --esh-ui-detail-tab-active-text: #0a58ca;
+  --esh-ui-detail-tab-genel-text: #212529;
+  --esh-ui-detail-tab-pansuman-text: #0a58ca;
+  --esh-ui-detail-tab-sonda-text: #b02a37;
+  --esh-ui-detail-tab-mama-text: #cc9a06;
+  --esh-ui-detail-tab-bez-text: #087990;
+  --esh-ui-care-item-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --esh-ui-care-label-font-size: 0.68rem;
+  --esh-ui-care-value-font-size: 0.875rem;
+  --esh-ui-care-icon-font-size: 0.95rem;
+  --esh-ui-barthel-tooltip-font-size: 0.8125rem;
+  --esh-ui-barthel-pts-font-size: 0.7rem;
+  --esh-ui-diagnosis-rapor-font-size: 0.58rem;
+  --esh-ui-coords-btn-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+  --esh-ui-coords-btn-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.24);
+  --esh-ui-coords-bul-bg: linear-gradient(180deg, #fcd34d 0%, #f59e0b 100%);
+  --esh-ui-coords-bul-bg-hover: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  --esh-ui-coords-bul-border: #d97706;
+  --esh-ui-coords-bul-border-hover: #b45309;
+  --esh-ui-coords-bul-color: #1e293b;
+  --esh-ui-coords-bul-color-hover: #0f172a;
+  --esh-ui-coords-git-bg: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  --esh-ui-coords-git-bg-hover: linear-gradient(180deg, #93c5fd 0%, #3b82f6 100%);
+  --esh-ui-coords-git-border: #1d4ed8;
+  --esh-ui-coords-git-border-hover: #1e40af;
+  --esh-ui-coords-git-color: #ffffff;
+  --esh-ui-pansuman-day-font-size: 0.8rem;
+  --esh-ui-mega-menu-col-bg: rgba(248, 250, 252, 0.9);
+  --esh-ui-mega-menu-col-border: rgba(0, 0, 0, 0.06);
+  --esh-ui-mega-menu-head-font-size: 0.78rem;
+  --esh-ui-mega-menu-title-font-size: 0.68rem;
+  --esh-ui-mega-menu-item-font-size: 0.82rem;
+  --esh-ui-login-card-max: 48rem;
+  --esh-ui-login-page-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --esh-ui-login-font-family: 'Inter', sans-serif;
+  --esh-ui-login-card-width: min(392px, calc(100vw - 2rem));
+  --esh-ui-login-card-radius: 20px;
+  --esh-ui-login-card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  --esh-ui-login-header-bg: #0d6efd;
+  --esh-ui-login-header-color: #ffffff;
+  --esh-ui-login-header-icon-size: 2.75rem;
+  --esh-ui-login-input-radius: 10px;
+  --esh-ui-login-input-padding: 12px;
+  --esh-ui-login-input-border: #eeeeee;
+  --esh-ui-login-btn-radius: 10px;
+  --esh-ui-login-btn-padding: 12px;
+  --esh-ui-login-split-page-bg: radial-gradient(circle at 15% 20%, rgba(13, 110, 253, 0.12), transparent 32%),        radial-gradient(circle at 85% 10%, rgba(32, 201, 151, 0.1), transparent 28%),        linear-gradient(135deg, #eef3fb 0%, #dbe6f6 100%);
+  --esh-ui-login-split-card-width: min(520px, calc(100vw - 2.25rem));
+  --esh-ui-login-split-card-radius: 24px;
+  --esh-ui-login-split-card-shadow: 0 22px 56px rgba(15, 23, 42, 0.18);
+  --esh-ui-login-split-card-border: 1px solid rgba(13, 110, 253, 0.14);
+  --esh-ui-login-split-header-bg: linear-gradient(120deg, #0d6efd 0%, #3b82f6 55%, #22c1c3 100%);
+  --esh-ui-login-split-brand-icon-size: 1.45rem;
+  --esh-ui-login-split-subtitle-font-size: 0.88rem;
+  --esh-ui-login-split-mode-border: #dbe4f2;
+  --esh-ui-login-split-normal-accent: #0d6efd;
+  --esh-ui-login-split-eimza-accent: #94a3b8;
+  --esh-ui-login-split-tab-color: #64748b;
+  --esh-ui-login-split-tab-active-color: #0d6efd;
+  --esh-ui-login-split-tab-border: #dbe4f2;
+  --esh-ui-login-split-input-border: #d6deea;
+  --esh-ui-login-split-input-group-bg: #f8fafc;
+  --esh-ui-hier-header-bg: #37474f;
+  --esh-ui-hier-header-color: #ffffff;
+  --esh-ui-hier-column-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --esh-ui-hier-item-divider: #f0f0f0;
+  --esh-ui-hier-item-active-bg: #e3f2fd;
+  --esh-ui-hier-empty-text: #adb5bd;
+  --esh-ui-input-focus-border: #86b7fe;
+  --esh-ui-input-focus-ring: rgba(13, 110, 253, 0.25);
+  --esh-ui-profile-border-faint: rgba(0, 0, 0, 0.05);
+  --esh-ui-profile-aside-gradient: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  --esh-ui-profile-section-head-gradient: linear-gradient(180deg, #fdfdfd 0%, #ffffff 100%);
+  --esh-ui-profile-security-head-gradient: linear-gradient(180deg, #fffbfb 0%, #ffffff 100%);
+  --esh-ui-profile-btn-primary-shadow: 0 2px 8px rgba(13, 110, 253, 0.22);
+  --esh-ui-pansuman-label-inset-shadow: rgba(0, 0, 0, 0.2);
+  --esh-ui-ekip-box-border: #dddddd;
+  --esh-ui-danger-text: #dc3545;
+  --esh-ui-plan-doluluk-banner-bg: linear-gradient(180deg, rgba(255, 251, 235, 0.55) 0%, rgba(248, 250, 252, 0.95) 100%);
+  --esh-ui-pasif-banner-bg: linear-gradient(180deg, rgba(254, 226, 226, 0.45) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --esh-ui-arac-choice-hover-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.08);
+  --esh-ui-stats-metric-fg: #ffffff;
+  --esh-ui-stats-metric-overlay: rgba(255, 255, 255, 0.25);
+  --esh-ui-stats-metric-pill-bg: rgba(255, 255, 255, 0.2);
+  --esh-ui-font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --esh-ui-font-size-base: 0.9375rem;
+  --esh-ui-line-height: 1.5;
+  --esh-ui-heading-size: 1.35rem;
+  --esh-ui-lead-size: 0.9375rem;
+  --esh-ui-font-weight-heading: 700;
+}

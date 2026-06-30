@@ -1,0 +1,10 @@
+# ESH — proje kökü (docroot htdocs ise hassas dizinleri engelle)
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:app|config|storage|database|tools)(?:/|$) - [F,L,NC]
+    RewriteRule ^(?:migration|ilac_rehber_migration)\.php$ - [F,L,NC]
+</IfModule>

@@ -1,0 +1,130 @@
+/**
+ * İstatistik merkezi — ortak stiller (stats-hub.css ile birlikte)
+ */
+
+.esh-page--list.esh-page-stats .card {
+    border-radius: var(--esh-ui-radius);
+}
+
+.esh-stats-filter-card {
+    border: 1px solid var(--esh-ui-border);
+    border-radius: var(--esh-ui-radius);
+    background: var(--esh-ui-surface);
+    box-shadow: var(--esh-ui-shadow);
+}
+
+.esh-stats-kpi-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.esh-stats-kpi-card {
+    border: 1px solid var(--esh-ui-border);
+    border-radius: var(--esh-ui-radius);
+    background: var(--esh-ui-surface);
+    padding: 1rem;
+    text-align: center;
+}
+
+.esh-stats-kpi-card .esh-stats-kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--esh-ui-text);
+    line-height: 1.2;
+}
+
+.esh-stats-kpi-card .esh-stats-kpi-label {
+    font-size: var(--esh-ui-font-size-sm);
+    color: var(--esh-ui-text-muted);
+    margin-top: 0.25rem;
+}
+
+.esh-stats-chart-panel {
+    border: 1px solid var(--esh-ui-border);
+    border-radius: var(--esh-ui-radius);
+    background: var(--esh-ui-surface);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.esh-stats-chart-panel canvas {
+    max-width: 100%;
+}
+
+.esh-stats-table-compact .table td,
+.esh-stats-table-compact .table th {
+    padding: 0.45rem 0.5rem;
+    font-size: var(--esh-ui-font-size-sm);
+}
+
+.esh-stats-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--esh-ui-text);
+    margin-bottom: 0.75rem;
+}
+
+.esh-chart-wrap--sm {
+    height: var(--esh-ui-chart-height-sm);
+    position: relative;
+}
+
+.esh-chart-wrap--md {
+    height: var(--esh-ui-chart-height-md);
+    position: relative;
+}
+
+.esh-chart-wrap--lg {
+    height: var(--esh-ui-chart-height-lg);
+    position: relative;
+}
+
+.esh-chart-wrap--280 {
+    height: 280px;
+    position: relative;
+}
+
+.esh-chart-wrap--260 {
+    height: 260px;
+    position: relative;
+}
+
+.esh-chart-wrap--300 {
+    height: 300px;
+    position: relative;
+}
+
+.esh-chart-wrap--360 {
+    height: 360px;
+    position: relative;
+}
+
+.esh-chart-wrap--200 {
+    height: 200px;
+    position: relative;
+}
+
+.esh-stats-progress-sm {
+    height: 8px;
+}
+
+.esh-stats-progress-md {
+    height: 14px;
+}
+
+.esh-stats-progress-lg {
+    height: 22px;
+}
+
+.esh-stats-progress-xl {
+    height: 20px;
+}
+
+.esh-stats-loading {
+    min-height: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--esh-ui-text-muted);
+}
