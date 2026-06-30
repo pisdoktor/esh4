@@ -31,6 +31,12 @@ class Visit extends BaseModel {
     public $kons_istekler = null;
     /** @var string|null JSON brans_id => [istek_id] (konsültasyon EK-3) */
     public $kons_brans_istek = null;
+    /** @var float|null Saha check-in enlem */
+    public $checkin_lat = null;
+    /** @var float|null Saha check-in boylam */
+    public $checkin_lon = null;
+    /** @var string|null Konum kayıt zamanı */
+    public $checkin_at = null;
 
     public function __construct() {
         parent::__construct('#__izlemler', 'id');

@@ -6,6 +6,7 @@
     <title><?= htmlspecialchars(esh_app_name(), ENT_QUOTES, 'UTF-8'); ?> v<?= htmlspecialchars(esh_app_version(), ENT_QUOTES, 'UTF-8'); ?> | Evde Sağlık Hizmetleri</title>
     <?= esh_version_meta_tag(); ?>
     <?= esh_csrf_meta(); ?>
+    <?= \App\Helpers\PwaHelper::renderHeadHtml(); ?>
 
 <?= \App\Helpers\CdnAssetHelper::vendorCdnStylesHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderHeadStylesheetsHtml(); ?>

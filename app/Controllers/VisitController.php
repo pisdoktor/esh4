@@ -1414,8 +1414,43 @@ class VisitController {
             $data['arac'] = $aid > 0 ? $aid : null;
         }
 
-        $allowed = ['hastatckimlik', 'izlemtarihi', 'yapilan', 'yapildimi', 'neden', 'izlemiyapan', 'zaman', 'aciklama', 'arac'];
+        $data = $this->normalizeVisitCheckinPayload($data);
+
+        $allowed = ['hastatckimlik', 'izlemtarihi', 'yapilan', 'yapildimi', 'neden', 'izlemiyapan', 'zaman', 'aciklama', 'arac', 'checkin_lat', 'checkin_lon', 'checkin_at'];
         return array_intersect_key($data, array_flip($allowed));
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function normalizeVisitCheckinPayload(array $data): array
+    {
+        $latRaw = $data['checkin_lat'] ?? null;
+        $lonRaw = $data['checkin_lon'] ?? null;
+        $lat = is_numeric($latRaw) ? (float) $latRaw : null;
+        $lon = is_numeric($lonRaw) ? (float) $lonRaw : null;
+
+        if ($lat === null || $lon === null || $lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
+            $data['checkin_lat'] = null;
+            $data['checkin_lon'] = null;
+            $data['checkin_at'] = null;
+
+            return $data;
+        }
+
+        $data['checkin_lat'] = round($lat, 7);
+        $data['checkin_lon'] = round($lon, 7);
+
+        $atRaw = trim((string) ($data['checkin_at'] ?? ''));
+        if ($atRaw !== '') {
+            $ts = strtotime($atRaw);
+            $data['checkin_at'] = $ts !== false ? date('Y-m-d H:i:s', $ts) : date('Y-m-d H:i:s');
+        } else {
+            $data['checkin_at'] = date('Y-m-d H:i:s');
+        }
+
+        return $data;
     }
 
     /**

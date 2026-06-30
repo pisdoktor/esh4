@@ -2284,6 +2284,54 @@ class StatsController {
     }
 
     /**
+     * Stok özeti — kritik sayı, 30 gün çıkış, kategori kırılımı.
+     */
+    public function stokOzet() {
+        if (!\App\Helpers\AppSettings::isModuleEnabled('stok') || !\App\Services\Stok\StokService::moduleReady()) {
+            $_SESSION['error'] = 'Stok modülü kapalı veya kurulu değil.';
+            header('Location: ' . esh_url('Stats', 'index'));
+            exit;
+        }
+        $kurumId = \App\Helpers\TenantContext::filterKurumId();
+        $ozet = (new \App\Models\StokMalzeme())->getOzetStats($kurumId);
+        $kritikItems = (new \App\Models\StokMalzeme())->listCriticalItems($kurumId, 30);
+
+        $this->render('stats_stok_ozet', 'Stok özeti', [
+            'ozet' => $ozet,
+            'kritikItems' => $kritikItems,
+        ]);
+    }
+
+    /**
+     * Mama/bez rapor bitişi + kritik stok birleşik panel.
+     */
+    public function supplyStokPanel() {
+        [$from, $to, $dateFromTr, $dateToTr] = array_slice($this->statsFilterDateRange(), 0, 4);
+        $statsModel = new Stats();
+        $mamaTotal = $statsModel->countMamaRaporRows($from, $to);
+        $bezTotal = $statsModel->countBezRaporRows($from, $to);
+
+        $stokOzet = ['kritik_sayisi' => 0, 'cikis_30_gun' => 0.0, 'kategori' => []];
+        $kritikItems = [];
+        if (\App\Helpers\AppSettings::isModuleEnabled('stok') && \App\Services\Stok\StokService::moduleReady()) {
+            $kurumId = \App\Helpers\TenantContext::filterKurumId();
+            $stokOzet = (new \App\Models\StokMalzeme())->getOzetStats($kurumId);
+            $kritikItems = (new \App\Models\StokMalzeme())->listCriticalItems($kurumId, 25);
+        }
+
+        $this->render('stats_supply_stok_panel', 'Sarf + stok paneli', [
+            'date_from' => $dateFromTr,
+            'date_to' => $dateToTr,
+            'mamaTotal' => $mamaTotal,
+            'bezTotal' => $bezTotal,
+            'stokOzet' => $stokOzet,
+            'kritikItems' => $kritikItems,
+            'supplyReportsUrl' => esh_url('Stats', 'supplyReports'),
+            'stokIndexUrl' => esh_url('Stok', 'index'),
+        ]);
+    }
+
+    /**
      * Çapraz tablo raporları — action=xTab_{id} (ör. xTab_bagimlilikAge).
      *
      * @param array<int, mixed> $arguments

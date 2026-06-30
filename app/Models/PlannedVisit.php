@@ -386,7 +386,7 @@ class PlannedVisit extends BaseModel {
         foreach (ZamanDilimiHelper::activeVardiyaIndexes() as $i) {
             $zamanKodu = ZamanDilimiHelper::fromVardiyaIndex($i);
             // Planlanmış izlemler (nakil dışı: listede nakil id'si dışında en az bir işlem id’si)
-            $sql = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
+            $sql = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
                     $islemLabelSql AS islem_label
                     FROM #__pizlemler AS p
                     LEFT JOIN #__hastalar AS h ON p.hastatckimlik = h.tckimlik
@@ -401,7 +401,7 @@ class PlannedVisit extends BaseModel {
                     ORDER BY h.mahalle ASC";
             $data[$i]['planli'] = $this->db->fetchObjectListPrepared($sql, [$date]);
             //Planlanmış ilk ziyaretler
-            $sql = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'İlk Ziyaret' as islem_label 
+            $sql = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'İlk Ziyaret' as islem_label 
                     FROM #__hastalar AS h
                     LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                     LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
@@ -413,7 +413,7 @@ class PlannedVisit extends BaseModel {
             // 3. Periyodik pansumanlar (pzaman 1–3; eski 0–2 kayıtları da eşlenir)
             $pzamanMatch = '(CASE WHEN CAST(COALESCE(h.pzaman, 1) AS SIGNED) BETWEEN 1 AND 3 THEN CAST(h.pzaman AS SIGNED) '
                 . 'WHEN CAST(COALESCE(h.pzaman, 1) AS SIGNED) BETWEEN 0 AND 2 THEN CAST(h.pzaman AS SIGNED) + 1 ELSE 1 END)';
-            $sqlPansuman = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'Pansuman' as islem_label 
+            $sqlPansuman = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'Pansuman' as islem_label 
                             FROM #__hastalar AS h
                             LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                             LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
@@ -431,7 +431,7 @@ class PlannedVisit extends BaseModel {
             
         }
         // Planlanmış nakiller (listedeki id’lerden biri nakil işlem id'si)
-        $sqlNakil = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
+        $sqlNakil = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
                      $islemLabelSql AS islem_label
                      FROM #__pizlemler AS p
                      LEFT JOIN #__hastalar AS h ON p.hastatckimlik = h.tckimlik

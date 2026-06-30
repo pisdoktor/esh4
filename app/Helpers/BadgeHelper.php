@@ -866,6 +866,33 @@ class BadgeHelper {
                 'icon' => 'fa-solid fa-pills text-secondary',
             ];
         }
+        if (
+            $aktif
+            && $id > 0
+            && \App\Helpers\AppSettings::isModuleEnabled('stok')
+            && \App\Services\Stok\StokService::moduleReady()
+            && (\App\Helpers\AuthHelper::can('stok.create') || \App\Helpers\AuthHelper::can('stok.admin'))
+        ) {
+            $out[] = [
+                'type' => 'item',
+                'href' => esh_url('Stok', 'cikis', ['hasta_id' => $id]),
+                'label' => 'Stok çıkışı',
+                'icon' => 'fa-solid fa-boxes-stacked text-warning',
+            ];
+        }
+        if (
+            $id > 0
+            && \App\Helpers\AppSettings::isModuleEnabled('stok')
+            && \App\Services\Stok\StokService::moduleReady()
+            && (\App\Helpers\AuthHelper::can('stok.read') || \App\Helpers\AuthHelper::can('stok.create') || \App\Helpers\AuthHelper::can('stok.admin'))
+        ) {
+            $out[] = [
+                'type' => 'item',
+                'href' => esh_url('Stok', 'hastaOzet', ['hasta_id' => $id]),
+                'label' => 'Stok tüketim geçmişi',
+                'icon' => 'fa-solid fa-clock-rotate-left text-secondary',
+            ];
+        }
         if ($aktif) {
             $tcDigits = preg_replace('/\D/', '', (string) ($hasta->tckimlik ?? ''));
             if (strlen($tcDigits) === 11) {

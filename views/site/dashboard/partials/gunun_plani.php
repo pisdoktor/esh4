@@ -16,7 +16,13 @@
                 <?php if (\App\Helpers\AuthHelper::sessionIsAdmin()): ?>
                 <div class="d-flex gap-1 flex-shrink-0">
                 <?php if (\App\Services\Sms\SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))): ?>
-                <a href="<?= htmlspecialchars(esh_url('Sms', 'compose', ['segment' => 'gunun_plani']), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary btn-sm rounded-pill" title="Günün planına SMS gönder" id="btn-daily-plan-sms">
+                <a href="#"
+                    class="btn btn-outline-primary btn-sm rounded-pill disabled"
+                    title="Günün planı yükleniyor…"
+                    id="btn-daily-plan-sms"
+                    role="button"
+                    aria-disabled="true"
+                    tabindex="-1">
                     <i class="fa-solid fa-comment-sms me-1"></i><span class="d-none d-md-inline">SMS</span>
                 </a>
                 <?php endif; ?>

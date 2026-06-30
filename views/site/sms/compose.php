@@ -35,7 +35,7 @@
                             </div>
                             <div class="mb-2 sms-param sms-param-gunun_plani sms-param-planli_izlem sms-param-ilk_ziyaret">
                                 <label class="form-label small">Tarih</label>
-                                <input type="date" class="form-control form-control-sm" name="tarih" value="<?= htmlspecialchars(date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="date" class="form-control form-control-sm" name="tarih" value="<?= htmlspecialchars($presetTarih ?? date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="mb-2 sms-param sms-param-gunun_plani">
                                 <label class="form-label small">Zaman dilimi (0=tümü)</label>

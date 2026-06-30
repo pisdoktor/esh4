@@ -43,6 +43,16 @@ final class SmsService
         return \App\Helpers\AuthHelper::sessionIsAdmin();
     }
 
+    /** SMS gönderimi için sağlayıcı / kimlik bilgileri hazır mı (test modu dahil). */
+    public static function isSendConfigured(): bool
+    {
+        if (!AppSettings::isModuleEnabled('sms_bildirim') || !self::moduleReady()) {
+            return false;
+        }
+
+        return SmsProviderFactory::isReady();
+    }
+
     /**
      * @param array<string, mixed> $segmentParams
      * @param list<string> $roles

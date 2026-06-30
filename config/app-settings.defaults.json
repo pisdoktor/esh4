@@ -16,6 +16,7 @@
     "nobet": true,
     "kps_tc_sorgu": false,
     "mesajlasma": true,
-    "sms_bildirim": true
+    "sms_bildirim": true,
+    "stok": true
   }
 }

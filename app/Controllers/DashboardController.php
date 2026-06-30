@@ -76,6 +76,21 @@ class DashboardController {
             }
         }
 
+        $stokKritikCount = 0;
+        if (
+            AppSettings::isModuleEnabled('stok')
+            && \App\Services\Stok\StokService::moduleReady()
+            && (AuthHelper::can('stok.read') || AuthHelper::can('stok.admin'))
+        ) {
+            $stokKritikCount = (new \App\Models\StokMalzeme())->countCritical(
+                \App\Helpers\TenantContext::filterKurumId()
+            );
+            if (AuthHelper::sessionIsAdmin()) {
+                $kurumId = (int) (\App\Helpers\TenantContext::filterKurumId() ?? ($_SESSION['kurum_id'] ?? 1));
+                (new \App\Services\Stok\StokService())->maybeSendCriticalAlerts($kurumId);
+            }
+        }
+
         $pageTitle = "Planlı İşlem Takvimi";
         include ThemeViewHelper::resolvePartial('header');
         include ThemeViewHelper::resolveAreaView('site', 'dashboard/index');

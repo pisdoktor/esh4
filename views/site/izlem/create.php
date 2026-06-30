@@ -26,6 +26,9 @@
                         <i class="fa-solid fa-link me-1"></i>Planlı izlemden geldiniz; kayıt sonrası ilgili plan yapıldı olarak işaretlenir.
                     </div>
                 <?php endif; ?>
+                <p class="small text-muted mb-0 mt-3">
+                    <i class="fa-solid fa-location-crosshairs me-1"></i>Konum izni verilirse ziyaret konumu kayda eklenir (isteğe bağlı).
+                </p>
             </div>
 
             <div id="izlem-create-warnings-banner" class="d-none px-4 py-3 border-bottom bg-warning-subtle bg-opacity-25" role="region" aria-label="İzlem tarihi uyarıları">
@@ -37,6 +40,9 @@
 
             <form id="form-izlem-create" class="p-4" action="<?= htmlspecialchars(esh_url('Visit', 'store'), ENT_QUOTES, 'UTF-8') ?>" method="post">
                 <input type="hidden" name="hastatckimlik" value="<?= htmlspecialchars((string) ($patient->tckimlik ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                <input type="hidden" name="checkin_lat" value="">
+                <input type="hidden" name="checkin_lon" value="">
+                <input type="hidden" name="checkin_at" value="">
                 <?php if (!empty($plan) && !empty($plan->id)): ?>
                     <input type="hidden" name="plan_id" value="<?= (int) $plan->id ?>">
                 <?php endif; ?>

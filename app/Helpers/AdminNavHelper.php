@@ -165,6 +165,17 @@ class AdminNavHelper
             );
         }
 
+        if (AppSettings::isModuleEnabled('stok') && \App\Services\Stok\StokService::moduleReady()) {
+            $sahaItems[] = self::link(
+                'Stok takibi',
+                esh_url('Stok', 'index'),
+                'fa-boxes-stacked',
+                'text-success',
+                $currentController === 'Stok',
+                'Malzeme stoku, giriş/çıkış ve dağıtım'
+            );
+        }
+
         $groups = [
             [
                 'title' => 'Ekip ve kurum',

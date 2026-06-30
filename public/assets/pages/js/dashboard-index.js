@@ -39,6 +39,9 @@ $(document).ready(function () {
     if (dashboardCanMernisScan()) {
         initDailyPlanMernisScan();
     }
+    if (dashboardCanDailyPlanSms()) {
+        initDailyPlanSmsButton();
+    }
 });
 
 function initDashboardCalendarMonthAjax() {
@@ -241,6 +244,70 @@ function dashboardCanDrawRoute() {
     return !!(window.ESH_PAGE && window.ESH_PAGE.canDrawRoute);
 }
 
+function dashboardCanDailyPlanSms() {
+    return !!(window.ESH_PAGE && window.ESH_PAGE.canUseDailyPlanSms);
+}
+
+function dashboardSmsSendConfigured() {
+    return !!(window.ESH_PAGE && window.ESH_PAGE.smsSendConfigured);
+}
+
+function updateDailyPlanSmsButton(patientCount) {
+    if (!dashboardCanDailyPlanSms()) {
+        return;
+    }
+    const $btn = $('#btn-daily-plan-sms');
+    if (!$btn.length) {
+        return;
+    }
+    const n = parseInt(patientCount, 10) || 0;
+    const hasDate = !!(window.ESH_DASHBOARD_PLAN_DATE || '');
+    const configured = dashboardSmsSendConfigured();
+    const canSend = hasDate && n > 0 && configured;
+    const baseUrl = (window.ESH_PAGE && window.ESH_PAGE.dashboardPlanSmsComposeUrl)
+        ? window.ESH_PAGE.dashboardPlanSmsComposeUrl
+        : eshUrl('Sms', 'compose', { segment: 'gunun_plani' });
+
+    if (canSend) {
+        const sep = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+        const url = baseUrl + sep + 'tarih=' + encodeURIComponent(window.ESH_DASHBOARD_PLAN_DATE);
+        $btn.attr('href', url)
+            .removeClass('disabled')
+            .removeAttr('aria-disabled tabindex')
+            .attr('title', 'Günün planına SMS gönder (' + n + ' hasta)');
+    } else {
+        $btn.attr('href', '#')
+            .addClass('disabled')
+            .attr('aria-disabled', 'true')
+            .attr('tabindex', '-1');
+        let title;
+        if (!configured) {
+            title = 'SMS ayarları yapılandırılmamış (Kurum ayarları → SMS sekmesi)';
+        } else if (!hasDate) {
+            title = 'Önce takvimden bir gün seçin';
+        } else {
+            title = 'Seçili günde planlı hasta yok';
+        }
+        $btn.attr('title', title);
+    }
+}
+
+function initDailyPlanSmsButton() {
+    if (!dashboardCanDailyPlanSms()) {
+        return;
+    }
+    const $btn = $('#btn-daily-plan-sms');
+    if (!$btn.length) {
+        return;
+    }
+    $btn.on('click', function (e) {
+        if ($btn.hasClass('disabled') || $btn.attr('aria-disabled') === 'true') {
+            e.preventDefault();
+        }
+    });
+    updateDailyPlanSmsButton(0);
+}
+
 function getDailyTasks(date) {
     window.ESH_DASHBOARD_PLAN_DATE = date;
     var displayDate = date.split('-').reverse().join('-');
@@ -252,6 +319,7 @@ function getDailyTasks(date) {
         $('#route-button-container').addClass('d-none');
     }
     updateDailyPlanMernisButton(0);
+    updateDailyPlanSmsButton(0);
     dashPlanSetHtml('<div class="p-5 text-center mr-dash-plan__loading"><div class="spinner-border text-primary"></div></div>');
 
     $.getJSON(eshUrl('Dashboard', 'getDailyEvents', { date: date }), function (data) {
@@ -355,6 +423,7 @@ function getDailyTasks(date) {
             dashPlanSetPlan(navHtml, contentHtml + nakilHtml);
         }
         updateDailyPlanMernisButton(data.mernisPatientCount);
+        updateDailyPlanSmsButton(data.mernisPatientCount);
     }).fail(function (jqXHR, textStatus, err) {
         dashPlanSetHtml(
             '<div class="alert alert-danger m-2 small mb-0">' +
@@ -363,7 +432,38 @@ function getDailyTasks(date) {
         );
         $('#route-button-container').addClass('d-none');
         updateDailyPlanMernisButton(0);
+        updateDailyPlanSmsButton(0);
     });
+}
+
+function dashPhoneTelHref(raw) {
+    const digits = String(raw || '').replace(/\s+/g, '').replace(/[^\d+]/g, '');
+    return digits.length >= 10 ? 'tel:' + digits : '';
+}
+
+function dashMapsHref(coords) {
+    const c = String(coords || '').trim();
+    if (!c) {
+        return '';
+    }
+    return 'https://www.google.com/maps?q=' + encodeURIComponent(c);
+}
+
+function dashDailyCardQuickActions(item) {
+    const telHref = dashPhoneTelHref(item.ceptel1);
+    const mapHref = dashMapsHref(item.coords);
+    if (!telHref && !mapHref) {
+        return '';
+    }
+    let html = '<div class="esh-daily-plan-card__actions d-flex gap-1 ms-auto">';
+    if (telHref) {
+        html += '<a href="' + telHref + '" class="btn btn-sm btn-outline-success rounded-pill" title="Ara" aria-label="Hastayı ara"><i class="fa-solid fa-phone"></i></a>';
+    }
+    if (mapHref) {
+        html += '<a href="' + mapHref + '" class="btn btn-sm btn-outline-danger rounded-pill" target="_blank" rel="noopener noreferrer" title="Haritada aç" aria-label="Haritada aç"><i class="fa-solid fa-map-location-dot"></i></a>';
+    }
+    html += '</div>';
+    return html;
 }
 
 function renderDailyCard(item, opts) {
@@ -374,19 +474,21 @@ function renderDailyCard(item, opts) {
     const islemLbl = trUpper(item.islem_label || 'İşlem Yok');
     const ilceLbl = trUpper(item.ilce != null && item.ilce !== '' ? item.ilce : '-');
     const mahalleLbl = formatMahalleBolge(item);
+    const quickActions = dashDailyCardQuickActions(item);
     return `
     <div class="list-group-item p-2 border rounded mb-2 shadow-sm border-start-lg esh-daily-plan-card ${borderColor} ${bgColor}">
-        <div class="d-flex justify-content-between align-items-start">
-            <div class="fw-bold text-uppercase small">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="fw-bold text-uppercase small flex-grow-1 min-w-0">
                 <a href="${actionUrl}" class="${genderNameClass(item.cinsiyet)} text-decoration-none">
                     <i class="fa fa-user-circle me-1 text-secondary"></i> ${item.isim} ${item.soyisim}
                 </a>
             </div>
-            <span class="badge border shadow-sm esh-daily-plan-card__badge">${islemLbl}</span>
+            <span class="badge border shadow-sm esh-daily-plan-card__badge flex-shrink-0">${islemLbl}</span>
         </div>
-        <div class="mt-1 d-flex align-items-center flex-wrap small esh-daily-plan-card__meta">
-            <span class="me-2"><i class="fa fa-id-card me-1"></i><a href="${patientUrl}" class="text-primary text-decoration-none">${formatTcTcNo(item.tckimlik)}</a></span>
-            <span class="me-2"><i class="fa fa-map-marker-alt me-1 text-danger"></i>${ilceLbl} / ${mahalleLbl}</span>
+        <div class="mt-1 d-flex align-items-center flex-wrap gap-2 small esh-daily-plan-card__meta">
+            <span><i class="fa fa-id-card me-1"></i><a href="${patientUrl}" class="text-primary text-decoration-none">${formatTcTcNo(item.tckimlik)}</a></span>
+            <span><i class="fa fa-map-marker-alt me-1 text-danger"></i>${ilceLbl} / ${mahalleLbl}</span>
+            ${quickActions ? quickActions : ''}
         </div>
     </div>`;
 }

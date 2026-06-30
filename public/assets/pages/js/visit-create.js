@@ -4,6 +4,43 @@
         return;
     }
 
+    function submitFormWithGeo(f) {
+        if (!navigator.geolocation || typeof navigator.geolocation.getCurrentPosition !== 'function') {
+            f.submit();
+            return;
+        }
+        var latInput = f.querySelector('input[name="checkin_lat"]');
+        var lonInput = f.querySelector('input[name="checkin_lon"]');
+        var atInput = f.querySelector('input[name="checkin_at"]');
+        var finished = false;
+        function finish() {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            f.submit();
+        }
+        var timer = window.setTimeout(finish, 5000);
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                window.clearTimeout(timer);
+                if (pos && pos.coords && latInput && lonInput) {
+                    latInput.value = String(pos.coords.latitude);
+                    lonInput.value = String(pos.coords.longitude);
+                    if (atInput) {
+                        atInput.value = new Date().toISOString();
+                    }
+                }
+                finish();
+            },
+            function () {
+                window.clearTimeout(timer);
+                finish();
+            },
+            { enableHighAccuracy: false, timeout: 4500, maximumAge: 60000 }
+        );
+    }
+
     var collapseEl = document.getElementById('izlem-create-neden-collapse');
     if (collapseEl && typeof bootstrap !== 'undefined') {
         var col = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
@@ -358,7 +395,7 @@
                 return;
             }
             skipDupSubmit = true;
-            form.submit();
+            submitFormWithGeo(form);
             return;
         }
         fetchCheck(raw).then(function (res) {
@@ -385,7 +422,7 @@
                 return;
             }
             skipDupSubmit = true;
-            form.submit();
+            submitFormWithGeo(form);
         });
     });
 })();

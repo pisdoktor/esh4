@@ -44,10 +44,24 @@ if (!empty($visits)) {
             ];
         }
         $histDateLabel = !empty($v->izlemtarihi) ? date('d-m-Y', strtotime($v->izlemtarihi)) : '—';
+        $checkinLat = isset($v->checkin_lat) && is_numeric($v->checkin_lat) ? (float) $v->checkin_lat : null;
+        $checkinLon = isset($v->checkin_lon) && is_numeric($v->checkin_lon) ? (float) $v->checkin_lon : null;
+        $hasCheckin = $checkinLat !== null && $checkinLon !== null
+            && $checkinLat >= -90 && $checkinLat <= 90
+            && $checkinLon >= -180 && $checkinLon <= 180;
         ?>
         <tr>
             <td>
                 <?= \App\Helpers\FormHelper::listActionsDateDropdown($__histActs, $histDateLabel, ['toggleTitle' => 'İzlem işlemleri']) ?>
+                <?php if ($hasCheckin): ?>
+                    <a href="https://www.google.com/maps?q=<?= htmlspecialchars((string) $checkinLat . ',' . (string) $checkinLon, ENT_QUOTES, 'UTF-8') ?>"
+                       class="badge bg-light text-dark border text-decoration-none ms-1"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="Saha konum kaydı">
+                        <i class="fa-solid fa-location-dot text-success me-1"></i>Konum
+                    </a>
+                <?php endif; ?>
                 <?= \App\Helpers\IzlemKurumDisplayHelper::otherKurumHtml((int)($v->kurum_id ?? 0), (int)($viewerKurumId ?? 0), isset($v->kurum_adi) ? (string)$v->kurum_adi : null) ?>
             </td>
             <?php unset($__histActs); ?>

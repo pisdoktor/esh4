@@ -114,6 +114,16 @@ final class PageAssetHelper
             'create' => ['form-pages.css'],
             'edit' => ['form-pages.css'],
         ],
+        'stok' => [
+            'malzemecreate' => ['form-pages.css'],
+            'malzemeedit' => ['form-pages.css'],
+            'giris' => ['form-pages.css'],
+            'cikis' => ['form-pages.css'],
+            'iade' => ['form-pages.css'],
+            'sayim' => ['form-pages.css'],
+            'hastaozet' => ['form-pages.css'],
+            'siparisoneri' => ['form-pages.css'],
+        ],
         'ekip' => [
             'edit' => ['form-pages.css'],
         ],

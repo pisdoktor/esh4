@@ -152,6 +152,8 @@ class StatsNavHelper {
                         'cards' => [
                             self::card('specialDevices', 'Cihaz / özel durum', 'NG, PEG ve benzeri özel durum özetleri.', 'fa-kit-medical', 'warning'),
                             self::card('supplyReports', 'Mama / bez raporları', 'Mama ve bez raporu özetleri.', 'fa-baby', 'warning'),
+                            self::card('supplyStokPanel', 'Sarf + stok paneli', 'Mama/bez rapor bitişi ile kritik stok tek ekranda.', 'fa-boxes-stacked', 'warning'),
+                            self::card('stokOzet', 'Stok özeti', 'Kritik malzeme, çıkış trendi ve kategori dağılımı.', 'fa-warehouse', 'secondary'),
                             self::card('sondaChanges', 'Sonda takibi', 'Planlanan sonda değişim tarihine göre liste (sondatarihi + 1 ay).', 'fa-syringe', 'warning'),
                         ],
                     ],
@@ -237,6 +239,8 @@ class StatsNavHelper {
         'eraporList' => ['title' => 'e-Rapor', 'icon' => 'fa-file-waveform'],
         'eraporHastaUyum' => ['title' => 'e-Rapor uyumu', 'icon' => 'fa-code-compare'],
         'supplyReports' => ['title' => 'Mama/Bez', 'icon' => 'fa-baby'],
+        'supplyStokPanel' => ['title' => 'Sarf+Stok', 'icon' => 'fa-boxes-stacked'],
+        'stokOzet' => ['title' => 'Stok özeti', 'icon' => 'fa-warehouse'],
         'sondaChanges' => ['title' => 'Sonda', 'icon' => 'fa-syringe'],
         'exitReasons' => ['title' => 'Çıkış nedenleri', 'icon' => 'fa-chart-pie'],
     ];

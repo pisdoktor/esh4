@@ -28,6 +28,8 @@ class ThemeViewHelper
         return [
             'catppuccin-latte',
             'catppuccin-mocha',
+            'github-dark',
+            'github-light',
             'nord',
         ];
     }
@@ -376,7 +378,7 @@ class ThemeViewHelper
         if ($wrapper !== '') {
             return $wrapper;
         }
-        if (str_starts_with($s, 'catppuccin-') || $s === 'nord') {
+        if (str_starts_with($s, 'catppuccin-') || $s === 'nord' || str_starts_with($s, 'github-')) {
             return 'cpp';
         }
 
@@ -403,6 +405,9 @@ class ThemeViewHelper
         }
         if ($slug === 'nord') {
             return $base . ' theme-meridian theme-nord cpp-shell';
+        }
+        if (str_starts_with($slug, 'github-')) {
+            return $base . ' theme-meridian theme-' . $slug . ' cpp-shell';
         }
         if (str_starts_with($slug, 'catppuccin-')) {
             return $base . ' theme-meridian theme-' . $slug . ' cpp-shell';
@@ -431,7 +436,7 @@ class ThemeViewHelper
         if ($slug === 'evcare') {
             return 'esh-app-main flex-grow-1 d-flex flex-column mr-main ev-main';
         }
-        if (str_starts_with($slug, 'catppuccin-') || $slug === 'nord') {
+        if (str_starts_with($slug, 'catppuccin-') || $slug === 'nord' || str_starts_with($slug, 'github-')) {
             return 'esh-app-main flex-grow-1 d-flex flex-column mr-main cpp-main';
         }
 

@@ -61,6 +61,8 @@ final class StatsIntroHelper {
         'eraporHastaUyum' => 'e-Rapor havuzu ile hasta kartlarını TC üzerinden karşılaştırır; özet kartlar ve metrik tablosu ayrı XHR ile yüklenir.',
         'eraporHastaUyumList' => 'Seçilen uyum kriterine uyan e-Rapor veya hasta kayıtlarını listeler.',
         'supplyReports' => 'Mama veya bez raporu bitiş tarihi yaklaşan veya dolan hastaları listeler.',
+        'supplyStokPanel' => 'Mama/bez rapor özetleri ile kritik stok ihtiyacını tek panelde birleştirir.',
+        'stokOzet' => 'Kritik malzeme sayısı, son 30 gün çıkış toplamı ve kategori dağılımı.',
         'sondaChanges' => 'Planlanan sonda değişim tarihi seçilen dönemde olan hastaları listeler.',
         'exitReasons' => 'Pasife alınan hastaların çıkış nedenlerinin dağılımını gösterir.',
         'passiveReasons' => 'Pasife alınan hastaların çıkış nedenlerinin dağılımını gösterir.',

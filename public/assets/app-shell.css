@@ -412,6 +412,36 @@ body.app-shell .esh-page-patient-unified .dropdown-menu.esh-patient-mega-menu,
     flex-shrink: 0;
 }
 
+@media (max-width: 991.98px) {
+    .esh-page-dashboard .esh-dash-stok-kritik {
+        display: none !important;
+    }
+    .esh-page-dashboard .mr-dash-plan.sticky-top {
+        position: relative !important;
+        top: auto !important;
+        max-height: none !important;
+        min-height: 0;
+    }
+    .esh-page-dashboard .mr-dash-plan .mr-dash-plan__scroll {
+        max-height: min(55vh, 520px);
+    }
+    .esh-page-dashboard .esh-daily-plan-card {
+        padding: 0.65rem 0.75rem !important;
+        min-height: 3.25rem;
+    }
+    .esh-page-dashboard .esh-daily-plan-card__actions .btn {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+        padding: 0.35rem 0.5rem;
+    }
+    .esh-patient-izlem-btn {
+        min-height: 2.25rem !important;
+        padding-top: 0.35rem !important;
+        padding-bottom: 0.35rem !important;
+        font-size: 0.85rem;
+    }
+}
+
 /* -------------------------------------------------------------------------
    Rota görünümü (.esh-page-rota) — layout
    ------------------------------------------------------------------------- */

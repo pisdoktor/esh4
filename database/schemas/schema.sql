@@ -10,6 +10,7 @@
 --   esh_hasta_yara_fotolar, esh_rota_cache, esh_rehber_etken, esh_rehber_ilac, esh_rehber_import_log,
 --   esh_mesaj_konusmalar, esh_mesaj_konusma_uyeler, esh_mesajlar,
 --   esh_sms_sablonlari, esh_sms_gonderim, esh_sms_alici, esh_sms_optout,
+--   esh_stok_malzeme, esh_stok_mevcut, esh_stok_hareket, esh_stok_uyari_log, esh_stok_parti,
 --   esh_hasta_nakil, esh_eimza_challenges, esh_eimza_login_logs
 --
 -- Kurulum:
@@ -33,6 +34,11 @@ DROP TABLE IF EXISTS `esh_rehber_etken`;
 DROP TABLE IF EXISTS `esh_rehber_import_log`;
 DROP TABLE IF EXISTS `esh_eimza_login_logs`;
 DROP TABLE IF EXISTS `esh_eimza_challenges`;
+DROP TABLE IF EXISTS `esh_stok_parti`;
+DROP TABLE IF EXISTS `esh_stok_uyari_log`;
+DROP TABLE IF EXISTS `esh_stok_hareket`;
+DROP TABLE IF EXISTS `esh_stok_mevcut`;
+DROP TABLE IF EXISTS `esh_stok_malzeme`;
 DROP TABLE IF EXISTS `esh_sms_alici`;
 DROP TABLE IF EXISTS `esh_sms_gonderim`;
 DROP TABLE IF EXISTS `esh_sms_optout`;
@@ -385,6 +391,9 @@ CREATE TABLE IF NOT EXISTS `esh_izlemler` (
   `izlemiyapan` VARCHAR(255) DEFAULT NULL COMMENT 'virgüllü esh_users.id',
   `zaman` VARCHAR(32) DEFAULT NULL,
   `aciklama` TEXT,
+  `checkin_lat` DECIMAL(10,7) NULL DEFAULT NULL COMMENT 'Saha ziyaret enlem (isteğe bağlı)',
+  `checkin_lon` DECIMAL(10,7) NULL DEFAULT NULL COMMENT 'Saha ziyaret boylam (isteğe bağlı)',
+  `checkin_at` DATETIME NULL DEFAULT NULL COMMENT 'Konum alındığı an',
   `arac` INT UNSIGNED DEFAULT NULL COMMENT 'esh_araclar.id',
   `brans` VARCHAR(255) DEFAULT NULL COMMENT 'konsültasyon: virgülle esh_branslar.id',
   `kons_istekler` VARCHAR(512) DEFAULT NULL COMMENT 'konsültasyon EK-3: virgülle esh_istekler.id',
@@ -669,6 +678,82 @@ CREATE TABLE IF NOT EXISTS `esh_sms_optout` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_sms_optout_tel_kurum` (`telefon_norm`, `kurum_id`),
   KEY `idx_sms_optout_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- Stok takip modülü
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_stok_malzeme` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `kod` VARCHAR(64) NULL DEFAULT NULL,
+  `ad` VARCHAR(255) NOT NULL DEFAULT '',
+  `kategori` ENUM('mama', 'bez', 'pansuman', 'yatak', 'sarf', 'cihaz', 'diger') NOT NULL DEFAULT 'sarf',
+  `birim` ENUM('adet', 'kutu', 'paket', 'litre', 'kg') NOT NULL DEFAULT 'adet',
+  `min_stok` DECIMAL(12,3) NOT NULL DEFAULT 0,
+  `aktif` TINYINT(1) NOT NULL DEFAULT 1,
+  `aciklama` VARCHAR(512) NULL DEFAULT NULL,
+  `tedarikci_adi` VARCHAR(255) NULL DEFAULT NULL,
+  `tedarikci_tel` VARCHAR(32) NULL DEFAULT NULL,
+  `birim_fiyat` DECIMAL(12,2) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_stok_malzeme_kurum` (`kurum_id`, `aktif`),
+  KEY `idx_stok_malzeme_kategori` (`kategori`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+CREATE TABLE IF NOT EXISTS `esh_stok_mevcut` (
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `malzeme_id` INT UNSIGNED NOT NULL,
+  `miktar` DECIMAL(12,3) NOT NULL DEFAULT 0,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`kurum_id`, `malzeme_id`),
+  KEY `idx_stok_mevcut_malzeme` (`malzeme_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+CREATE TABLE IF NOT EXISTS `esh_stok_hareket` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `malzeme_id` INT UNSIGNED NOT NULL,
+  `hareket_tipi` ENUM('giris', 'cikis', 'iade') NOT NULL,
+  `miktar` DECIMAL(12,3) NOT NULL,
+  `hareket_tarihi` DATE NOT NULL,
+  `hasta_id` INT UNSIGNED NULL DEFAULT NULL,
+  `ekip_id` INT UNSIGNED NULL DEFAULT NULL,
+  `kullanici_id` INT UNSIGNED NOT NULL,
+  `aciklama` VARCHAR(512) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_stok_hareket_kurum_tarih` (`kurum_id`, `hareket_tarihi`),
+  KEY `idx_stok_hareket_malzeme` (`malzeme_id`),
+  KEY `idx_stok_hareket_hasta` (`hasta_id`),
+  KEY `idx_stok_hareket_ekip` (`ekip_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+CREATE TABLE IF NOT EXISTS `esh_stok_uyari_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `malzeme_id` INT UNSIGNED NOT NULL,
+  `uyari_tarihi` DATE NOT NULL,
+  `sms_gonderildi` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_stok_uyari_gun` (`kurum_id`, `malzeme_id`, `uyari_tarihi`),
+  KEY `idx_stok_uyari_kurum` (`kurum_id`, `uyari_tarihi`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+CREATE TABLE IF NOT EXISTS `esh_stok_parti` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `malzeme_id` INT UNSIGNED NOT NULL,
+  `lot_no` VARCHAR(64) NULL DEFAULT NULL,
+  `skt` DATE NULL DEFAULT NULL,
+  `miktar` DECIMAL(12,3) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_stok_parti_malzeme` (`kurum_id`, `malzeme_id`, `skt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------

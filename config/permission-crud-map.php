@@ -240,6 +240,25 @@ return [
             ],
         ],
     ],
+    'stok' => [
+        'label' => 'Stok takibi',
+        'admin_bypass' => true,
+        'rbac' => true,
+        'crud' => [
+            'read' => [
+                'index', 'indexRows', 'hareketler', 'hareketlerRows', 'kritikStok', 'kritikStokRows',
+                'hastaOzet', 'hastaOzetRows', 'hareketlerExportData',
+            ],
+            'create' => [
+                'cikis', 'cikisStore', 'iade', 'iadeStore', 'hastaLookupAjax',
+            ],
+            'admin' => [
+                'malzemeList', 'malzemeListRows', 'malzemeCreate', 'malzemeEdit',
+                'malzemeStore', 'malzemeDelete', 'giris', 'girisStore',
+                'sayim', 'sayimStore', 'siparisOneri', 'siparisExportData', 'indexExportData',
+            ],
+        ],
+    ],
     'archive' => [
         'label' => 'Arşiv',
         'admin_bypass' => true,

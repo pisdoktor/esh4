@@ -71,6 +71,10 @@ class SmsController
         $segments = SmsSettings::SEGMENTS;
         $hastaId = (int) ($_GET['hasta_id'] ?? 0);
         $presetSegment = trim((string) ($_GET['segment'] ?? ''));
+        $presetTarih = trim((string) ($_GET['tarih'] ?? date('Y-m-d')));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $presetTarih)) {
+            $presetTarih = date('Y-m-d');
+        }
         if ($hastaId > 0) {
             $presetSegment = 'tek_hasta';
         }

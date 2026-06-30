@@ -166,3 +166,37 @@
   #7 C:\xampp\htdocs\public\index.php(130): App\Controllers\PatientController->unifiedRows()
   #8 {main}
 --------------------------------------------------------------------------------
+[2026-07-01 00:15:55] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Stok/index
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'esh4.esh_stok_malzeme' doesn't exist
+  Kod: 42S02
+  SQL: SELECT COUNT(*) FROM esh_stok_malzeme AS m
+                LEFT JOIN esh_stok_mevcut AS s ON s.malzeme_id = m.id AND s.kurum_id = m.kurum_id
+                WHERE m.aktif = 1 AND COALESCE(s.miktar, 0) < m.min_stok
+  İlk-uygulama-çerçevesi: App\Models\StokMalzeme->countCritical @ C:\xampp\htdocs\app\Controllers\StokController.php:106
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT COUNT(*)...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT COUNT(*)...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(467): App\Core\Database->executePrepared('SELECT COUNT(*)...', Array)
+  #3 C:\xampp\htdocs\app\Models\StokMalzeme.php(179): App\Core\Database->loadResultPrepared('SELECT COUNT(*)...', Array)
+  #4 C:\xampp\htdocs\app\Controllers\StokController.php(106): App\Models\StokMalzeme->countCritical(NULL)
+  #5 C:\xampp\htdocs\public\index.php(130): App\Controllers\StokController->index()
+  #6 {main}
+--------------------------------------------------------------------------------
+[2026-07-01 00:16:05] Sorgu Hatası | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  İstisna-konumu: C:\xampp\htdocs\app\Core\Database.php:198
+  Mesaj: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'esh4.esh_stok_malzeme' doesn't exist
+  Kod: 42S02
+  SQL: SELECT COUNT(*) FROM esh_stok_malzeme AS m
+                LEFT JOIN esh_stok_mevcut AS s ON s.malzeme_id = m.id AND s.kurum_id = m.kurum_id
+                WHERE m.aktif = 1 AND COALESCE(s.miktar, 0) < m.min_stok
+  İlk-uygulama-çerçevesi: App\Models\StokMalzeme->countCritical @ C:\xampp\htdocs\app\Controllers\DashboardController.php:85
+  Trace:
+  #0 C:\xampp\htdocs\app\Core\Database.php(198): PDO->prepare('SELECT COUNT(*)...')
+  #1 C:\xampp\htdocs\app\Core\Database.php(394): App\Core\Database->runPreparedStatement('SELECT COUNT(*)...', Array)
+  #2 C:\xampp\htdocs\app\Core\Database.php(467): App\Core\Database->executePrepared('SELECT COUNT(*)...', Array)
+  #3 C:\xampp\htdocs\app\Models\StokMalzeme.php(179): App\Core\Database->loadResultPrepared('SELECT COUNT(*)...', Array)
+  #4 C:\xampp\htdocs\app\Controllers\DashboardController.php(85): App\Models\StokMalzeme->countCritical(NULL)
+  #5 C:\xampp\htdocs\public\index.php(130): App\Controllers\DashboardController->index()
+  #6 {main}
+--------------------------------------------------------------------------------
