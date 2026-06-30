@@ -71,7 +71,10 @@ INSERT IGNORE INTO `#__permissions` (`id`, `module_key`, `crud`, `slug`, `label`
 (51, 'nobet', 'delete', 'nobet.delete', 'Nöbet — silme'),
 (52, 'sms_bildirim', 'read', 'sms_bildirim.read', 'SMS bildirimleri — okuma'),
 (53, 'sms_bildirim', 'create', 'sms_bildirim.create', 'SMS bildirimleri — gönderme'),
-(54, 'sms_bildirim', 'admin', 'sms_bildirim.admin', 'SMS bildirimleri — şablon yönetimi');
+(54, 'sms_bildirim', 'admin', 'sms_bildirim.admin', 'SMS bildirimleri — şablon yönetimi'),
+(55, 'stok', 'read', 'stok.read', 'Stok takibi — okuma'),
+(56, 'stok', 'create', 'stok.create', 'Stok takibi — çıkış / iade'),
+(57, 'stok', 'admin', 'stok.admin', 'Stok takibi — malzeme kartı ve giriş');
 
 INSERT IGNORE INTO `#__role_permissions` (`role_id`, `permission_id`)
 SELECT 1, p.id FROM `#__permissions` p

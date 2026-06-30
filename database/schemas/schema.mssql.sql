@@ -23,6 +23,33 @@ GO
 IF OBJECT_ID(N'[dbo].[esh_eimza_challenges]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_eimza_challenges];
 GO
 
+IF OBJECT_ID(N'[dbo].[esh_stok_parti]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_stok_parti];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_stok_uyari_log]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_stok_uyari_log];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_stok_hareket]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_stok_hareket];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_stok_mevcut]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_stok_mevcut];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_stok_malzeme]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_stok_malzeme];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_sms_alici]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_sms_alici];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_sms_gonderim]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_sms_gonderim];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_sms_optout]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_sms_optout];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_sms_sablonlari]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_sms_sablonlari];
+GO
+
 IF OBJECT_ID(N'[dbo].[esh_mesajlar]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_mesajlar];
 GO
 
@@ -421,6 +448,7 @@ BEGIN
   [yupasno] NVARCHAR(64) DEFAULT NULL,
   [ailehekimi] NVARCHAR(128) DEFAULT NULL,
   [ailehekimitel] NVARCHAR(32) DEFAULT NULL,
+  [sms_bilgilendirme_onay] TINYINT(1) NOT NULL DEFAULT 1,
   [kangrubu] NVARCHAR(8) DEFAULT NULL,
   [ilce] NVARCHAR(64) DEFAULT NULL,
   [mahalle] NVARCHAR(64) DEFAULT NULL,
@@ -508,6 +536,9 @@ BEGIN
   [izlemiyapan] NVARCHAR(255) DEFAULT NULL,
   [zaman] NVARCHAR(32) DEFAULT NULL,
   [aciklama] NVARCHAR(MAX),
+  [checkin_lat] DECIMAL(10,7) NULL DEFAULT NULL,
+  [checkin_lon] DECIMAL(10,7) NULL DEFAULT NULL,
+  [checkin_at] DATETIME2 NULL DEFAULT NULL,
   [arac] INT DEFAULT NULL,
   [brans] NVARCHAR(255) DEFAULT NULL,
   [kons_istekler] NVARCHAR(512) DEFAULT NULL,
@@ -776,6 +807,185 @@ BEGIN
   INDEX [idx_hedef_durum] ([hedef_kurum_id], [durum]),
   INDEX [idx_kaynak_hasta] ([kaynak_hasta_id]),
   INDEX [idx_kaynak_kurum_durum] ([kaynak_kurum_id], [durum])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_sms_sablonlari]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_sms_sablonlari] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NULL DEFAULT NULL,
+  [kod] NVARCHAR(64) NOT NULL DEFAULT '',
+  [baslik] NVARCHAR(255) NOT NULL DEFAULT '',
+  [govde] NVARCHAR(1600) NOT NULL DEFAULT '',
+  [degiskenler_json] NVARCHAR(MAX) NULL,
+  [aktif] TINYINT(1) NOT NULL DEFAULT 1,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_sms_sablon_kurum] ([kurum_id], [aktif]),
+  INDEX [idx_sms_sablon_kod] ([kod])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_sms_gonderim]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_sms_gonderim] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL,
+  [olusturan_id] INT NOT NULL,
+  [segment_tipi] NVARCHAR(32) NOT NULL DEFAULT 'tek_hasta',
+  [segment_param_json] NVARCHAR(MAX) NULL,
+  [sablon_id] INT NULL DEFAULT NULL,
+  [govde_ozet] NVARCHAR(500) NOT NULL DEFAULT '',
+  [mesaj_turu] NVARCHAR(32) NOT NULL DEFAULT 'bilgilendirme',
+  [durum] NVARCHAR(32) NOT NULL DEFAULT 'beklemede',
+  [toplam] INT NOT NULL DEFAULT 0,
+  [basarili] INT NOT NULL DEFAULT 0,
+  [basarisiz] INT NOT NULL DEFAULT 0,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_sms_gonderim_kurum] ([kurum_id], [created_at]),
+  INDEX [idx_sms_gonderim_durum] ([durum])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_sms_alici]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_sms_alici] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [gonderim_id] INT NOT NULL,
+  [hasta_id] INT NULL DEFAULT NULL,
+  [rol] NVARCHAR(32) NOT NULL DEFAULT 'hasta',
+  [telefon_norm] NVARCHAR(16) NOT NULL DEFAULT '',
+  [govde] NVARCHAR(1600) NOT NULL DEFAULT '',
+  [provider_msg_id] NVARCHAR(64) NULL DEFAULT NULL,
+  [durum] NVARCHAR(32) NOT NULL DEFAULT 'beklemede',
+  [hata_kodu] NVARCHAR(32) NULL DEFAULT NULL,
+  [hata_mesaj] NVARCHAR(255) NULL DEFAULT NULL,
+  [gonderim_at] DATETIME2 NULL DEFAULT NULL,
+  PRIMARY KEY ([id]),
+  INDEX [idx_sms_alici_gonderim] ([gonderim_id]),
+  INDEX [idx_sms_alici_durum] ([durum])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_sms_optout]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_sms_optout] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [telefon_norm] NVARCHAR(16) NOT NULL,
+  [kurum_id] INT NOT NULL,
+  [kaynak] NVARCHAR(32) NOT NULL DEFAULT 'manuel',
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  CONSTRAINT [uq_sms_optout_tel_kurum] UNIQUE ([telefon_norm], [kurum_id]),
+  INDEX [idx_sms_optout_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_stok_malzeme]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_stok_malzeme] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL,
+  [kod] NVARCHAR(64) NULL DEFAULT NULL,
+  [ad] NVARCHAR(255) NOT NULL DEFAULT '',
+  [kategori] NVARCHAR(32) NOT NULL DEFAULT 'sarf',
+  [birim] NVARCHAR(32) NOT NULL DEFAULT 'adet',
+  [min_stok] DECIMAL(12,3) NOT NULL DEFAULT 0,
+  [aktif] TINYINT(1) NOT NULL DEFAULT 1,
+  [aciklama] NVARCHAR(512) NULL DEFAULT NULL,
+  [tedarikci_adi] NVARCHAR(255) NULL DEFAULT NULL,
+  [tedarikci_tel] NVARCHAR(32) NULL DEFAULT NULL,
+  [birim_fiyat] DECIMAL(12,2) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  [updated_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_stok_malzeme_kurum] ([kurum_id], [aktif]),
+  INDEX [idx_stok_malzeme_kategori] ([kategori])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_stok_mevcut]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_stok_mevcut] (
+  [kurum_id] INT NOT NULL,
+  [malzeme_id] INT NOT NULL,
+  [miktar] DECIMAL(12,3) NOT NULL DEFAULT 0,
+  [updated_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([kurum_id], [malzeme_id]),
+  INDEX [idx_stok_mevcut_malzeme] ([malzeme_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_stok_hareket]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_stok_hareket] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL,
+  [malzeme_id] INT NOT NULL,
+  [hareket_tipi] NVARCHAR(32) NOT NULL,
+  [miktar] DECIMAL(12,3) NOT NULL,
+  [hareket_tarihi] DATE NOT NULL,
+  [hasta_id] INT NULL DEFAULT NULL,
+  [ekip_id] INT NULL DEFAULT NULL,
+  [kullanici_id] INT NOT NULL,
+  [aciklama] NVARCHAR(512) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_stok_hareket_kurum_tarih] ([kurum_id], [hareket_tarihi]),
+  INDEX [idx_stok_hareket_malzeme] ([malzeme_id]),
+  INDEX [idx_stok_hareket_hasta] ([hasta_id]),
+  INDEX [idx_stok_hareket_ekip] ([ekip_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_stok_uyari_log]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_stok_uyari_log] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL,
+  [malzeme_id] INT NOT NULL,
+  [uyari_tarihi] DATE NOT NULL,
+  [sms_gonderildi] TINYINT(1) NOT NULL DEFAULT 0,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  CONSTRAINT [uq_stok_uyari_gun] UNIQUE ([kurum_id], [malzeme_id], [uyari_tarihi]),
+  INDEX [idx_stok_uyari_kurum] ([kurum_id], [uyari_tarihi])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_stok_parti]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_stok_parti] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL,
+  [malzeme_id] INT NOT NULL,
+  [lot_no] NVARCHAR(64) NULL DEFAULT NULL,
+  [skt] DATE NULL DEFAULT NULL,
+  [miktar] DECIMAL(12,3) NOT NULL DEFAULT 0,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  [updated_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_stok_parti_malzeme] ([kurum_id], [malzeme_id], [skt])
     );
 END
 GO

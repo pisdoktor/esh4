@@ -1,7 +1,6 @@
 -- =============================================================================
 -- ESH kurulum seed — Güvence / ödeme türleri
 -- Tablo: `#__guvence` (kaynak: `esh_guvence`) | Satır: 21
--- Kaynak: 5510 sayılı Kanun GSS kişi kapsamı + evde sağlık hasta kayıt pratiği
 -- Kurulum sırasında Installer otomatik çalıştırır.
 -- Elle: mysql -u KULLANICI -p VERITABANI < database/seed/seed_esh_guvence.sql
 -- =============================================================================

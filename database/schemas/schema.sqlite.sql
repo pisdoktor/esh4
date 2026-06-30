@@ -15,6 +15,24 @@ DROP TABLE IF EXISTS "esh_eimza_login_logs";
 
 DROP TABLE IF EXISTS "esh_eimza_challenges";
 
+DROP TABLE IF EXISTS "esh_stok_parti";
+
+DROP TABLE IF EXISTS "esh_stok_uyari_log";
+
+DROP TABLE IF EXISTS "esh_stok_hareket";
+
+DROP TABLE IF EXISTS "esh_stok_mevcut";
+
+DROP TABLE IF EXISTS "esh_stok_malzeme";
+
+DROP TABLE IF EXISTS "esh_sms_alici";
+
+DROP TABLE IF EXISTS "esh_sms_gonderim";
+
+DROP TABLE IF EXISTS "esh_sms_optout";
+
+DROP TABLE IF EXISTS "esh_sms_sablonlari";
+
 DROP TABLE IF EXISTS "esh_mesajlar";
 
 DROP TABLE IF EXISTS "esh_mesaj_konusma_uyeler";
@@ -297,6 +315,7 @@ CREATE TABLE IF NOT EXISTS "esh_hastalar" (
   "yupasno" VARCHAR(64) DEFAULT NULL,
   "ailehekimi" VARCHAR(128) DEFAULT NULL,
   "ailehekimitel" VARCHAR(32) DEFAULT NULL,
+  "sms_bilgilendirme_onay" INTEGER(1) NOT NULL DEFAULT 1,
   "kangrubu" VARCHAR(8) DEFAULT NULL,
   "ilce" VARCHAR(64) DEFAULT NULL,
   "mahalle" VARCHAR(64) DEFAULT NULL,
@@ -379,6 +398,9 @@ CREATE TABLE IF NOT EXISTS "esh_izlemler" (
   "izlemiyapan" VARCHAR(255) DEFAULT NULL,
   "zaman" VARCHAR(32) DEFAULT NULL,
   "aciklama" TEXT,
+  "checkin_lat" DECIMAL(10,7) NULL DEFAULT NULL,
+  "checkin_lon" DECIMAL(10,7) NULL DEFAULT NULL,
+  "checkin_at" TEXT NULL DEFAULT NULL,
   "arac" INTEGER DEFAULT NULL,
   "brans" VARCHAR(255) DEFAULT NULL,
   "kons_istekler" VARCHAR(512) DEFAULT NULL,
@@ -588,6 +610,141 @@ CREATE TABLE IF NOT EXISTS "esh_hasta_nakil" (
 CREATE INDEX IF NOT EXISTS "idx_hedef_durum" ON "esh_hasta_nakil" ("hedef_kurum_id", "durum");
 CREATE INDEX IF NOT EXISTS "idx_kaynak_hasta" ON "esh_hasta_nakil" ("kaynak_hasta_id");
 CREATE INDEX IF NOT EXISTS "idx_kaynak_kurum_durum" ON "esh_hasta_nakil" ("kaynak_kurum_id", "durum");
+
+CREATE TABLE IF NOT EXISTS "esh_sms_sablonlari" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NULL DEFAULT NULL,
+  "kod" VARCHAR(64) NOT NULL DEFAULT '',
+  "baslik" VARCHAR(255) NOT NULL DEFAULT '',
+  "govde" VARCHAR(1600) NOT NULL DEFAULT '',
+  "degiskenler_json" TEXT NULL,
+  "aktif" INTEGER(1) NOT NULL DEFAULT 1,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_sms_sablon_kurum" ON "esh_sms_sablonlari" ("kurum_id", "aktif");
+CREATE INDEX IF NOT EXISTS "idx_sms_sablon_kod" ON "esh_sms_sablonlari" ("kod");
+
+CREATE TABLE IF NOT EXISTS "esh_sms_gonderim" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "olusturan_id" INTEGER NOT NULL,
+  "segment_tipi" VARCHAR(32) NOT NULL DEFAULT 'tek_hasta',
+  "segment_param_json" TEXT NULL,
+  "sablon_id" INTEGER NULL DEFAULT NULL,
+  "govde_ozet" VARCHAR(500) NOT NULL DEFAULT '',
+  "mesaj_turu" TEXT NOT NULL DEFAULT 'bilgilendirme',
+  "durum" TEXT NOT NULL DEFAULT 'beklemede',
+  "toplam" INTEGER NOT NULL DEFAULT 0,
+  "basarili" INTEGER NOT NULL DEFAULT 0,
+  "basarisiz" INTEGER NOT NULL DEFAULT 0,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_sms_gonderim_kurum" ON "esh_sms_gonderim" ("kurum_id", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_sms_gonderim_durum" ON "esh_sms_gonderim" ("durum");
+
+CREATE TABLE IF NOT EXISTS "esh_sms_alici" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "gonderim_id" INTEGER NOT NULL,
+  "hasta_id" INTEGER NULL DEFAULT NULL,
+  "rol" TEXT NOT NULL DEFAULT 'hasta',
+  "telefon_norm" VARCHAR(16) NOT NULL DEFAULT '',
+  "govde" VARCHAR(1600) NOT NULL DEFAULT '',
+  "provider_msg_id" VARCHAR(64) NULL DEFAULT NULL,
+  "durum" TEXT NOT NULL DEFAULT 'beklemede',
+  "hata_kodu" VARCHAR(32) NULL DEFAULT NULL,
+  "hata_mesaj" VARCHAR(255) NULL DEFAULT NULL,
+  "gonderim_at" TEXT NULL DEFAULT NULL
+);
+
+CREATE INDEX IF NOT EXISTS "idx_sms_alici_gonderim" ON "esh_sms_alici" ("gonderim_id");
+CREATE INDEX IF NOT EXISTS "idx_sms_alici_durum" ON "esh_sms_alici" ("durum");
+
+CREATE TABLE IF NOT EXISTS "esh_sms_optout" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "telefon_norm" VARCHAR(16) NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "kaynak" TEXT NOT NULL DEFAULT 'manuel',
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "uq_sms_optout_tel_kurum" UNIQUE ("telefon_norm", "kurum_id")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_sms_optout_kurum" ON "esh_sms_optout" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_stok_malzeme" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "kod" VARCHAR(64) NULL DEFAULT NULL,
+  "ad" VARCHAR(255) NOT NULL DEFAULT '',
+  "kategori" TEXT NOT NULL DEFAULT 'sarf',
+  "birim" TEXT NOT NULL DEFAULT 'adet',
+  "min_stok" DECIMAL(12,3) NOT NULL DEFAULT 0,
+  "aktif" INTEGER(1) NOT NULL DEFAULT 1,
+  "aciklama" VARCHAR(512) NULL DEFAULT NULL,
+  "tedarikci_adi" VARCHAR(255) NULL DEFAULT NULL,
+  "tedarikci_tel" VARCHAR(32) NULL DEFAULT NULL,
+  "birim_fiyat" DECIMAL(12,2) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_stok_malzeme_kurum" ON "esh_stok_malzeme" ("kurum_id", "aktif");
+CREATE INDEX IF NOT EXISTS "idx_stok_malzeme_kategori" ON "esh_stok_malzeme" ("kategori");
+
+CREATE TABLE IF NOT EXISTS "esh_stok_mevcut" (
+  "kurum_id" INTEGER NOT NULL,
+  "malzeme_id" INTEGER NOT NULL,
+  "miktar" DECIMAL(12,3) NOT NULL DEFAULT 0,
+  "updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY ("kurum_id", "malzeme_id")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_stok_mevcut_malzeme" ON "esh_stok_mevcut" ("malzeme_id");
+
+CREATE TABLE IF NOT EXISTS "esh_stok_hareket" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "malzeme_id" INTEGER NOT NULL,
+  "hareket_tipi" TEXT NOT NULL,
+  "miktar" DECIMAL(12,3) NOT NULL,
+  "hareket_tarihi" DATE NOT NULL,
+  "hasta_id" INTEGER NULL DEFAULT NULL,
+  "ekip_id" INTEGER NULL DEFAULT NULL,
+  "kullanici_id" INTEGER NOT NULL,
+  "aciklama" VARCHAR(512) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_stok_hareket_kurum_tarih" ON "esh_stok_hareket" ("kurum_id", "hareket_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_stok_hareket_malzeme" ON "esh_stok_hareket" ("malzeme_id");
+CREATE INDEX IF NOT EXISTS "idx_stok_hareket_hasta" ON "esh_stok_hareket" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_stok_hareket_ekip" ON "esh_stok_hareket" ("ekip_id");
+
+CREATE TABLE IF NOT EXISTS "esh_stok_uyari_log" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "malzeme_id" INTEGER NOT NULL,
+  "uyari_tarihi" DATE NOT NULL,
+  "sms_gonderildi" INTEGER(1) NOT NULL DEFAULT 0,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "uq_stok_uyari_gun" UNIQUE ("kurum_id", "malzeme_id", "uyari_tarihi")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_stok_uyari_kurum" ON "esh_stok_uyari_log" ("kurum_id", "uyari_tarihi");
+
+CREATE TABLE IF NOT EXISTS "esh_stok_parti" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "malzeme_id" INTEGER NOT NULL,
+  "lot_no" VARCHAR(64) NULL DEFAULT NULL,
+  "skt" DATE NULL DEFAULT NULL,
+  "miktar" DECIMAL(12,3) NOT NULL DEFAULT 0,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_stok_parti_malzeme" ON "esh_stok_parti" ("kurum_id", "malzeme_id", "skt");
 
 CREATE TABLE IF NOT EXISTS "esh_mesaj_konusmalar" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
