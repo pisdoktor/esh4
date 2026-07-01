@@ -7,7 +7,7 @@
 --   esh_adrestablosu, esh_hastalikcat, esh_branslar, esh_guvence, esh_islemler,
 --   esh_hastaliklar, esh_users, esh_hastalar, esh_araclar, esh_istekler, esh_izlemler, esh_pizlemler,
 --   esh_erapor, esh_hastailacrapor, esh_hasta_ilaclar, esh_ekipler, esh_personel_izin, esh_personel_istek, esh_resmi_tatiller, esh_personel_nobet,
---   esh_hasta_yara_fotolar, esh_rota_cache, esh_rehber_etken, esh_rehber_ilac, esh_rehber_import_log,
+--   esh_hasta_yara_fotolar, esh_hasta_braden, esh_hasta_itaki, esh_hasta_harizmi, esh_hasta_mna, esh_rota_cache, esh_rehber_etken, esh_rehber_ilac, esh_rehber_import_log,
 --   esh_mesaj_konusmalar, esh_mesaj_konusma_uyeler, esh_mesajlar,
 --   esh_sms_sablonlari, esh_sms_gonderim, esh_sms_alici, esh_sms_optout,
 --   esh_stok_malzeme, esh_stok_mevcut, esh_stok_hareket, esh_stok_uyari_log, esh_stok_parti,
@@ -50,6 +50,10 @@ DROP TABLE IF EXISTS `esh_hasta_nakil`;
 DROP TABLE IF EXISTS `esh_rota_cache`;
 DROP TABLE IF EXISTS `esh_ekipler`;
 DROP TABLE IF EXISTS `esh_hasta_ilaclar`;
+DROP TABLE IF EXISTS `esh_hasta_mna`;
+DROP TABLE IF EXISTS `esh_hasta_harizmi`;
+DROP TABLE IF EXISTS `esh_hasta_itaki`;
+DROP TABLE IF EXISTS `esh_hasta_braden`;
 DROP TABLE IF EXISTS `esh_hasta_yara_fotolar`;
 DROP TABLE IF EXISTS `esh_erapor`;
 DROP TABLE IF EXISTS `esh_pizlemler`;
@@ -535,6 +539,91 @@ CREATE TABLE IF NOT EXISTS `esh_hasta_yara_fotolar` (
   KEY `idx_hasta` (`hasta_id`),
   KEY `idx_created` (`created_at`),
   KEY `idx_yara_fotolar_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_hasta_braden` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `degerlendirme_tarihi` DATE NOT NULL,
+  `duyusal` TINYINT UNSIGNED NOT NULL,
+  `nem` TINYINT UNSIGNED NOT NULL,
+  `aktivite` TINYINT UNSIGNED NOT NULL,
+  `hareket` TINYINT UNSIGNED NOT NULL,
+  `beslenme` TINYINT UNSIGNED NOT NULL,
+  `surtunme` TINYINT UNSIGNED NOT NULL,
+  `toplam_skor` TINYINT UNSIGNED NOT NULL,
+  `risk_duzeyi` VARCHAR(32) NOT NULL DEFAULT '',
+  `notlar` TEXT DEFAULT NULL,
+  `kaydeden_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_braden_hasta` (`hasta_id`),
+  KEY `idx_braden_tarih` (`degerlendirme_tarihi`),
+  KEY `idx_braden_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_hasta_itaki` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `degerlendirme_tarihi` DATE NOT NULL,
+  `degerlendirme_gerekcesi` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `secimler_json` TEXT NOT NULL,
+  `toplam_skor` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `risk_duzeyi` VARCHAR(32) NOT NULL DEFAULT '',
+  `notlar` TEXT DEFAULT NULL,
+  `kaydeden_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_itaki_hasta` (`hasta_id`),
+  KEY `idx_itaki_tarih` (`degerlendirme_tarihi`),
+  KEY `idx_itaki_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_hasta_harizmi` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `degerlendirme_tarihi` DATE NOT NULL,
+  `degerlendirme_gerekcesi` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `secimler_json` TEXT NOT NULL,
+  `toplam_skor` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `risk_duzeyi` VARCHAR(32) NOT NULL DEFAULT '',
+  `notlar` TEXT DEFAULT NULL,
+  `kaydeden_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_harizmi_hasta` (`hasta_id`),
+  KEY `idx_harizmi_tarih` (`degerlendirme_tarihi`),
+  KEY `idx_harizmi_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_hasta_mna` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `degerlendirme_tarihi` DATE NOT NULL,
+  `besin_alimi` TINYINT UNSIGNED NOT NULL,
+  `kilo_kaybi` TINYINT UNSIGNED NOT NULL,
+  `mobilite` TINYINT UNSIGNED NOT NULL,
+  `stres_hastalik` TINYINT UNSIGNED NOT NULL,
+  `noropsikolojik` TINYINT UNSIGNED NOT NULL,
+  `bmi_olcum_tipi` VARCHAR(20) NOT NULL DEFAULT 'bmi',
+  `bmi_skor` TINYINT UNSIGNED NOT NULL,
+  `toplam_skor` TINYINT UNSIGNED NOT NULL,
+  `durum_duzeyi` VARCHAR(32) NOT NULL DEFAULT '',
+  `notlar` TEXT DEFAULT NULL,
+  `kaydeden_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_mna_hasta` (`hasta_id`),
+  KEY `idx_mna_tarih` (`degerlendirme_tarihi`),
+  KEY `idx_mna_kurum` (`kurum_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------

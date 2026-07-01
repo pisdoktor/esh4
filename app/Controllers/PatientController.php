@@ -9,6 +9,10 @@ use App\Helpers\HastaIlacRaporStatusHelper;
 use App\Helpers\PatientCareHelper;
 use App\Helpers\PatientUnifiedPdfHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\BradenScaleHelper;
+use App\Helpers\ItakiScaleHelper;
+use App\Helpers\HarizmiScaleHelper;
+use App\Helpers\MnaScaleHelper;
 use App\Helpers\IslemIdSettings;
 use App\Helpers\PatientKurumTransfer;
 use App\Helpers\PatientNakilRequest;
@@ -27,6 +31,10 @@ use App\Models\Islem;
 use App\Models\Visit;
 use App\Models\PlannedVisit;
 use App\Models\WoundPhoto;
+use App\Models\BradenAssessment;
+use App\Models\ItakiAssessment;
+use App\Models\HarizmiAssessment;
+use App\Models\MnaAssessment;
 use App\Models\HastaIlac;
 use App\Models\HastaIlacRapor;
 use App\Models\MahallePlan;
@@ -1016,6 +1024,42 @@ class PatientController {
             $woundPhotosPreview = array_slice($woundPhotosAll, 0, 3);
         }
 
+        $bradenModel = new BradenAssessment();
+        $bradenModel->ensureTable();
+        $bradenLatest = null;
+        $bradenCount = 0;
+        if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($hasta)) {
+            $bradenLatest = $bradenModel->getLatestByHastaId((int) $hasta->id);
+            $bradenCount = $bradenModel->countByHastaId((int) $hasta->id);
+        }
+
+        $itakiModel = new ItakiAssessment();
+        $itakiModel->ensureTable();
+        $itakiLatest = null;
+        $itakiCount = 0;
+        if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($hasta)) {
+            $itakiLatest = $itakiModel->getLatestByHastaId((int) $hasta->id);
+            $itakiCount = $itakiModel->countByHastaId((int) $hasta->id);
+        }
+
+        $harizmiModel = new HarizmiAssessment();
+        $harizmiModel->ensureTable();
+        $harizmiLatest = null;
+        $harizmiCount = 0;
+        if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($hasta)) {
+            $harizmiLatest = $harizmiModel->getLatestByHastaId((int) $hasta->id);
+            $harizmiCount = $harizmiModel->countByHastaId((int) $hasta->id);
+        }
+
+        $mnaModel = new MnaAssessment();
+        $mnaModel->ensureTable();
+        $mnaLatest = null;
+        $mnaCount = 0;
+        if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($hasta)) {
+            $mnaLatest = $mnaModel->getLatestByHastaId((int) $hasta->id);
+            $mnaCount = $mnaModel->countByHastaId((int) $hasta->id);
+        }
+
         $pasifnedeni = "";
         if ($hasta->pasif) {
             if ($hasta->pasif == '1') {
@@ -1083,6 +1127,480 @@ class PatientController {
         include ThemeViewHelper::resolvePartial('header');
         include ThemeViewHelper::resolveAreaView('site', 'hasta/wounds');
         include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    /**
+     * Hasta Braden ölçeği — değerlendirme formu ve geçmiş kayıtlar.
+     */
+    public function braden() {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', array (
+  'status' => 'active',
+)));
+            exit;
+        }
+
+        $hasta = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyBradenIfNotEnabled($hasta, $id);
+
+        $bradenModel = new BradenAssessment();
+        $bradenModel->ensureTable();
+        $bradenAssessments = $bradenModel->getByHastaId($id);
+        $bradenFields = BradenScaleHelper::getFormFieldDefinitions();
+        $bradenLatest = $bradenModel->getLatestByHastaId($id);
+        $pasifDosyaKapali = Patient::isPasifKapali($hasta->pasif ?? null);
+
+        include ThemeViewHelper::resolvePartial('header');
+        include ThemeViewHelper::resolveAreaView('site', 'hasta/braden');
+        include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    public function saveBraden() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', array (
+  'status' => 'active',
+)));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyBradenIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada Braden değerlendirmesi kaydedilemez.';
+            header('Location: ' . $this->patientBradenUrl($id));
+            exit;
+        }
+
+        $tarih = $this->normalizeDateInput($_POST['degerlendirme_tarihi'] ?? '');
+        if ($tarih === null) {
+            $_SESSION['error'] = 'Geçerli bir değerlendirme tarihi girin.';
+            header('Location: ' . $this->patientBradenUrl($id));
+            exit;
+        }
+
+        $scores = BradenScaleHelper::sanitizeScores($_POST);
+        $total = BradenScaleHelper::calculateTotal($scores);
+        $risk = BradenScaleHelper::resolveRisk($total);
+
+        $bradenModel = new BradenAssessment();
+        $bradenModel->ensureTable();
+        $row = new BradenAssessment();
+        $row->set('kurum_id', (int) ($patient->kurum_id ?? TenantContext::assignKurumIdForStore()));
+        $row->set('hasta_id', $id);
+        $row->set('degerlendirme_tarihi', $tarih);
+        foreach ($scores as $key => $val) {
+            $row->set($key, $val);
+        }
+        $row->set('toplam_skor', $total);
+        $row->set('risk_duzeyi', $risk['label']);
+        $notlar = trim((string) ($_POST['notlar'] ?? ''));
+        $row->set('notlar', $notlar !== '' ? $notlar : null);
+        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+
+        if ($row->store()) {
+            $_SESSION['success'] = 'Braden değerlendirmesi kaydedildi.';
+        } else {
+            $_SESSION['error'] = 'Braden değerlendirmesi kaydedilemedi.';
+        }
+
+        header('Location: ' . $this->patientBradenUrl($id));
+        exit;
+    }
+
+    public function deleteBraden() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
+        if ($id <= 0 || $assessmentId <= 0) {
+            $_SESSION['error'] = 'Geçersiz silme isteği.';
+            header('Location: ' . esh_url('Patient', 'unified', array (
+  'status' => 'active',
+)));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyBradenIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada Braden kaydı silinemez.';
+            header('Location: ' . $this->patientBradenUrl($id));
+            exit;
+        }
+
+        $bradenModel = new BradenAssessment();
+        $bradenModel->ensureTable();
+        $assessment = $bradenModel->getById($assessmentId);
+        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+            $_SESSION['error'] = 'Braden kaydı bulunamadı.';
+            header('Location: ' . $this->patientBradenUrl($id));
+            exit;
+        }
+
+        $ok = $bradenModel->delete($assessmentId);
+        $_SESSION['success'] = $ok ? 'Braden değerlendirmesi silindi.' : 'Braden kaydı silinemedi.';
+        header('Location: ' . $this->patientBradenUrl($id));
+        exit;
+    }
+
+    /**
+     * Hasta İTAKİ II düşme riski ölçeği.
+     */
+    public function itaki() {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $hasta = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyItakiIfNotEnabled($hasta, $id);
+
+        $itakiModel = new ItakiAssessment();
+        $itakiModel->ensureTable();
+        $itakiAssessments = $itakiModel->getByHastaId($id);
+        $itakiParameters = ItakiScaleHelper::getParameterDefinitions();
+        $itakiLatest = $itakiModel->getLatestByHastaId($id);
+        $pasifDosyaKapali = Patient::isPasifKapali($hasta->pasif ?? null);
+        $patientAge = \App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($hasta)
+            ? (int) \App\Helpers\DateHelper::calculateAge((string) ($hasta->dogumtarihi ?? ''))
+            : -1;
+        $suggestedAgeOption = $patientAge >= 0 ? ItakiScaleHelper::suggestAgeOptionId($patientAge) : null;
+
+        include ThemeViewHelper::resolvePartial('header');
+        include ThemeViewHelper::resolveAreaView('site', 'hasta/itaki');
+        include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    public function saveItaki() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyItakiIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada İTAKİ değerlendirmesi kaydedilemez.';
+            header('Location: ' . $this->patientItakiUrl($id));
+            exit;
+        }
+
+        $tarih = $this->normalizeDateInput($_POST['degerlendirme_tarihi'] ?? '');
+        if ($tarih === null) {
+            $_SESSION['error'] = 'Geçerli bir değerlendirme tarihi girin.';
+            header('Location: ' . $this->patientItakiUrl($id));
+            exit;
+        }
+
+        $rawSelections = $this->collectFallRiskSelections($_POST);
+        $selections = ItakiScaleHelper::sanitizeSelections($rawSelections);
+        $total = ItakiScaleHelper::calculateTotal($selections);
+        $risk = ItakiScaleHelper::resolveRisk($total);
+        $gerekce = ItakiScaleHelper::sanitizeEvaluationReason($_POST['degerlendirme_gerekcesi'] ?? 1);
+
+        $itakiModel = new ItakiAssessment();
+        $itakiModel->ensureTable();
+        $row = new ItakiAssessment();
+        $row->set('kurum_id', (int) ($patient->kurum_id ?? TenantContext::assignKurumIdForStore()));
+        $row->set('hasta_id', $id);
+        $row->set('degerlendirme_tarihi', $tarih);
+        $row->set('degerlendirme_gerekcesi', $gerekce);
+        $row->set('secimler_json', ItakiScaleHelper::encodeSelections($selections));
+        $row->set('toplam_skor', $total);
+        $row->set('risk_duzeyi', $risk['label']);
+        $notlar = trim((string) ($_POST['notlar'] ?? ''));
+        $row->set('notlar', $notlar !== '' ? $notlar : null);
+        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+
+        if ($row->store()) {
+            $_SESSION['success'] = 'İTAKİ değerlendirmesi kaydedildi.';
+        } else {
+            $_SESSION['error'] = 'İTAKİ değerlendirmesi kaydedilemedi.';
+        }
+
+        header('Location: ' . $this->patientItakiUrl($id));
+        exit;
+    }
+
+    public function deleteItaki() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
+        if ($id <= 0 || $assessmentId <= 0) {
+            $_SESSION['error'] = 'Geçersiz silme isteği.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyItakiIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada İTAKİ kaydı silinemez.';
+            header('Location: ' . $this->patientItakiUrl($id));
+            exit;
+        }
+
+        $itakiModel = new ItakiAssessment();
+        $itakiModel->ensureTable();
+        $assessment = $itakiModel->getById($assessmentId);
+        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+            $_SESSION['error'] = 'İTAKİ kaydı bulunamadı.';
+            header('Location: ' . $this->patientItakiUrl($id));
+            exit;
+        }
+
+        $ok = $itakiModel->delete($assessmentId);
+        $_SESSION['success'] = $ok ? 'İTAKİ değerlendirmesi silindi.' : 'İTAKİ kaydı silinemedi.';
+        header('Location: ' . $this->patientItakiUrl($id));
+        exit;
+    }
+
+    /**
+     * Hasta Harizmi II düşme riski ölçeği.
+     */
+    public function harizmi() {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $hasta = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyHarizmiIfNotEnabled($hasta, $id);
+
+        $harizmiModel = new HarizmiAssessment();
+        $harizmiModel->ensureTable();
+        $harizmiAssessments = $harizmiModel->getByHastaId($id);
+        $harizmiParameters = HarizmiScaleHelper::getParameterDefinitions();
+        $harizmiLatest = $harizmiModel->getLatestByHastaId($id);
+        $pasifDosyaKapali = Patient::isPasifKapali($hasta->pasif ?? null);
+        $patientAge = \App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($hasta)
+            ? (int) \App\Helpers\DateHelper::calculateAge((string) ($hasta->dogumtarihi ?? ''))
+            : -1;
+        $suggestedAgeOption = $patientAge >= 0 ? HarizmiScaleHelper::suggestAgeOptionId($patientAge) : null;
+
+        include ThemeViewHelper::resolvePartial('header');
+        include ThemeViewHelper::resolveAreaView('site', 'hasta/harizmi');
+        include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    public function saveHarizmi() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyHarizmiIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada Harizmi değerlendirmesi kaydedilemez.';
+            header('Location: ' . $this->patientHarizmiUrl($id));
+            exit;
+        }
+
+        $tarih = $this->normalizeDateInput($_POST['degerlendirme_tarihi'] ?? '');
+        if ($tarih === null) {
+            $_SESSION['error'] = 'Geçerli bir değerlendirme tarihi girin.';
+            header('Location: ' . $this->patientHarizmiUrl($id));
+            exit;
+        }
+
+        $rawSelections = $this->collectFallRiskSelections($_POST);
+        $selections = HarizmiScaleHelper::sanitizeSelections($rawSelections);
+        $total = HarizmiScaleHelper::calculateTotal($selections);
+        $risk = HarizmiScaleHelper::resolveRisk($total);
+        $gerekce = HarizmiScaleHelper::sanitizeEvaluationReason($_POST['degerlendirme_gerekcesi'] ?? 1);
+
+        $harizmiModel = new HarizmiAssessment();
+        $harizmiModel->ensureTable();
+        $row = new HarizmiAssessment();
+        $row->set('kurum_id', (int) ($patient->kurum_id ?? TenantContext::assignKurumIdForStore()));
+        $row->set('hasta_id', $id);
+        $row->set('degerlendirme_tarihi', $tarih);
+        $row->set('degerlendirme_gerekcesi', $gerekce);
+        $row->set('secimler_json', HarizmiScaleHelper::encodeSelections($selections));
+        $row->set('toplam_skor', $total);
+        $row->set('risk_duzeyi', $risk['label']);
+        $notlar = trim((string) ($_POST['notlar'] ?? ''));
+        $row->set('notlar', $notlar !== '' ? $notlar : null);
+        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+
+        if ($row->store()) {
+            $_SESSION['success'] = 'Harizmi değerlendirmesi kaydedildi.';
+        } else {
+            $_SESSION['error'] = 'Harizmi değerlendirmesi kaydedilemedi.';
+        }
+
+        header('Location: ' . $this->patientHarizmiUrl($id));
+        exit;
+    }
+
+    public function deleteHarizmi() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
+        if ($id <= 0 || $assessmentId <= 0) {
+            $_SESSION['error'] = 'Geçersiz silme isteği.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyHarizmiIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada Harizmi kaydı silinemez.';
+            header('Location: ' . $this->patientHarizmiUrl($id));
+            exit;
+        }
+
+        $harizmiModel = new HarizmiAssessment();
+        $harizmiModel->ensureTable();
+        $assessment = $harizmiModel->getById($assessmentId);
+        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+            $_SESSION['error'] = 'Harizmi kaydı bulunamadı.';
+            header('Location: ' . $this->patientHarizmiUrl($id));
+            exit;
+        }
+
+        $ok = $harizmiModel->delete($assessmentId);
+        $_SESSION['success'] = $ok ? 'Harizmi değerlendirmesi silindi.' : 'Harizmi kaydı silinemedi.';
+        header('Location: ' . $this->patientHarizmiUrl($id));
+        exit;
+    }
+
+    /**
+     * Hasta MNA-SF beslenme değerlendirmesi.
+     */
+    public function mna() {
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $hasta = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyMnaIfNotEnabled($hasta, $id);
+
+        $mnaModel = new MnaAssessment();
+        $mnaModel->ensureTable();
+        $mnaAssessments = $mnaModel->getByHastaId($id);
+        $mnaFields = MnaScaleHelper::getFieldDefinitions();
+        $mnaBmiField = MnaScaleHelper::getBmiFieldDefinition();
+        $mnaCalfField = MnaScaleHelper::getCalfFieldDefinition();
+        $mnaLatest = $mnaModel->getLatestByHastaId($id);
+        $pasifDosyaKapali = Patient::isPasifKapali($hasta->pasif ?? null);
+        $mnaBmiSuggest = MnaScaleHelper::suggestBmiFromPatient($hasta);
+
+        include ThemeViewHelper::resolvePartial('header');
+        include ThemeViewHelper::resolveAreaView('site', 'hasta/mna');
+        include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    public function saveMna() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Geçersiz hasta kaydı.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyMnaIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada MNA değerlendirmesi kaydedilemez.';
+            header('Location: ' . $this->patientMnaUrl($id));
+            exit;
+        }
+
+        $tarih = $this->normalizeDateInput($_POST['degerlendirme_tarihi'] ?? '');
+        if ($tarih === null) {
+            $_SESSION['error'] = 'Geçerli bir değerlendirme tarihi girin.';
+            header('Location: ' . $this->patientMnaUrl($id));
+            exit;
+        }
+
+        $scores = MnaScaleHelper::sanitizeScores($_POST);
+        $olcumTipi = MnaScaleHelper::sanitizeOlcumTipi($_POST['bmi_olcum_tipi'] ?? MnaScaleHelper::OLcum_BMI);
+        $bmiRaw = $olcumTipi === MnaScaleHelper::OLcum_BALDIR
+            ? ($_POST['bmi_skor_calf'] ?? 0)
+            : ($_POST['bmi_skor'] ?? 0);
+        $bmiSkor = MnaScaleHelper::sanitizeBmiScore($bmiRaw, $olcumTipi);
+        $total = MnaScaleHelper::calculateTotal($scores, $bmiSkor);
+        $status = MnaScaleHelper::resolveStatus($total);
+
+        $mnaModel = new MnaAssessment();
+        $mnaModel->ensureTable();
+        $row = new MnaAssessment();
+        $row->set('kurum_id', (int) ($patient->kurum_id ?? TenantContext::assignKurumIdForStore()));
+        $row->set('hasta_id', $id);
+        $row->set('degerlendirme_tarihi', $tarih);
+        foreach ($scores as $key => $val) {
+            $row->set($key, $val);
+        }
+        $row->set('bmi_olcum_tipi', $olcumTipi);
+        $row->set('bmi_skor', $bmiSkor);
+        $row->set('toplam_skor', $total);
+        $row->set('durum_duzeyi', $status['label']);
+        $notlar = trim((string) ($_POST['notlar'] ?? ''));
+        $row->set('notlar', $notlar !== '' ? $notlar : null);
+        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+
+        if ($row->store()) {
+            $_SESSION['success'] = 'MNA değerlendirmesi kaydedildi.';
+        } else {
+            $_SESSION['error'] = 'MNA değerlendirmesi kaydedilemedi.';
+        }
+
+        header('Location: ' . $this->patientMnaUrl($id));
+        exit;
+    }
+
+    public function deleteMna() {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
+        if ($id <= 0 || $assessmentId <= 0) {
+            $_SESSION['error'] = 'Geçersiz silme isteği.';
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
+            exit;
+        }
+
+        $patient = PatientAccessHelper::requirePatientAccess($id);
+        $this->denyMnaIfNotEnabled($patient, $id);
+
+        if (Patient::isPasifKapali($patient->pasif ?? null)) {
+            $_SESSION['error'] = 'Pasif dosyada MNA kaydı silinemez.';
+            header('Location: ' . $this->patientMnaUrl($id));
+            exit;
+        }
+
+        $mnaModel = new MnaAssessment();
+        $mnaModel->ensureTable();
+        $assessment = $mnaModel->getById($assessmentId);
+        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+            $_SESSION['error'] = 'MNA kaydı bulunamadı.';
+            header('Location: ' . $this->patientMnaUrl($id));
+            exit;
+        }
+
+        $ok = $mnaModel->delete($assessmentId);
+        $_SESSION['success'] = $ok ? 'MNA değerlendirmesi silindi.' : 'MNA kaydı silinemedi.';
+        header('Location: ' . $this->patientMnaUrl($id));
+        exit;
     }
 
     /**
@@ -3015,6 +3533,113 @@ class PatientController {
         return esh_url('Patient', 'barthel', array (
   'id' => '',
 )) . max(0, $patientId);
+    }
+
+    private function patientBradenUrl(int $patientId): string
+    {
+        return esh_url('Patient', 'braden', array (
+  'id' => '',
+)) . max(0, $patientId);
+    }
+
+    private function denyBradenIfNotEnabled(object $patient, int $patientId): void
+    {
+        if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($patient)) {
+            return;
+        }
+        $_SESSION['error'] = 'Braden ölçeği yalnızca aktif bası yarası işaretli hastalarda kullanılabilir.';
+        header('Location: ' . esh_url('Patient', 'view', ['id' => $patientId]));
+        exit;
+    }
+
+    private function patientItakiUrl(int $patientId): string
+    {
+        return esh_url('Patient', 'itaki', ['id' => $patientId]);
+    }
+
+    private function patientHarizmiUrl(int $patientId): string
+    {
+        return esh_url('Patient', 'harizmi', ['id' => $patientId]);
+    }
+
+    private function patientMnaUrl(int $patientId): string
+    {
+        return esh_url('Patient', 'mna', ['id' => $patientId]);
+    }
+
+    private function denyItakiIfNotEnabled(object $patient, int $patientId): void
+    {
+        if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($patient)) {
+            return;
+        }
+        $_SESSION['error'] = 'İTAKİ II ölçeği yalnızca 18 yaş ve üzeri hastalarda kullanılabilir.';
+        header('Location: ' . esh_url('Patient', 'view', ['id' => $patientId]));
+        exit;
+    }
+
+    private function denyHarizmiIfNotEnabled(object $patient, int $patientId): void
+    {
+        if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($patient)) {
+            return;
+        }
+        $_SESSION['error'] = 'Harizmi II ölçeği yalnızca 0–17 yaş arası hastalarda kullanılabilir.';
+        header('Location: ' . esh_url('Patient', 'view', ['id' => $patientId]));
+        exit;
+    }
+
+    private function denyMnaIfNotEnabled(object $patient, int $patientId): void
+    {
+        if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($patient)) {
+            return;
+        }
+        $_SESSION['error'] = 'MNA değerlendirmesi bu hasta için kullanılamaz.';
+        header('Location: ' . esh_url('Patient', 'view', ['id' => $patientId]));
+        exit;
+    }
+
+    /**
+     * İTAKİ / Harizmi form POST — checkbox ve radio grup alanlarını birleştirir.
+     *
+     * @return list<string>
+     */
+    private function collectFallRiskSelections(array $post): array
+    {
+        $raw = [];
+        if (isset($post['secimler']) && is_array($post['secimler'])) {
+            foreach ($post['secimler'] as $val) {
+                if (is_string($val) && $val !== '') {
+                    $raw[] = $val;
+                }
+            }
+        }
+        foreach ($post as $key => $val) {
+            if (!is_string($key) || !str_starts_with($key, 'secimler_')) {
+                continue;
+            }
+            if (is_string($val) && $val !== '') {
+                $raw[] = $val;
+            }
+        }
+
+        return $raw;
+    }
+
+    private function normalizeDateInput($raw): ?string
+    {
+        $v = trim((string) $raw);
+        if ($v === '') {
+            return null;
+        }
+        $ymd = DateHelper::trDateToYmd($v);
+        if ($ymd !== null) {
+            return $ymd;
+        }
+        $ts = strtotime($v);
+        if ($ts === false) {
+            return null;
+        }
+
+        return date('Y-m-d', $ts);
     }
 
     /** @return array<string, array{label: string, max: int, tooltip_html: string}> */

@@ -149,6 +149,22 @@ endif;
                 <?php include ROOT_PATH . '/views/site/hasta/partials/wound_photos_summary.php'; ?>
                 <?php endif; ?>
 
+                <?php if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($hasta)): ?>
+                <?php include ROOT_PATH . '/views/site/hasta/partials/braden_summary.php'; ?>
+                <?php endif; ?>
+
+                <?php if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($hasta)): ?>
+                <?php include ROOT_PATH . '/views/site/hasta/partials/itaki_summary.php'; ?>
+                <?php endif; ?>
+
+                <?php if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($hasta)): ?>
+                <?php include ROOT_PATH . '/views/site/hasta/partials/harizmi_summary.php'; ?>
+                <?php endif; ?>
+
+                <?php if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($hasta)): ?>
+                <?php include ROOT_PATH . '/views/site/hasta/partials/mna_summary.php'; ?>
+                <?php endif; ?>
+
             </div>
         </div>
     </div>

@@ -71,6 +71,18 @@ GO
 IF OBJECT_ID(N'[dbo].[esh_hasta_ilaclar]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_ilaclar];
 GO
 
+IF OBJECT_ID(N'[dbo].[esh_hasta_mna]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_mna];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_harizmi]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_harizmi];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_itaki]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_itaki];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_braden]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_braden];
+GO
+
 IF OBJECT_ID(N'[dbo].[esh_hasta_yara_fotolar]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_yara_fotolar];
 GO
 
@@ -714,6 +726,107 @@ BEGIN
   INDEX [idx_hasta] ([hasta_id]),
   INDEX [idx_created] ([created_at]),
   INDEX [idx_yara_fotolar_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_braden]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_hasta_braden] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL DEFAULT 1,
+  [hasta_id] INT NOT NULL,
+  [degerlendirme_tarihi] DATE NOT NULL,
+  [duyusal] TINYINT NOT NULL,
+  [nem] TINYINT NOT NULL,
+  [aktivite] TINYINT NOT NULL,
+  [hareket] TINYINT NOT NULL,
+  [beslenme] TINYINT NOT NULL,
+  [surtunme] TINYINT NOT NULL,
+  [toplam_skor] TINYINT NOT NULL,
+  [risk_duzeyi] NVARCHAR(32) NOT NULL DEFAULT '',
+  [notlar] NVARCHAR(MAX) DEFAULT NULL,
+  [kaydeden_id] INT DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_braden_hasta] ([hasta_id]),
+  INDEX [idx_braden_tarih] ([degerlendirme_tarihi]),
+  INDEX [idx_braden_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_itaki]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_hasta_itaki] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL DEFAULT 1,
+  [hasta_id] INT NOT NULL,
+  [degerlendirme_tarihi] DATE NOT NULL,
+  [degerlendirme_gerekcesi] TINYINT NOT NULL DEFAULT 1,
+  [secimler_json] NVARCHAR(MAX) NOT NULL,
+  [toplam_skor] SMALLINT NOT NULL DEFAULT 0,
+  [risk_duzeyi] NVARCHAR(32) NOT NULL DEFAULT '',
+  [notlar] NVARCHAR(MAX) DEFAULT NULL,
+  [kaydeden_id] INT DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_itaki_hasta] ([hasta_id]),
+  INDEX [idx_itaki_tarih] ([degerlendirme_tarihi]),
+  INDEX [idx_itaki_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_harizmi]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_hasta_harizmi] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL DEFAULT 1,
+  [hasta_id] INT NOT NULL,
+  [degerlendirme_tarihi] DATE NOT NULL,
+  [degerlendirme_gerekcesi] TINYINT NOT NULL DEFAULT 1,
+  [secimler_json] NVARCHAR(MAX) NOT NULL,
+  [toplam_skor] SMALLINT NOT NULL DEFAULT 0,
+  [risk_duzeyi] NVARCHAR(32) NOT NULL DEFAULT '',
+  [notlar] NVARCHAR(MAX) DEFAULT NULL,
+  [kaydeden_id] INT DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_harizmi_hasta] ([hasta_id]),
+  INDEX [idx_harizmi_tarih] ([degerlendirme_tarihi]),
+  INDEX [idx_harizmi_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_mna]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_hasta_mna] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL DEFAULT 1,
+  [hasta_id] INT NOT NULL,
+  [degerlendirme_tarihi] DATE NOT NULL,
+  [besin_alimi] TINYINT NOT NULL,
+  [kilo_kaybi] TINYINT NOT NULL,
+  [mobilite] TINYINT NOT NULL,
+  [stres_hastalik] TINYINT NOT NULL,
+  [noropsikolojik] TINYINT NOT NULL,
+  [bmi_olcum_tipi] NVARCHAR(20) NOT NULL DEFAULT 'bmi',
+  [bmi_skor] TINYINT NOT NULL,
+  [toplam_skor] TINYINT NOT NULL,
+  [durum_duzeyi] NVARCHAR(32) NOT NULL DEFAULT '',
+  [notlar] NVARCHAR(MAX) DEFAULT NULL,
+  [kaydeden_id] INT DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_mna_hasta] ([hasta_id]),
+  INDEX [idx_mna_tarih] ([degerlendirme_tarihi]),
+  INDEX [idx_mna_kurum] ([kurum_id])
     );
 END
 GO

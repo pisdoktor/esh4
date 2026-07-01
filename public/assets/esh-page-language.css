@@ -1468,6 +1468,7 @@ body.app-shell {
     border-radius: 0.75rem;
     padding: 0.35rem 0.25rem;
     min-height: 3.5rem;
+    min-width: 0;
 }
 
 .esh-patient-mega-menu__col h6 {

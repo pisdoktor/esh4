@@ -39,6 +39,10 @@ final class PageAssetHelper
             'edit' => ['form-pages.css'],
             'ilkkayit' => ['form-pages.css'],
             'bedit' => ['form-pages.css'],
+            'braden' => ['form-pages.css'],
+            'itaki' => ['form-pages.css'],
+            'harizmi' => ['form-pages.css'],
+            'mna' => ['form-pages.css'],
             'detail' => ['patient-unified.css'],
         ],
         'mesaj' => [

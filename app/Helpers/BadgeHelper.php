@@ -364,7 +364,7 @@ class BadgeHelper {
                         'icon' => 'fa-solid fa-calendar-week text-warning',
                     ];
                     if ($id > 0) {
-                        foreach (self::patientWoundsBarthelMenuItems($p) as $clinicalRow) {
+                        foreach (self::patientWoundBradenMenuItems($p) as $clinicalRow) {
                             $out[] = $clinicalRow;
                         }
                     }
@@ -393,6 +393,9 @@ class BadgeHelper {
                                 $out[] = $eshRandevuRow;
                             }
                         }
+                    }
+                    if ($id > 0) {
+                        $out = self::appendPatientClinicalFormMenuSection($out, $p);
                     }
                 }
                 break;
@@ -550,32 +553,113 @@ class BadgeHelper {
     }
 
     /**
-     * Yara fotoğrafları ve Barthel indeksi menü satırları (aktif hasta menüleri).
+     * Yara fotoğrafları menü satırı (aktif hasta menüleri).
      *
      * @return list<array<string, mixed>>
      */
-    public static function patientWoundsBarthelMenuItems(object $patient): array {
+    public static function patientWoundBradenMenuItems(object $patient): array {
+        $id = (int) ($patient->id ?? 0);
+        if ($id <= 0 || !\App\Helpers\PatientClinicalFlagsHelper::isWoundPhotosModuleEnabled($patient)) {
+            return [];
+        }
+
+        return [
+            [
+                'type' => 'item',
+                'href' => esh_url('Patient', 'wounds', ['id' => $id]),
+                'label' => 'Yara fotoğrafları',
+                'icon' => 'fa-solid fa-camera text-danger',
+            ],
+        ];
+    }
+
+    /**
+     * Klinik form menü satırları — Barthel, Braden, İTAKİ, Harizmi, MNA (mega menü «Formlar» sütunu).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function patientClinicalFormMenuItems(object $patient): array {
         $id = (int) ($patient->id ?? 0);
         if ($id <= 0) {
             return [];
         }
 
-        $out = [];
-        if (\App\Helpers\PatientClinicalFlagsHelper::isWoundPhotosModuleEnabled($patient)) {
+        $out = [
+            [
+                'type' => 'item',
+                'href' => esh_url('Patient', 'barthel', ['id' => $id]),
+                'label' => 'Barthel indeksi',
+                'icon' => 'fa-solid fa-chart-line text-primary',
+            ],
+        ];
+
+        if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($patient)) {
             $out[] = [
                 'type' => 'item',
-                'href' => esh_url('Patient', 'wounds', ['id' => $id]),
-                'label' => 'Yara fotoğrafları',
-                'icon' => 'fa-solid fa-camera text-danger',
+                'href' => esh_url('Patient', 'braden', ['id' => $id]),
+                'label' => 'Braden ölçeği',
+                'icon' => 'fa-solid fa-bed-pulse text-danger',
             ];
         }
 
-        $out[] = [
-            'type' => 'item',
-            'href' => esh_url('Patient', 'barthel', ['id' => $id]),
-            'label' => 'Barthel indeksi',
-            'icon' => 'fa-solid fa-chart-line text-primary',
-        ];
+        if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($patient)) {
+            $out[] = [
+                'type' => 'item',
+                'href' => esh_url('Patient', 'itaki', ['id' => $id]),
+                'label' => 'İTAKİ II düşme riski',
+                'icon' => 'fa-solid fa-person-falling text-primary',
+            ];
+        }
+
+        if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($patient)) {
+            $out[] = [
+                'type' => 'item',
+                'href' => esh_url('Patient', 'harizmi', ['id' => $id]),
+                'label' => 'Harizmi II düşme riski',
+                'icon' => 'fa-solid fa-child-reaching text-info',
+            ];
+        }
+
+        if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($patient)) {
+            $out[] = [
+                'type' => 'item',
+                'href' => esh_url('Patient', 'mna', ['id' => $id]),
+                'label' => 'MNA-SF beslenme',
+                'icon' => 'fa-solid fa-utensils text-success',
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Yara / Braden + klinik form menü satırları (aktif hasta menüleri).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function patientWoundsBarthelMenuItems(object $patient): array {
+        return array_merge(
+            self::patientWoundBradenMenuItems($patient),
+            self::patientClinicalFormMenuItems($patient)
+        );
+    }
+
+    /**
+     * Klinik form satırlarını mega menü «Formlar» sütununa ekler.
+     *
+     * @param list<array<string, mixed>> $out
+     * @return list<array<string, mixed>>
+     */
+    private static function appendPatientClinicalFormMenuSection(array $out, object $patient): array {
+        $formRows = self::patientClinicalFormMenuItems($patient);
+        if ($formRows === []) {
+            return $out;
+        }
+
+        $out[] = ['type' => 'header', 'text' => 'FORMLAR'];
+        foreach ($formRows as $formRow) {
+            $out[] = $formRow;
+        }
 
         return $out;
     }
@@ -847,9 +931,31 @@ class BadgeHelper {
                 'icon' => 'fa-solid fa-calendar-week text-warning',
             ];
             if ($id > 0) {
-                foreach (self::patientWoundsBarthelMenuItems($hasta) as $clinicalRow) {
+                foreach (self::patientWoundBradenMenuItems($hasta) as $clinicalRow) {
                     $out[] = $clinicalRow;
                 }
+            }
+            $tcDigits = preg_replace('/\D/', '', (string) ($hasta->tckimlik ?? ''));
+            if (strlen($tcDigits) === 11) {
+                if (\App\Helpers\AppSettings::isModuleEnabled('randevu')) {
+                    $out[] = [
+                        'type' => 'item',
+                        'href' => self::patientAppointmentCalendarUrl($tcDigits, 'Randevu'),
+                        'label' => 'Branş randevusu ekle',
+                        'icon' => 'fa-solid fa-calendar-days text-info',
+                    ];
+                }
+                if (\App\Helpers\AppSettings::isModuleEnabled('uhds')) {
+                    $out[] = [
+                        'type' => 'item',
+                        'href' => self::patientAppointmentCalendarUrl($tcDigits, 'Uhds'),
+                        'label' => 'Uhds ekle',
+                        'icon' => 'fa-solid fa-video text-info',
+                    ];
+                }
+            }
+            if ($id > 0) {
+                $out = self::appendPatientClinicalFormMenuSection($out, $hasta);
             }
         }
         $out[] = [
@@ -893,27 +999,6 @@ class BadgeHelper {
                 'icon' => 'fa-solid fa-clock-rotate-left text-secondary',
             ];
         }
-        if ($aktif) {
-            $tcDigits = preg_replace('/\D/', '', (string) ($hasta->tckimlik ?? ''));
-            if (strlen($tcDigits) === 11) {
-                if (\App\Helpers\AppSettings::isModuleEnabled('randevu')) {
-                    $out[] = [
-                        'type' => 'item',
-                        'href' => self::patientAppointmentCalendarUrl($tcDigits, 'Randevu'),
-                        'label' => 'Branş randevusu ekle',
-                        'icon' => 'fa-solid fa-calendar-days text-info',
-                    ];
-                }
-                if (\App\Helpers\AppSettings::isModuleEnabled('uhds')) {
-                    $out[] = [
-                        'type' => 'item',
-                        'href' => self::patientAppointmentCalendarUrl($tcDigits, 'Uhds'),
-                        'label' => 'Uhds ekle',
-                        'icon' => 'fa-solid fa-video text-info',
-                    ];
-                }
-            }
-        }
 
         return $out;
     }
@@ -922,14 +1007,16 @@ class BadgeHelper {
      * Düz menü satırlarını iki sütunlu mega menü yapısına ayırır.
      *
      * @param list<array<string, mixed>> $rows
-     * @return array{status: ?string, visitTitle: string, patientTitle: string, visit: list<array<string, mixed>>, patient: list<array<string, mixed>>, adminTitle: string, admin: list<array<string, mixed>>}
+     * @return array{status: ?string, visitTitle: string, formsTitle: string, patientTitle: string, visit: list<array<string, mixed>>, forms: list<array<string, mixed>>, patient: list<array<string, mixed>>, adminTitle: string, admin: list<array<string, mixed>>}
      */
     public static function menuRowsToMegaColumns(array $rows): array {
         $status = null;
         $visit = [];
+        $forms = [];
         $patient = [];
         $admin = [];
         $visitTitle = 'İzlem işlemleri';
+        $formsTitle = 'Formlar';
         $patientTitle = 'Hasta işlemleri';
         $adminTitle = 'Hasta yönetimi';
         $section = null;
@@ -948,6 +1035,8 @@ class BadgeHelper {
                 } elseif (str_contains($text, 'İZLEM') || str_contains($text, 'IZLEM')) {
                     $visitTitle = 'İzlem işlemleri';
                     $section = 'visit';
+                } elseif (str_contains($text, 'FORM')) {
+                    $section = 'forms';
                 } elseif (str_contains($text, 'YÖNET') || str_contains($text, 'YNET')) {
                     $section = 'admin';
                 } elseif (str_contains($text, 'HASTA')) {
@@ -964,8 +1053,19 @@ class BadgeHelper {
             // İzlem/plan linkleri her zaman sol sütunda (HASTA İŞLEMLERİ başlığı altında birleşik menüden gelse bile)
             if (self::menuRowIsVisitColumn($row)) {
                 $visit[] = $row;
+            } elseif (self::menuRowIsClinicalFormColumn($row)) {
+                $forms[] = $row;
+            } elseif (self::menuRowIsPatientAppointmentColumn($row)) {
+                $patient[] = $row;
             } elseif ($section === 'visit') {
                 $visit[] = $row;
+            } elseif ($section === 'forms') {
+                $section = null;
+                if (self::menuRowIsVisitColumn($row)) {
+                    $visit[] = $row;
+                } else {
+                    $patient[] = $row;
+                }
             } elseif ($section === 'admin') {
                 $admin[] = $row;
             } else {
@@ -976,9 +1076,11 @@ class BadgeHelper {
         return [
             'status' => $status,
             'visitTitle' => $visitTitle,
+            'formsTitle' => $formsTitle,
             'patientTitle' => $patientTitle,
             'adminTitle' => $adminTitle,
             'visit' => $visit,
+            'forms' => $forms,
             'patient' => $patient,
             'admin' => $admin,
         ];
@@ -995,5 +1097,31 @@ class BadgeHelper {
         }
 
         return (bool) preg_match('#/(Visit|PlannedVisit)(?:/|\?|$)#', $href);
+    }
+
+    /** @param array<string, mixed> $row */
+    private static function menuRowIsClinicalFormColumn(array $row): bool {
+        $href = (string) ($row['href'] ?? '');
+        if ($href === '' || $href === '#') {
+            return false;
+        }
+        if (preg_match('/controller=Patient(?:&amp;|&)action=(barthel|braden|itaki|mna|harizmi)(?:&|$)/i', $href)) {
+            return true;
+        }
+
+        return (bool) preg_match('#/Patient/(barthel|braden|itaki|mna|harizmi)(?:/|\?|$)#i', $href);
+    }
+
+    /** @param array<string, mixed> $row */
+    private static function menuRowIsPatientAppointmentColumn(array $row): bool {
+        $href = (string) ($row['href'] ?? '');
+        if ($href === '' || $href === '#') {
+            return false;
+        }
+        if (preg_match('/controller=(Randevu|Uhds)(?:&|$)/i', $href)) {
+            return true;
+        }
+
+        return (bool) preg_match('#/(Randevu|Uhds)(?:/|\?|$)#i', $href);
     }
 }

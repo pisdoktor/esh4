@@ -660,6 +660,28 @@ function eshUnportalPatientMegaMenu(menu) {
 }
 
 /** Tablo hücresinde mega menüyü viewport’a sabitle. */
+function eshPatientMegaMenuTargetWidth(menu) {
+    var pad = 8;
+    var viewportMax = Math.max(280, window.innerWidth - pad * 2);
+    var colCount = parseInt(menu.getAttribute('data-esh-mega-cols') || '2', 10);
+    var widthByCols = { 2: 600, 3: 780, 4: 960 };
+    var fallback = widthByCols[colCount] || 520;
+
+    menu.style.width = '';
+    menu.style.minWidth = '';
+    menu.style.maxWidth = '';
+    var computed = window.getComputedStyle(menu);
+    var target = parseFloat(computed.minWidth);
+    if (!isFinite(target) || target <= 0) {
+        target = fallback;
+    }
+    var resolvedMax = parseFloat(computed.maxWidth);
+    if (isFinite(resolvedMax) && resolvedMax > 0) {
+        target = Math.min(target, resolvedMax);
+    }
+    return Math.min(Math.max(280, target), viewportMax);
+}
+
 function eshPositionPatientMegaMenu(root, menu) {
     var toggle = root.querySelector('[data-bs-toggle="dropdown"]');
     if (!toggle) {
@@ -667,7 +689,7 @@ function eshPositionPatientMegaMenu(root, menu) {
     }
     var pad = 8;
     var tr = toggle.getBoundingClientRect();
-    var menuW = Math.min(520, Math.max(280, window.innerWidth - pad * 2));
+    var menuW = eshPatientMegaMenuTargetWidth(menu);
 
     menu.style.position = 'fixed';
     menu.style.zIndex = '2501';

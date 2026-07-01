@@ -275,6 +275,43 @@ class PatientClinicalFlagsHelper
         return (int) ($patient->basiyarasi ?? 0) === 1;
     }
 
+    /** Braden ölçeği modülü — aktif bası yarası işaretli hastalarda açılır. */
+    public static function isBradenModuleEnabled(object $patient): bool
+    {
+        return self::isWoundPhotosModuleEnabled($patient);
+    }
+
+    /** İTAKİ II — tam yaş 18 ve üzeri hastalarda. */
+    public static function isItakiModuleEnabled(object $patient): bool
+    {
+        return self::patientAgeYears($patient) >= 18;
+    }
+
+    /** Harizmi II — tam yaş 0–17 hastalarda. */
+    public static function isHarizmiModuleEnabled(object $patient): bool
+    {
+        $age = self::patientAgeYears($patient);
+
+        return $age >= 0 && $age < 18;
+    }
+
+    /** MNA-SF — tüm aktif hastalarda. */
+    public static function isMnaModuleEnabled(object $patient): bool
+    {
+        return true;
+    }
+
+    private static function patientAgeYears(object $patient): int
+    {
+        $birth = trim((string) ($patient->dogumtarihi ?? ''));
+        if ($birth === '' || $birth === '0000-00-00') {
+            return -1;
+        }
+        $age = DateHelper::calculateAge($birth);
+
+        return is_numeric($age) ? (int) $age : -1;
+    }
+
     /** Birleşik liste admin özellik filtresi — klinik rozet SQL parçası. */
     public static function unifiedFeatureFilterSql(string $featureKey): string
     {

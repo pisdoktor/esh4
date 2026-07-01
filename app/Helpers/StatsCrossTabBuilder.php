@@ -64,6 +64,10 @@ final class StatsCrossTabBuilder {
             'guvenceVisitGap' => self::guvenceVisitGap($stats),
             'bagimlilikVisitYear' => self::bagimlilikVisitYear($stats),
             'barthelAge' => self::barthelAge($stats),
+            'bradenRiskAge' => self::bradenRiskAge($stats),
+            'itakiRiskAge' => self::itakiRiskAge($stats),
+            'harizmiRiskAge' => self::harizmiRiskAge($stats),
+            'mnaStatusAge' => self::mnaStatusAge($stats),
             'tenureVisitCount' => self::tenureVisitCount($stats),
             'pansumanVisitGap' => self::pansumanVisitGap($stats),
             'branchMonthKons' => self::branchMonthKons($stats, $months),
@@ -870,6 +874,128 @@ final class StatsCrossTabBuilder {
         }
 
         return $pack;
+    }
+
+    private static function bradenRiskAge(Stats $stats): array {
+        $riskCase = "CASE
+                WHEN b.toplam_skor <= 9 THEN 'cok_yuksek'
+                WHEN b.toplam_skor <= 12 THEN 'yuksek'
+                WHEN b.toplam_skor <= 14 THEN 'orta'
+                WHEN b.toplam_skor <= 18 THEN 'hafif'
+                ELSE 'yok'
+            END";
+
+        return self::clinicalScaleRiskAge(
+            $stats,
+            '#__hasta_braden',
+            "h.pasif = '0' AND h.basiyarasi = 1",
+            $riskCase,
+            [
+                'cok_yuksek' => 'Çok yüksek risk',
+                'yuksek' => 'Yüksek risk',
+                'orta' => 'Orta risk',
+                'hafif' => 'Hafif risk',
+                'yok' => 'Risk yok',
+            ]
+        );
+    }
+
+    private static function itakiRiskAge(Stats $stats): array {
+        $age = self::sqlPatientAgeYearsExpr('h.dogumtarihi');
+        $riskCase = "CASE WHEN b.toplam_skor >= 10 THEN 'yuksek' ELSE 'dusuk' END";
+
+        return self::clinicalScaleRiskAge(
+            $stats,
+            '#__hasta_itaki',
+            "h.pasif = '0' AND ({$age}) >= 18",
+            $riskCase,
+            [
+                'dusuk' => 'Düşük risk',
+                'yuksek' => 'Yüksek risk',
+            ]
+        );
+    }
+
+    private static function harizmiRiskAge(Stats $stats): array {
+        $age = self::sqlPatientAgeYearsExpr('h.dogumtarihi');
+        $riskCase = "CASE WHEN b.toplam_skor >= 10 THEN 'yuksek' ELSE 'dusuk' END";
+
+        return self::clinicalScaleRiskAge(
+            $stats,
+            '#__hasta_harizmi',
+            "h.pasif = '0' AND ({$age}) >= 0 AND ({$age}) < 18",
+            $riskCase,
+            [
+                'dusuk' => 'Düşük risk',
+                'yuksek' => 'Yüksek risk',
+            ]
+        );
+    }
+
+    private static function mnaStatusAge(Stats $stats): array {
+        $riskCase = "CASE
+                WHEN b.toplam_skor >= 12 THEN 'normal'
+                WHEN b.toplam_skor >= 8 THEN 'risk'
+                ELSE 'malnutrisyon'
+            END";
+
+        return self::clinicalScaleRiskAge(
+            $stats,
+            '#__hasta_mna',
+            "h.pasif = '0'",
+            $riskCase,
+            [
+                'normal' => 'Normal beslenme',
+                'risk' => 'Malnütrisyon riski',
+                'malnutrisyon' => 'Malnütrisyon',
+            ]
+        );
+    }
+
+    /**
+     * @param array<string, string> $rowLabels
+     */
+    private static function clinicalScaleRiskAge(
+        Stats $stats,
+        string $table,
+        string $eligibleWhere,
+        string $riskCaseExpr,
+        array $rowLabels
+    ): array {
+        $join = self::sqlLatestAssessmentJoin('b', $table);
+        $sql = "SELECT ({$riskCaseExpr}) AS rg, h.dogumtarihi
+            FROM #__hastalar h
+            {$join}
+            WHERE {$eligibleWhere}" . self::k('h');
+        $rows = $stats->db->fetchObjectListPrepared($sql) ?: [];
+        $cols = self::ageBandColKeys();
+        $pack = StatsCrossTabMatrix::create(array_keys($rowLabels), $cols, $rowLabels, self::ageBandLabels());
+        foreach ($rows as $r) {
+            $rk = (string) ($r->rg ?? '');
+            if (!isset($rowLabels[$rk])) {
+                continue;
+            }
+            StatsCrossTabMatrix::add($pack, $rk, self::ageBandKey($r->dogumtarihi ?? null));
+        }
+        $pack['cell_unit'] = 'hasta';
+
+        return $pack;
+    }
+
+    private static function sqlLatestAssessmentJoin(string $alias, string $table): string {
+        return "INNER JOIN {$table} {$alias} ON {$alias}.id = (
+            SELECT s2.id FROM {$table} s2
+            WHERE s2.hasta_id = h.id
+            ORDER BY s2.degerlendirme_tarihi DESC, s2.id DESC
+            LIMIT 1
+        )";
+    }
+
+    private static function sqlPatientAgeYearsExpr(string $birthExpr): string {
+        return "CASE
+            WHEN {$birthExpr} IS NULL OR TRIM(CAST({$birthExpr} AS CHAR)) = '' OR {$birthExpr} = '0000-00-00' THEN -1
+            ELSE TIMESTAMPDIFF(YEAR, {$birthExpr}, CURDATE())
+        END";
     }
 
     private static function tenureVisitCount(Stats $stats): array {

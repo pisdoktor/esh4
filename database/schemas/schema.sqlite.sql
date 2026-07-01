@@ -47,6 +47,14 @@ DROP TABLE IF EXISTS "esh_ekipler";
 
 DROP TABLE IF EXISTS "esh_hasta_ilaclar";
 
+DROP TABLE IF EXISTS "esh_hasta_mna";
+
+DROP TABLE IF EXISTS "esh_hasta_harizmi";
+
+DROP TABLE IF EXISTS "esh_hasta_itaki";
+
+DROP TABLE IF EXISTS "esh_hasta_braden";
+
 DROP TABLE IF EXISTS "esh_hasta_yara_fotolar";
 
 DROP TABLE IF EXISTS "esh_erapor";
@@ -537,6 +545,87 @@ CREATE TABLE IF NOT EXISTS "esh_hasta_yara_fotolar" (
 CREATE INDEX IF NOT EXISTS "idx_hasta" ON "esh_hasta_yara_fotolar" ("hasta_id");
 CREATE INDEX IF NOT EXISTS "idx_created" ON "esh_hasta_yara_fotolar" ("created_at");
 CREATE INDEX IF NOT EXISTS "idx_yara_fotolar_kurum" ON "esh_hasta_yara_fotolar" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_hasta_braden" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL DEFAULT 1,
+  "hasta_id" INTEGER NOT NULL,
+  "degerlendirme_tarihi" DATE NOT NULL,
+  "duyusal" INTEGER NOT NULL,
+  "nem" INTEGER NOT NULL,
+  "aktivite" INTEGER NOT NULL,
+  "hareket" INTEGER NOT NULL,
+  "beslenme" INTEGER NOT NULL,
+  "surtunme" INTEGER NOT NULL,
+  "toplam_skor" INTEGER NOT NULL,
+  "risk_duzeyi" VARCHAR(32) NOT NULL DEFAULT '',
+  "notlar" TEXT DEFAULT NULL,
+  "kaydeden_id" INTEGER DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_braden_hasta" ON "esh_hasta_braden" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_braden_tarih" ON "esh_hasta_braden" ("degerlendirme_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_braden_kurum" ON "esh_hasta_braden" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_hasta_itaki" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL DEFAULT 1,
+  "hasta_id" INTEGER NOT NULL,
+  "degerlendirme_tarihi" DATE NOT NULL,
+  "degerlendirme_gerekcesi" INTEGER NOT NULL DEFAULT 1,
+  "secimler_json" TEXT NOT NULL,
+  "toplam_skor" INTEGER NOT NULL DEFAULT 0,
+  "risk_duzeyi" VARCHAR(32) NOT NULL DEFAULT '',
+  "notlar" TEXT DEFAULT NULL,
+  "kaydeden_id" INTEGER DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_itaki_hasta" ON "esh_hasta_itaki" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_itaki_tarih" ON "esh_hasta_itaki" ("degerlendirme_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_itaki_kurum" ON "esh_hasta_itaki" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_hasta_harizmi" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL DEFAULT 1,
+  "hasta_id" INTEGER NOT NULL,
+  "degerlendirme_tarihi" DATE NOT NULL,
+  "degerlendirme_gerekcesi" INTEGER NOT NULL DEFAULT 1,
+  "secimler_json" TEXT NOT NULL,
+  "toplam_skor" INTEGER NOT NULL DEFAULT 0,
+  "risk_duzeyi" VARCHAR(32) NOT NULL DEFAULT '',
+  "notlar" TEXT DEFAULT NULL,
+  "kaydeden_id" INTEGER DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_harizmi_hasta" ON "esh_hasta_harizmi" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_harizmi_tarih" ON "esh_hasta_harizmi" ("degerlendirme_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_harizmi_kurum" ON "esh_hasta_harizmi" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_hasta_mna" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL DEFAULT 1,
+  "hasta_id" INTEGER NOT NULL,
+  "degerlendirme_tarihi" DATE NOT NULL,
+  "besin_alimi" INTEGER NOT NULL,
+  "kilo_kaybi" INTEGER NOT NULL,
+  "mobilite" INTEGER NOT NULL,
+  "stres_hastalik" INTEGER NOT NULL,
+  "noropsikolojik" INTEGER NOT NULL,
+  "bmi_olcum_tipi" VARCHAR(20) NOT NULL DEFAULT 'bmi',
+  "bmi_skor" INTEGER NOT NULL,
+  "toplam_skor" INTEGER NOT NULL,
+  "durum_duzeyi" VARCHAR(32) NOT NULL DEFAULT '',
+  "notlar" TEXT DEFAULT NULL,
+  "kaydeden_id" INTEGER DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_mna_hasta" ON "esh_hasta_mna" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_mna_tarih" ON "esh_hasta_mna" ("degerlendirme_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_mna_kurum" ON "esh_hasta_mna" ("kurum_id");
 
 CREATE TABLE IF NOT EXISTS "esh_rota_cache" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

@@ -295,6 +295,7 @@ body.app-shell .esh-page-patient-unified .dropdown-menu.esh-patient-mega-menu,
     min-width: min(92vw, 600px);
 }
 
+
 /* -------------------------------------------------------------------------
    Hasta düzenle (`Patient::edit`) — yapışkan Kaydı tamamla / İptal
    Navbar (1040), kartlar ve Tom Select dropdown üzerinde kalmalı.
@@ -837,7 +838,22 @@ body.theme-evcare.ev-shell .mr-page--izlem-ek3-consult {
 }
 
 .dropdown-menu.esh-patient-mega-menu {
-    min-width: min(92vw, 520px);
+    width: auto;
+    min-width: min(92vw, 600px);
+    max-width: min(98vw, calc(100vw - 1rem));
+    box-sizing: border-box;
+}
+#esh-patient-mega-layer .dropdown-menu.esh-patient-mega-menu {
+    width: auto;
+}
+.dropdown-menu.esh-patient-mega-menu[data-esh-mega-cols="2"] {
+    min-width: min(92vw, 600px);
+}
+.dropdown-menu.esh-patient-mega-menu[data-esh-mega-cols="3"] {
+    min-width: min(96vw, 780px);
+}
+.dropdown-menu.esh-patient-mega-menu[data-esh-mega-cols="4"] {
+    min-width: min(98vw, 960px);
 }
 #esh-patient-mega-layer {
     position: fixed;
@@ -869,16 +885,28 @@ body.esh-patient-mega-menu-active .esh-page-patient-unified tbody tr.esh-tr-mega
 .esh-patient-mega-menu .row.esh-patient-mega-menu__cols {
     display: flex;
     flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
 }
 .esh-patient-mega-menu .row.esh-patient-mega-menu__cols > [class*="col-"] {
     flex: 0 0 50%;
     max-width: 50%;
+    min-width: 0;
 }
-.dropdown-menu.esh-patient-mega-menu.esh-patient-mega-menu--with-admin {
-    min-width: min(96vw, 720px);
+.dropdown-menu.esh-patient-mega-menu.esh-patient-mega-menu--with-forms:not(.esh-patient-mega-menu--with-admin),
+.dropdown-menu.esh-patient-mega-menu.esh-patient-mega-menu--with-admin:not(.esh-patient-mega-menu--with-forms) {
+    min-width: min(96vw, 780px);
 }
-.esh-patient-mega-menu--with-admin .row.esh-patient-mega-menu__cols > [class*="col-"] {
+.esh-patient-mega-menu--with-forms:not(.esh-patient-mega-menu--with-admin) .row.esh-patient-mega-menu__cols > [class*="col-"],
+.esh-patient-mega-menu--with-admin:not(.esh-patient-mega-menu--with-forms) .row.esh-patient-mega-menu__cols > [class*="col-"] {
     flex: 0 0 33.333333%;
     max-width: 33.333333%;
+}
+.dropdown-menu.esh-patient-mega-menu.esh-patient-mega-menu--with-forms.esh-patient-mega-menu--with-admin {
+    min-width: min(98vw, 960px);
+}
+.esh-patient-mega-menu--with-forms.esh-patient-mega-menu--with-admin .row.esh-patient-mega-menu__cols > [class*="col-"] {
+    flex: 0 0 25%;
+    max-width: 25%;
 }
 /* İstatistik özet kartı — esh-page-language.css */

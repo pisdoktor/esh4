@@ -1125,6 +1125,26 @@ class StatsController {
         $this->render('stats_barthel', 'Barthel bağımlılık dağılımı', ['b' => $b]);
     }
 
+    public function braden(): void {
+        $m = new Stats();
+        $this->render('stats_braden', 'Braden risk dağılımı', ['report' => $m->getBradenDistribution()]);
+    }
+
+    public function itaki(): void {
+        $m = new Stats();
+        $this->render('stats_itaki', 'İTAKİ II risk dağılımı', ['report' => $m->getItakiDistribution()]);
+    }
+
+    public function harizmi(): void {
+        $m = new Stats();
+        $this->render('stats_harizmi', 'Harizmi II risk dağılımı', ['report' => $m->getHarizmiDistribution()]);
+    }
+
+    public function mna(): void {
+        $m = new Stats();
+        $this->render('stats_mna', 'MNA-SF durum dağılımı', ['report' => $m->getMnaDistribution()]);
+    }
+
     /** Eski tarihHata */
     public function chronologyIssues() {
         $m = new Stats();

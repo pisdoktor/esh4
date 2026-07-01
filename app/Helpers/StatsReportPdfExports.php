@@ -44,6 +44,10 @@ final class StatsReportPdfExports {
             'clinicalProfile' => self::exportClinicalProfile($m),
             'pansumanProfile' => self::exportPansumanProfile($m),
             'barthel' => self::exportBarthel($m),
+            'braden' => self::exportClinicalScale($m->getBradenDistribution(), 'Braden risk dağılımı', 'braden', 'Bası yarası işaretli aktif hastalar — son değerlendirme'),
+            'itaki' => self::exportClinicalScale($m->getItakiDistribution(), 'İTAKİ II risk dağılımı', 'itaki', '18 yaş ve üzeri aktif hastalar — son değerlendirme'),
+            'harizmi' => self::exportClinicalScale($m->getHarizmiDistribution(), 'Harizmi II risk dağılımı', 'harizmi', '0–17 yaş aktif hastalar — son değerlendirme'),
+            'mna' => self::exportClinicalScale($m->getMnaDistribution(), 'MNA-SF durum dağılımı', 'mna', 'Aktif hastalar — son değerlendirme'),
             'bmiVki' => self::exportBmiVki($m),
             'waitingPoolProfile' => self::exportWaitingPool($m),
             'fieldCoverage' => self::exportFieldCoverage($m),
@@ -502,6 +506,27 @@ final class StatsReportPdfExports {
             $rows,
             'Fonksiyonel bağımsızlık',
             StatsReportPdfFormatHelper::filename('barthel')
+        );
+    }
+
+    private static function exportClinicalScale(object $report, string $title, string $action, string $subtitle): array {
+        $rows = StatsReportPdfFormatHelper::keyValueRows([
+            'Uygun hasta' => (string) (int) ($report->uygun_hasta ?? 0),
+            'Değerlendirilen' => (string) (int) ($report->degerlendirilen_hasta ?? 0),
+            'Eksik' => (string) (int) ($report->eksik ?? 0),
+            'Kapsam %' => (string) ($report->kapsam_yuzde ?? 0),
+            'Ortalama skor' => (string) ($report->ortalama_skor ?? 0),
+        ]);
+        foreach ((array) ($report->gruplar ?? []) as $label => $n) {
+            $rows[] = [(string) $label, (string) (int) $n];
+        }
+
+        return StatsReportPdfFormatHelper::payload(
+            $title,
+            ['Gösterge / grup', 'Adet'],
+            $rows,
+            $subtitle,
+            StatsReportPdfFormatHelper::filename($action)
         );
     }
 

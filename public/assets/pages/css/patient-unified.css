@@ -113,24 +113,22 @@
     flex-wrap: nowrap;
     margin-left: 0;
     margin-right: 0;
+    width: 100%;
+    min-width: 0;
 }
 .esh-page-patient-unified .esh-patient-mega-menu .row > [class*="col-"] {
     flex: 0 0 50%;
     max-width: 50%;
+    min-width: 0;
 }
-.esh-page-patient-unified .esh-patient-mega-menu--with-admin .row > [class*="col-"] {
+.esh-page-patient-unified .esh-patient-mega-menu--with-forms:not(.esh-patient-mega-menu--with-admin) .row > [class*="col-"],
+.esh-page-patient-unified .esh-patient-mega-menu--with-admin:not(.esh-patient-mega-menu--with-forms) .row > [class*="col-"] {
     flex: 0 0 33.333333%;
     max-width: 33.333333%;
 }
-
-body.app-shell .esh-page-patient-unified .dropdown-menu.esh-patient-mega-menu,
-.esh-page-patient-unified .dropdown-menu.esh-patient-mega-menu {
-    min-width: min(92vw, 600px);
-    max-width: min(600px, calc(100vw - 1rem));
-}
-.esh-page-patient-unified .dropdown-menu.esh-patient-mega-menu.esh-patient-mega-menu--with-admin {
-    min-width: min(96vw, 840px);
-    max-width: min(840px, calc(100vw - 1rem));
+.esh-page-patient-unified .esh-patient-mega-menu--with-forms.esh-patient-mega-menu--with-admin .row > [class*="col-"] {
+    flex: 0 0 25%;
+    max-width: 25%;
 }
 
 /* Hasta kartı doluluk göstergesi */

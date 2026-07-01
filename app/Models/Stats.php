@@ -1232,6 +1232,161 @@ class Stats extends BaseModel {
         ];
     }
 
+    /**
+     * Braden — son değerlendirme risk dağılımı (aktif + basiyarasi=1).
+     *
+     * @return object{uygun_hasta:int,degerlendirilen_hasta:int,eksik:int,kapsam_yuzde:float,ortalama_skor:float,gruplar:array<string,int>}
+     */
+    public function getBradenDistribution(): object {
+        $riskCase = 'CASE
+                WHEN b.toplam_skor <= 9 THEN \'g_cok_yuksek\'
+                WHEN b.toplam_skor <= 12 THEN \'g_yuksek\'
+                WHEN b.toplam_skor <= 14 THEN \'g_orta\'
+                WHEN b.toplam_skor <= 18 THEN \'g_hafif\'
+                ELSE \'g_yok\'
+            END';
+
+        return $this->fetchClinicalScaleDistribution(
+            '#__hasta_braden',
+            "h.pasif = '0' AND h.basiyarasi = 1",
+            $riskCase,
+            [
+                'g_cok_yuksek' => 'Çok yüksek risk',
+                'g_yuksek' => 'Yüksek risk',
+                'g_orta' => 'Orta risk',
+                'g_hafif' => 'Hafif risk',
+                'g_yok' => 'Risk yok',
+            ]
+        );
+    }
+
+    /**
+     * İTAKİ II — son değerlendirme risk dağılımı (aktif + tam yaş ≥ 18).
+     *
+     * @return object{uygun_hasta:int,degerlendirilen_hasta:int,eksik:int,kapsam_yuzde:float,ortalama_skor:float,gruplar:array<string,int>}
+     */
+    public function getItakiDistribution(): object {
+        $age = $this->sqlPatientAgeYearsExpr('h.dogumtarihi');
+        $riskCase = 'CASE WHEN b.toplam_skor >= 10 THEN \'g_yuksek\' ELSE \'g_dusuk\' END';
+
+        return $this->fetchClinicalScaleDistribution(
+            '#__hasta_itaki',
+            "h.pasif = '0' AND ({$age}) >= 18",
+            $riskCase,
+            [
+                'g_dusuk' => 'Düşük risk',
+                'g_yuksek' => 'Yüksek risk',
+            ]
+        );
+    }
+
+    /**
+     * Harizmi II — son değerlendirme risk dağılımı (aktif + tam yaş 0–17).
+     *
+     * @return object{uygun_hasta:int,degerlendirilen_hasta:int,eksik:int,kapsam_yuzde:float,ortalama_skor:float,gruplar:array<string,int>}
+     */
+    public function getHarizmiDistribution(): object {
+        $age = $this->sqlPatientAgeYearsExpr('h.dogumtarihi');
+        $riskCase = 'CASE WHEN b.toplam_skor >= 10 THEN \'g_yuksek\' ELSE \'g_dusuk\' END';
+
+        return $this->fetchClinicalScaleDistribution(
+            '#__hasta_harizmi',
+            "h.pasif = '0' AND ({$age}) >= 0 AND ({$age}) < 18",
+            $riskCase,
+            [
+                'g_dusuk' => 'Düşük risk',
+                'g_yuksek' => 'Yüksek risk',
+            ]
+        );
+    }
+
+    /**
+     * MNA-SF — son değerlendirme durum dağılımı (tüm aktif hastalar).
+     *
+     * @return object{uygun_hasta:int,degerlendirilen_hasta:int,eksik:int,kapsam_yuzde:float,ortalama_skor:float,gruplar:array<string,int>}
+     */
+    public function getMnaDistribution(): object {
+        $riskCase = 'CASE
+                WHEN b.toplam_skor >= 12 THEN \'g_normal\'
+                WHEN b.toplam_skor >= 8 THEN \'g_risk\'
+                ELSE \'g_malnutrisyon\'
+            END';
+
+        return $this->fetchClinicalScaleDistribution(
+            '#__hasta_mna',
+            "h.pasif = '0'",
+            $riskCase,
+            [
+                'g_normal' => 'Normal beslenme',
+                'g_risk' => 'Malnütrisyon riski',
+                'g_malnutrisyon' => 'Malnütrisyon',
+            ]
+        );
+    }
+
+    /**
+     * Klinik skala raporu — uygun havuz, kapsam ve son değerlendirme dağılımı.
+     *
+     * @param array<string, string> $groupLabels
+     * @return object{uygun_hasta:int,degerlendirilen_hasta:int,eksik:int,kapsam_yuzde:float,ortalama_skor:float,gruplar:array<string,int>}
+     */
+    private function fetchClinicalScaleDistribution(
+        string $table,
+        string $eligibleWhere,
+        string $riskCaseExpr,
+        array $groupLabels
+    ): object {
+        $tenant = TenantSqlHelper::andEquals('h');
+        $eligibleSql = "SELECT COUNT(*) AS c FROM #__hastalar h WHERE {$eligibleWhere}{$tenant}";
+        $eligibleRow = $this->db->fetchObjectPrepared($eligibleSql);
+        $uygun = (int) ($eligibleRow->c ?? 0);
+
+        $sumCases = [];
+        foreach (array_keys($groupLabels) as $key) {
+            $sumCases[] = "SUM(CASE WHEN ({$riskCaseExpr}) = " . $this->db->quote($key) . " THEN 1 ELSE 0 END) AS {$key}";
+        }
+        $sumSql = implode(', ', $sumCases);
+        $join = $this->sqlLatestAssessmentJoin('b', $table);
+        $distSql = "SELECT COUNT(*) AS degerlendirilen, AVG(b.toplam_skor) AS ortalama_skor, {$sumSql}
+            FROM #__hastalar h
+            {$join}
+            WHERE {$eligibleWhere}{$tenant}";
+        $distRow = $this->db->fetchObjectPrepared($distSql);
+
+        $degerlendirilen = (int) ($distRow->degerlendirilen ?? 0);
+        $eksik = max(0, $uygun - $degerlendirilen);
+        $kapsam = $uygun > 0 ? round($degerlendirilen / $uygun * 100, 1) : 0.0;
+        $gruplar = [];
+        foreach ($groupLabels as $key => $label) {
+            $gruplar[$label] = (int) ($distRow->{$key} ?? 0);
+        }
+
+        return (object) [
+            'uygun_hasta' => $uygun,
+            'degerlendirilen_hasta' => $degerlendirilen,
+            'eksik' => $eksik,
+            'kapsam_yuzde' => $kapsam,
+            'ortalama_skor' => round((float) ($distRow->ortalama_skor ?? 0), 2),
+            'gruplar' => $gruplar,
+        ];
+    }
+
+    private function sqlLatestAssessmentJoin(string $alias, string $table): string {
+        return "INNER JOIN {$table} {$alias} ON {$alias}.id = (
+            SELECT s2.id FROM {$table} s2
+            WHERE s2.hasta_id = h.id
+            ORDER BY s2.degerlendirme_tarihi DESC, s2.id DESC
+            LIMIT 1
+        )";
+    }
+
+    private function sqlPatientAgeYearsExpr(string $birthExpr): string {
+        return "CASE
+            WHEN {$birthExpr} IS NULL OR TRIM(CAST({$birthExpr} AS CHAR)) = '' OR {$birthExpr} = '0000-00-00' THEN -1
+            ELSE TIMESTAMPDIFF(YEAR, {$birthExpr}, CURDATE())
+        END";
+    }
+
     /** İlk izlem, kayıt tarihinden önce (eski tarihHata). */
     public function getChronologyRegistrationVsFirstVisit(): array {
         $izd = $this->sqlIzlemTarihiAsDate('i');

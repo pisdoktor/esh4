@@ -51,3 +51,10 @@ if ($ikinciAdresMetni === '') {
 }
 
 $hekimFormBaslik = \App\Helpers\OperationalSettings::hekimDegerlendirmeFormBaslik();
+
+$aileHekimiAdRaw = trim((string) ($hasta->ailehekimi ?? ''));
+$aileHekimiTelRaw = trim((string) ($hasta->ailehekimitel ?? ''));
+$aileHekimiAdPdf = $aileHekimiAdRaw !== '' ? $aileHekimiAdRaw : '....................................';
+$aileHekimiTelPdf = $aileHekimiTelRaw !== ''
+    ? \App\Helpers\ValidationHelper::formatPhoneDisplay($aileHekimiTelRaw)
+    : '....................................';

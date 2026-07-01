@@ -17,6 +17,10 @@ final class StatsReportPdfBlocks {
             'visit_months', 'erapor_pool', 'ilce_ranking', 'bagimlilik', 'brans_erapor',
         ],
         'barthel' => ['ortalama', 'dagilim'],
+        'braden' => ['ortalama', 'dagilim', 'kapsam'],
+        'itaki' => ['ortalama', 'dagilim', 'kapsam'],
+        'harizmi' => ['ortalama', 'dagilim', 'kapsam'],
+        'mna' => ['ortalama', 'dagilim', 'kapsam'],
     ];
 
     /**
@@ -108,6 +112,10 @@ final class StatsReportPdfBlocks {
             'overview' => self::exportOverviewBlock($m, $block),
             'operationsPulse' => self::exportOperationsPulseBlock($m, $block),
             'barthel' => self::exportBarthelBlock($m, $block),
+            'braden' => self::exportClinicalScaleBlock($m->getBradenDistribution(), 'Braden', 'braden', $block),
+            'itaki' => self::exportClinicalScaleBlock($m->getItakiDistribution(), 'İTAKİ II', 'itaki', $block),
+            'harizmi' => self::exportClinicalScaleBlock($m->getHarizmiDistribution(), 'Harizmi II', 'harizmi', $block),
+            'mna' => self::exportClinicalScaleBlock($m->getMnaDistribution(), 'MNA-SF', 'mna', $block),
             default => null,
         };
         if ($special !== null) {
@@ -312,6 +320,47 @@ final class StatsReportPdfBlocks {
                 ],
                 'Skor grupları',
                 StatsReportPdfFormatHelper::filename('barthel_dagilim')
+            ),
+            default => null,
+        };
+    }
+
+    private static function exportClinicalScaleBlock(object $report, string $title, string $action, string $block): ?array {
+        $fullTitle = $title . ' dağılımı';
+
+        return match ($block) {
+            'ortalama' => StatsReportPdfFormatHelper::payload(
+                $fullTitle . ' — Özet',
+                ['Gösterge', 'Değer'],
+                [
+                    ['Ortalama skor', (string) ($report->ortalama_skor ?? 0)],
+                    ['Değerlendirilen', (string) (int) ($report->degerlendirilen_hasta ?? 0)],
+                ],
+                'Ortalama skor kartı',
+                StatsReportPdfFormatHelper::filename($action . '_ortalama')
+            ),
+            'kapsam' => StatsReportPdfFormatHelper::payload(
+                $fullTitle . ' — Kapsam',
+                ['Gösterge', 'Değer'],
+                [
+                    ['Uygun hasta', (string) (int) ($report->uygun_hasta ?? 0)],
+                    ['Değerlendirilen', (string) (int) ($report->degerlendirilen_hasta ?? 0)],
+                    ['Eksik', (string) (int) ($report->eksik ?? 0)],
+                    ['Kapsam %', (string) ($report->kapsam_yuzde ?? 0)],
+                ],
+                'Kapsam özeti',
+                StatsReportPdfFormatHelper::filename($action . '_kapsam')
+            ),
+            'dagilim' => StatsReportPdfFormatHelper::payload(
+                $fullTitle . ' — Gruplar',
+                ['Grup', 'Adet'],
+                array_map(
+                    static fn ($label, $n) => [(string) $label, (string) (int) $n],
+                    array_keys((array) ($report->gruplar ?? [])),
+                    array_values((array) ($report->gruplar ?? []))
+                ),
+                'Risk / durum grupları',
+                StatsReportPdfFormatHelper::filename($action . '_dagilim')
             ),
             default => null,
         };

@@ -25,7 +25,7 @@
 
 body.app-shell .izlem-list-page .dropdown-menu.esh-patient-mega-menu,
 .izlem-list-page .dropdown-menu.esh-patient-mega-menu {
-    min-width: min(92vw, 520px);
+    min-width: min(92vw, 600px);
 }
 
 body.app-shell .izlem-list-page .dropdown-menu.show,

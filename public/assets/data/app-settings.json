@@ -15,7 +15,8 @@
         "nobet": true,
         "kps_tc_sorgu": true,
         "mesajlasma": true,
-        "sms_bildirim": true
+        "sms_bildirim": true,
+        "stok": true
     },
     "islem_ids": {
         "nakil_islem_id": 18,
