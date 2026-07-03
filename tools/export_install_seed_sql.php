@@ -135,9 +135,9 @@ $exports = [
     ],
     [
         'file' => 'seed_esh_adrestablosu.sql',
-        'title' => 'Adres ağacı (ilçe → mahalle → sokak → kapı)',
+        'title' => 'Adres ağacı (bölge → ilçe → mahalle → sokak → kapı)',
         'table' => 'esh_adrestablosu',
-        'columns' => ['id', 'adi', 'ust_id', 'tip', 'coords', 'has_coords'],
+        'columns' => ['id', 'adi', 'ust_id', 'tip', 'federation_bolge_id', 'coords', 'has_coords'],
         'order' => 'tip, ust_id, id',
     ],
 ];

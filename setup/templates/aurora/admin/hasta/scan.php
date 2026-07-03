@@ -1,0 +1,66 @@
+<div class="container-fluid mt-4">
+    <section class="au-panel au-scan">
+        <div class="au-panel__head au-panel__head--split">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <span class="au-icon-chip au-icon-chip--grad"><i class="fa-solid fa-microchip"></i></span>
+                <h2 class="au-panel__title mb-0"><?= htmlspecialchars($scanTitle ?? 'MERNIS Toplu Vefat Taraması') ?></h2>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary btn-sm rounded-pill" id="startBtn">
+                    <i class="fa fa-play me-1"></i> Taramayı Başlat
+                </button>
+                <button type="button" class="btn btn-danger btn-sm rounded-pill d-none" id="stopBtn" disabled>
+                    <i class="fa fa-stop me-1"></i> Taramayı Durdur
+                </button>
+            </div>
+        </div>
+        <div class="au-panel__body">
+            <div class="alert alert-info py-2 small">
+                <?= htmlspecialchars($scanInfo ?? "Bilgi: Hastalar TC Kimlik sırasına göre 20'şerli paketler halinde taranır.") ?>
+            </div>
+            <?php include ROOT_PATH . '/views/admin/hasta/partials/scan_scope_filter.php'; ?>
+            <div id="progressArea" class="mb-3 d-none">
+                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                    <span>İşlem Durumu: <span id="statusText">Hazır</span></span>
+                    <span id="percentText">%0</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 450px;">
+                <table class="table table-sm table-hover border">
+                    <thead class="bg-light sticky-top">
+                        <tr>
+                            <th>TC kimlik</th>
+                            <th>Ad soyad</th>
+                            <th>Anne / baba</th>
+                            <th>İlçe / mahalle</th>
+                            <th>Kayıt tarihi</th>
+                            <th>Son izlem</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logBody">
+                        <tr><td colspan="7" class="text-center text-muted italic">Henüz tarama başlatılmadı...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+window.ESH_PAGE = window.ESH_PAGE || {};
+window.ESH_PAGE.totalRecords = <?= json_encode((int) ($totalCount ?? 0), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+window.ESH_PAGE.scanScope = <?= json_encode((string) ($scanScope ?? 'active'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+window.ESH_PAGE.scanAction = <?= json_encode((string) ($scanAction ?? 'bulkDiedScan'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+window.ESH_PAGE.scanConfirm = <?= json_encode((string) ($scanConfirm ?? 'Tarama baslatılsın mı?'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+window.ESH_PAGE.bulkDiedScanUrl = <?= json_encode(esh_url('Patient', 'bulkDiedScan'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+</script>
+<?php
+$__eshPatientScanJs = (($scanScope ?? 'active') === 'waiting') ? 'patient-scanwaiting' : 'patient-scan';
+$GLOBALS['eshPatientScanScript'] = $__eshPatientScanJs;
+?>
+<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/' . $__eshPatientScanJs . '.js', ENT_QUOTES, 'UTF-8') ?>"></script>

@@ -1,0 +1,24 @@
+11. **e-Nabız / e-Reçete entegrasyonu**
+    - İzlem → USBS bildirimi (yasal zorunluluklar netleşince)
+
+12. **Çok bölgeli SaaS veya federasyon**
+    - 4.0 multi-tenant altyapısı buna uygun; merkezi güncelleme + kurum bazlı ayar
+
+13. **Composer + modern frontend (kademeli)**
+    - Mevcut yapıyı bozmadan API + hafif Vue/React sadece dashboard/plan ekranında
+
+---
+
+## Konumlandırma önerisi
+
+SONEV’i şu şekilde konumlandırmak en mantıklısı:
+
+> **“Türkiye evde sağlık birimleri için operasyonel omurga — planlama, saha, stok, istatistik — ESYS’i tamamlayan kurum içi sistem.”**
+
+Global ürünlerle **faturalama/EVV** alanında yarışmak yerine; **Türkiye’ye özgü iş akışı + saha verimliliği + yerel veri kontrolü** ile fark yaratmak daha gerçekçi.
+
+---
+
+## Öncelik matrisi
+
+| Öncelik | Öneri | Etki | Efor |

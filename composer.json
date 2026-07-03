@@ -1,0 +1,24 @@
+{
+    "name": "esh/sonev",
+    "description": "ESH / SONEV — isteğe bağlı Composer geliştirme bağımlılıkları (çalışma zamanı zorunlu değil).",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {}
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test:smoke": "phpunit -c phpunit.xml --testsuite smoke"
+    }
+}

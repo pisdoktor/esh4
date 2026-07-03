@@ -8,6 +8,27 @@
 SET NOCOUNT ON;
 GO
 
+IF OBJECT_ID(N'[dbo].[esh_cds_ack]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_cds_ack];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_portal_appointment_requests]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_portal_appointment_requests];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_api_tokens]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_api_tokens];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_usbs_sync_log]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_usbs_sync_log];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_federation_sync_log]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_federation_sync_log];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_esys_sync_log]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_esys_sync_log];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_audit_log]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_audit_log];
+GO
+
 IF OBJECT_ID(N'[dbo].[esh_rehber_ilac]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_rehber_ilac];
 GO
 
@@ -69,6 +90,9 @@ IF OBJECT_ID(N'[dbo].[esh_ekipler]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_eki
 GO
 
 IF OBJECT_ID(N'[dbo].[esh_hasta_ilaclar]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_ilaclar];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_hasta_barthel]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_barthel];
 GO
 
 IF OBJECT_ID(N'[dbo].[esh_hasta_mna]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hasta_mna];
@@ -137,11 +161,58 @@ GO
 IF OBJECT_ID(N'[dbo].[esh_hastalikcat]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_hastalikcat];
 GO
 
+IF OBJECT_ID(N'[dbo].[esh_kurum_hastalik]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurum_hastalik];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_kurum_islem]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurum_islem];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_kurum_istek]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurum_istek];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_kurum_brans]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurum_brans];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_kurum_adres]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurum_adres];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_mahalle_plan]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_mahalle_plan];
+GO
+
+IF OBJECT_ID(N'[dbo].[esh_federation_regions]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_federation_regions];
+GO
+
 IF OBJECT_ID(N'[dbo].[esh_kurumlar]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_kurumlar];
 GO
 
 IF OBJECT_ID(N'[dbo].[esh_adrestablosu]', N'U') IS NOT NULL DROP TABLE [dbo].[esh_adrestablosu];
 GO
+
+IF OBJECT_ID(N'[dbo].[esh_federation_regions]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_federation_regions] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kod] NVARCHAR(64) NOT NULL,
+  [ad] NVARCHAR(255) NOT NULL,
+  [il_adi] NVARCHAR(64) NULL DEFAULT NULL,
+  [hub_node_ref] NVARCHAR(64) NULL DEFAULT NULL,
+  [aktif] TINYINT(1) NOT NULL DEFAULT 1,
+  [aciklama] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [ayarlar_json] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [olusturma_tarihi] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  CONSTRAINT [uk_fed_region_kod] UNIQUE ([kod]),
+  INDEX [idx_fed_region_aktif] ([aktif])
+    );
+END
+GO
+
+
+SET IDENTITY_INSERT [dbo].[esh_federation_regions] ON;
+INSERT INTO [esh_federation_regions] ([id], [kod], [ad], [aktif], [aciklama]) VALUES (1, 'varsayilan', 'Varsayılan bölge', 1, 'Kurulum sonrası otomatik oluşturulur');
+SET IDENTITY_INSERT [dbo].[esh_federation_regions] OFF;
+GO
+
 
 IF OBJECT_ID(N'[dbo].[esh_kurumlar]', N'U') IS NULL
 BEGIN
@@ -150,6 +221,8 @@ BEGIN
   [ad] NVARCHAR(255) NOT NULL,
   [kod] NVARCHAR(64) NOT NULL,
   [aktif] TINYINT(1) NOT NULL DEFAULT 1,
+  [bolge_id] INT NULL DEFAULT NULL,
+  [federation_ref] NVARCHAR(64) NULL DEFAULT NULL,
   [logo] NVARCHAR(255) DEFAULT NULL,
   [adres] NVARCHAR(MAX) DEFAULT NULL,
   [telefon] NVARCHAR(64) DEFAULT NULL,
@@ -157,14 +230,16 @@ BEGIN
   [olusturma_tarihi] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
   PRIMARY KEY ([id]),
   CONSTRAINT [uk_kurum_kod] UNIQUE ([kod]),
-  INDEX [idx_kurum_aktif] ([aktif])
+  INDEX [idx_kurum_aktif] ([aktif]),
+  INDEX [idx_kurum_bolge] ([bolge_id]),
+  INDEX [idx_kurum_federation_ref] ([federation_ref])
     );
 END
 GO
 
 
 SET IDENTITY_INSERT [dbo].[esh_kurumlar] ON;
-INSERT INTO [esh_kurumlar] ([id], [ad], [kod], [aktif]) VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1);
+INSERT INTO [esh_kurumlar] ([id], [ad], [kod], [aktif], [bolge_id]) VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1, 1);
 SET IDENTITY_INSERT [dbo].[esh_kurumlar] OFF;
 GO
 
@@ -175,13 +250,15 @@ BEGIN
   [id] NVARCHAR(64) NOT NULL,
   [adi] NVARCHAR(255) NOT NULL DEFAULT '',
   [ust_id] NVARCHAR(64) DEFAULT NULL,
-  [tip] NVARCHAR(20) NOT NULL DEFAULT 'ilce',
+  [tip] NVARCHAR(20) NOT NULL DEFAULT 'bolge',
+  [federation_bolge_id] INT NULL DEFAULT NULL,
   [coords] NVARCHAR(255) DEFAULT NULL,
   [has_coords] TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ([ust_id], [id]),
   INDEX [idx_adres_id] ([id]),
   INDEX [idx_tip_ust] ([tip], [ust_id]),
-  INDEX [idx_tip_has_coords] ([tip], [has_coords])
+  INDEX [idx_tip_has_coords] ([tip], [has_coords]),
+  CONSTRAINT [uk_adres_fed_bolge] UNIQUE ([federation_bolge_id])
     );
 END
 GO
@@ -321,6 +398,7 @@ BEGIN
   [kurum_id] INT NOT NULL DEFAULT 1,
   [plaka] NVARCHAR(32) NOT NULL DEFAULT '',
   [arac_bilgisi] NVARCHAR(255) NOT NULL DEFAULT '',
+  [kapasite] TINYINT NOT NULL DEFAULT 4,
   PRIMARY KEY ([id]),
   INDEX [idx_plaka] ([plaka]),
   INDEX [idx_araclar_kurum] ([kurum_id])
@@ -423,12 +501,14 @@ BEGIN
   [activation] NVARCHAR(64) DEFAULT NULL,
   [isadmin] TINYINT NOT NULL DEFAULT 0,
   [kurum_id] INT NULL DEFAULT 1,
+  [bolge_id] INT NULL DEFAULT NULL,
   [unvan] NVARCHAR(64) DEFAULT NULL,
   [ui_theme] NVARCHAR(64) DEFAULT NULL,
   PRIMARY KEY ([id]),
   CONSTRAINT [uk_username] UNIQUE ([username]),
   INDEX [idx_users_activated_name] ([activated], [name]),
-  INDEX [idx_users_kurum] ([kurum_id])
+  INDEX [idx_users_kurum] ([kurum_id]),
+  INDEX [idx_users_bolge] ([bolge_id])
     );
 END
 GO
@@ -470,16 +550,6 @@ BEGIN
   [diger_adres] NVARCHAR(MAX),
   [coords] NVARCHAR(255) DEFAULT NULL,
   [bagimlilik] NVARCHAR(10) DEFAULT NULL,
-  [barbeslenme] TINYINT DEFAULT NULL,
-  [barbanyo] TINYINT DEFAULT NULL,
-  [barbakim] TINYINT DEFAULT NULL,
-  [bargiyinme] TINYINT DEFAULT NULL,
-  [barbarsak] TINYINT DEFAULT NULL,
-  [barmesane] TINYINT DEFAULT NULL,
-  [bartuvalet] TINYINT DEFAULT NULL,
-  [bartransfer] TINYINT DEFAULT NULL,
-  [barmobilite] TINYINT DEFAULT NULL,
-  [barmerdiven] TINYINT DEFAULT NULL,
   [pasif] NVARCHAR(10) NOT NULL DEFAULT '0',
   [pasiftarihi] DATE DEFAULT NULL,
   [pasifnedeni] NVARCHAR(16) DEFAULT NULL,
@@ -516,6 +586,10 @@ BEGIN
   [yatak] TINYINT(1) NOT NULL DEFAULT 0,
   [hastaliklar] NVARCHAR(MAX),
   [erapor] NVARCHAR(255) DEFAULT NULL,
+  [esys_hasta_ref] NVARCHAR(64) DEFAULT NULL,
+  [esys_basvuru_ref] NVARCHAR(64) DEFAULT NULL,
+  [enabiz_hasta_ref] NVARCHAR(64) DEFAULT NULL,
+  [usbs_hasta_ref] NVARCHAR(64) DEFAULT NULL,
   [randevutarihi] DATE DEFAULT NULL,
   [zaman] TINYINT DEFAULT NULL,
   [notes] NVARCHAR(MAX),
@@ -528,7 +602,11 @@ BEGIN
   INDEX [idx_randevu_pasif_zaman] ([randevutarihi], [pasif], [zaman]),
   INDEX [idx_pansuman_slot] ([pasif], [pansuman], [pzaman]),
   INDEX [idx_pasif_isim] ([pasif], [isim]),
-  INDEX [idx_hastalar_kurum] ([kurum_id])
+  INDEX [idx_hastalar_kurum] ([kurum_id]),
+  INDEX [idx_hastalar_esys_hasta_ref] ([esys_hasta_ref]),
+  INDEX [idx_hastalar_esys_basvuru_ref] ([esys_basvuru_ref]),
+  INDEX [idx_hastalar_enabiz_ref] ([enabiz_hasta_ref]),
+  INDEX [idx_hastalar_usbs_hasta_ref] ([usbs_hasta_ref])
     );
 END
 GO
@@ -551,17 +629,27 @@ BEGIN
   [checkin_lat] DECIMAL(10,7) NULL DEFAULT NULL,
   [checkin_lon] DECIMAL(10,7) NULL DEFAULT NULL,
   [checkin_at] DATETIME2 NULL DEFAULT NULL,
+  [checkin_accuracy] DECIMAL(8,1) NULL DEFAULT NULL,
   [arac] INT DEFAULT NULL,
   [brans] NVARCHAR(255) DEFAULT NULL,
   [kons_istekler] NVARCHAR(512) DEFAULT NULL,
   [kons_brans_istek] NVARCHAR(MAX) DEFAULT NULL,
+  [esys_izlem_ref] NVARCHAR(64) DEFAULT NULL,
+  [esys_konsultasyon_ref] NVARCHAR(64) DEFAULT NULL,
+  [usbs_bildirim_ref] NVARCHAR(64) NULL DEFAULT NULL,
+  [usbs_bildirim_durum] NVARCHAR(16) NOT NULL DEFAULT '',
+  [usbs_bildirim_at] DATETIME2 NULL DEFAULT NULL,
+  [erecete_ref] NVARCHAR(64) NULL DEFAULT NULL,
   PRIMARY KEY ([id]),
   INDEX [idx_izlem_tc_yapildi_tarih] ([hastatckimlik], [yapildimi], [izlemtarihi]),
   INDEX [idx_izlem_tarih_yapildi] ([izlemtarihi], [yapildimi]),
   INDEX [idx_izlem_tarih_tc] ([izlemtarihi], [hastatckimlik]),
   INDEX [idx_izlem_yapildi_tarih_dt] ([yapildimi], [izlemtarihi_dt]),
   INDEX [idx_arac] ([arac]),
-  INDEX [idx_izlemler_kurum] ([kurum_id])
+  INDEX [idx_izlemler_kurum] ([kurum_id]),
+  INDEX [idx_izlemler_esys_izlem_ref] ([esys_izlem_ref]),
+  INDEX [idx_izlemler_usbs_bildirim_ref] ([usbs_bildirim_ref]),
+  INDEX [idx_izlemler_usbs_bildirim_durum] ([usbs_bildirim_durum])
     );
 END
 GO
@@ -582,6 +670,7 @@ BEGIN
   [aciklama] NVARCHAR(MAX),
   [notlar] NVARCHAR(MAX),
   [durum] TINYINT(1) NOT NULL DEFAULT 0,
+  [esys_plan_ref] NVARCHAR(64) DEFAULT NULL,
   PRIMARY KEY ([id]),
   INDEX [idx_plan_zaman_durum] ([planlanantarih], [zaman], [durum]),
   INDEX [idx_tc_durum] ([hastatckimlik], [durum]),
@@ -605,6 +694,7 @@ BEGIN
   [kayitlimi] TINYINT(1) NOT NULL DEFAULT 0,
   [yenilendimi] TINYINT(1) NOT NULL DEFAULT 0,
   [neden] NVARCHAR(255) DEFAULT NULL,
+  [esys_erapor_ref] NVARCHAR(64) DEFAULT NULL,
   PRIMARY KEY ([id]),
   INDEX [idx_tc] ([hastatckimlik]),
   INDEX [idx_erapor_basvuru_id] ([basvurutarihi], [id]),
@@ -623,11 +713,13 @@ BEGIN
   [vardiya] NVARCHAR(32) DEFAULT NULL,
   [ekip_no] INT DEFAULT NULL,
   [user_ids] NVARCHAR(512) DEFAULT NULL,
+  [arac_id] INT NULL DEFAULT NULL,
   [baslangic_saati] NVARCHAR(32) DEFAULT NULL,
   [kayit_tarihi] DATETIME2 DEFAULT NULL,
   PRIMARY KEY ([id]),
   INDEX [idx_tarih] ([tarih]),
-  INDEX [idx_ekipler_kurum] ([kurum_id])
+  INDEX [idx_ekipler_kurum] ([kurum_id]),
+  INDEX [idx_ekipler_arac] ([arac_id])
     );
 END
 GO
@@ -832,6 +924,37 @@ END
 GO
 
 
+IF OBJECT_ID(N'[dbo].[esh_hasta_barthel]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_hasta_barthel] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NOT NULL DEFAULT 1,
+  [hasta_id] INT NOT NULL,
+  [degerlendirme_tarihi] DATE NOT NULL,
+  [barbeslenme] TINYINT NOT NULL DEFAULT 0,
+  [barbanyo] TINYINT NOT NULL DEFAULT 0,
+  [barbakim] TINYINT NOT NULL DEFAULT 0,
+  [bargiyinme] TINYINT NOT NULL DEFAULT 0,
+  [barbarsak] TINYINT NOT NULL DEFAULT 0,
+  [barmesane] TINYINT NOT NULL DEFAULT 0,
+  [bartuvalet] TINYINT NOT NULL DEFAULT 0,
+  [bartransfer] TINYINT NOT NULL DEFAULT 0,
+  [barmobilite] TINYINT NOT NULL DEFAULT 0,
+  [barmerdiven] TINYINT NOT NULL DEFAULT 0,
+  [toplam_skor] SMALLINT NOT NULL DEFAULT 0,
+  [bagimlilik_duzeyi] NVARCHAR(32) NOT NULL DEFAULT '',
+  [notlar] NVARCHAR(MAX) DEFAULT NULL,
+  [kaydeden_id] INT DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_barthel_hasta] ([hasta_id]),
+  INDEX [idx_barthel_tarih] ([degerlendirme_tarihi]),
+  INDEX [idx_barthel_kurum] ([kurum_id])
+    );
+END
+GO
+
+
 IF OBJECT_ID(N'[dbo].[esh_rota_cache]', N'U') IS NULL
 BEGIN
     CREATE TABLE [dbo].[esh_rota_cache] (
@@ -886,6 +1009,11 @@ BEGIN
   [hastatckimlik] NVARCHAR(11) NOT NULL,
   [notlar] NVARCHAR(512) DEFAULT NULL,
   [hasta_geldi] TINYINT NULL DEFAULT NULL,
+  [video_room_id] NVARCHAR(64) NULL DEFAULT NULL,
+  [video_started_at] DATETIME2 NULL DEFAULT NULL,
+  [video_ended_at] DATETIME2 NULL DEFAULT NULL,
+  [visit_id] INT NULL DEFAULT NULL,
+  [telehealth_summary] NVARCHAR(MAX) NULL DEFAULT NULL,
   [olusturan_id] INT DEFAULT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
   PRIMARY KEY ([id]),
@@ -893,7 +1021,9 @@ BEGIN
   INDEX [idx_gor_randevu_tarih] ([randevu_tarihi]),
   INDEX [idx_gor_randevu_hasta] ([hastatckimlik]),
   INDEX [idx_gor_randevu_brans_tarih] ([brans_id], [randevu_tarihi]),
-  INDEX [idx_gor_randevu_kurum] ([kurum_id])
+  INDEX [idx_gor_randevu_kurum] ([kurum_id]),
+  INDEX [idx_gor_video_room] ([video_room_id]),
+  INDEX [idx_gor_visit] ([visit_id])
     );
 END
 GO
@@ -1197,6 +1327,162 @@ BEGIN
   INDEX [idx_eimza_logs_user_created] ([user_id], [created_at]),
   INDEX [idx_eimza_logs_tc_created] ([tc_kimlikno], [created_at]),
   INDEX [idx_eimza_logs_success_created] ([success], [created_at])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_audit_log]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_audit_log] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NULL DEFAULT NULL,
+  [user_id] INT NULL DEFAULT NULL,
+  [action] NVARCHAR(64) NOT NULL,
+  [entity_type] NVARCHAR(32) NOT NULL DEFAULT '',
+  [entity_id] INT NULL DEFAULT NULL,
+  [entity_ref] NVARCHAR(64) NULL DEFAULT NULL,
+  [ip_address] NVARCHAR(64) NULL DEFAULT NULL,
+  [user_agent] NVARCHAR(255) NULL DEFAULT NULL,
+  [request_uri] NVARCHAR(512) NULL DEFAULT NULL,
+  [context_json] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_audit_user_created] ([user_id], [created_at]),
+  INDEX [idx_audit_action_created] ([action], [created_at]),
+  INDEX [idx_audit_entity] ([entity_type], [entity_id]),
+  INDEX [idx_audit_kurum_created] ([kurum_id], [created_at]),
+  INDEX [idx_audit_entity_ref] ([entity_ref], [created_at]),
+  INDEX [idx_audit_created] ([created_at])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_esys_sync_log]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_esys_sync_log] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NULL DEFAULT NULL,
+  [user_id] INT NULL DEFAULT NULL,
+  [direction] NVARCHAR(24) NOT NULL,
+  [status] NVARCHAR(16) NOT NULL,
+  [file_name] NVARCHAR(255) NULL DEFAULT NULL,
+  [stats_json] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [error_message] NVARCHAR(512) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_esys_sync_created] ([created_at]),
+  INDEX [idx_esys_sync_kurum_created] ([kurum_id], [created_at]),
+  INDEX [idx_esys_sync_direction] ([direction], [created_at])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_api_tokens]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_api_tokens] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [user_id] INT NOT NULL,
+  [kurum_id] INT NULL DEFAULT NULL,
+  [label] NVARCHAR(128) NOT NULL DEFAULT '',
+  [token_prefix] NVARCHAR(16) NOT NULL,
+  [token_hash] CHAR(64) NOT NULL,
+  [scopes] NVARCHAR(255) NOT NULL DEFAULT 'read',
+  [expires_at] DATETIME2 NULL DEFAULT NULL,
+  [last_used_at] DATETIME2 NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  [revoked_at] DATETIME2 NULL DEFAULT NULL,
+  PRIMARY KEY ([id]),
+  INDEX [idx_api_token_prefix] ([token_prefix]),
+  INDEX [idx_api_token_user] ([user_id]),
+  INDEX [idx_api_token_kurum] ([kurum_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_federation_sync_log]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_federation_sync_log] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [user_id] INT NULL DEFAULT NULL,
+  [direction] NVARCHAR(32) NOT NULL,
+  [status] NVARCHAR(16) NOT NULL,
+  [file_name] NVARCHAR(255) NULL DEFAULT NULL,
+  [stats_json] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [error_message] NVARCHAR(512) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_fed_sync_created] ([created_at]),
+  INDEX [idx_fed_sync_direction] ([direction], [created_at])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_usbs_sync_log]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_usbs_sync_log] (
+  [id] BIGINT NOT NULL IDENTITY(1,1),
+  [kurum_id] INT NULL DEFAULT NULL,
+  [user_id] INT NULL DEFAULT NULL,
+  [direction] NVARCHAR(24) NOT NULL,
+  [status] NVARCHAR(16) NOT NULL,
+  [file_name] NVARCHAR(255) NULL DEFAULT NULL,
+  [stats_json] NVARCHAR(MAX) NULL DEFAULT NULL,
+  [error_message] NVARCHAR(512) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_usbs_sync_created] ([created_at]),
+  INDEX [idx_usbs_sync_kurum_created] ([kurum_id], [created_at]),
+  INDEX [idx_usbs_sync_direction] ([direction], [created_at])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_portal_appointment_requests]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_portal_appointment_requests] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [hasta_id] INT NOT NULL,
+  [kurum_id] INT NOT NULL,
+  [uhds_id] INT NOT NULL,
+  [talep_tarihi] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  [mevcut_tarih] DATE NOT NULL,
+  [talep_tarih] DATE NOT NULL,
+  [talep_zaman] TINYINT NULL DEFAULT NULL,
+  [neden] NVARCHAR(500) NOT NULL,
+  [durum] NVARCHAR(20) NOT NULL DEFAULT 'queued',
+  [durum_notu] NVARCHAR(500) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  [updated_at] DATETIME2 NULL DEFAULT NULL,
+  PRIMARY KEY ([id]),
+  INDEX [idx_portal_req_hasta] ([hasta_id]),
+  INDEX [idx_portal_req_kurum] ([kurum_id]),
+  INDEX [idx_portal_req_durum] ([durum]),
+  INDEX [idx_portal_req_uhds] ([uhds_id])
+    );
+END
+GO
+
+
+IF OBJECT_ID(N'[dbo].[esh_cds_ack]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[esh_cds_ack] (
+  [id] INT NOT NULL IDENTITY(1,1),
+  [hasta_id] INT NOT NULL,
+  [kurum_id] INT NOT NULL,
+  [alert_code] NVARCHAR(80) NOT NULL,
+  [ack_by_user_id] INT NULL DEFAULT NULL,
+  [ack_note] NVARCHAR(500) NULL DEFAULT NULL,
+  [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+  PRIMARY KEY ([id]),
+  INDEX [idx_cds_ack_hasta] ([hasta_id]),
+  INDEX [idx_cds_ack_kurum] ([kurum_id]),
+  INDEX [idx_cds_ack_code] ([alert_code])
     );
 END
 GO

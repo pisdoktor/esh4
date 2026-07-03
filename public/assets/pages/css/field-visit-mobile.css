@@ -1,0 +1,66 @@
+/* Saha izlem — mobil-first düzen ve yapışkan eylem çubuğu */
+
+@media (max-width: 991.98px) {
+    .izlem-form-page .izlem-create-layout > [class*="col-"],
+    .izlem-form-page .izlem-edit-layout > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .izlem-form-page .izlem-form-panel {
+        margin-bottom: 0.25rem;
+    }
+
+    .izlem-form-page .form-check,
+    .izlem-form-page .izlem-arac-picker__choice {
+        min-height: 2.75rem;
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+    }
+
+    .izlem-form-page .btn[type="submit"],
+    .izlem-form-page .izlem-mobile-actions .btn {
+        min-height: 2.75rem;
+        font-size: 1rem;
+    }
+
+    .izlem-form-page .izlem-mobile-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 1020;
+        margin: 0 -1rem -1rem;
+        padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(to top, var(--bs-body-bg) 78%, transparent);
+        border-top: 1px solid var(--bs-border-color-translucent);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .izlem-form-page .izlem-desktop-actions {
+        display: none !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .izlem-form-page .izlem-mobile-actions {
+        display: none !important;
+    }
+}
+
+.izlem-form-page [data-esh-visit-checkin-status] {
+    font-size: 0.9rem;
+}
+
+.izlem-form-page [data-esh-visit-checkin-status][data-state="ok"] {
+    border-left: 4px solid var(--bs-success);
+}
+
+.izlem-form-page [data-esh-visit-checkin-status][data-state="denied"],
+.izlem-form-page [data-esh-visit-checkin-status][data-state="unavailable"] {
+    border-left: 4px solid var(--bs-warning);
+}
+
+.esh-offline-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}

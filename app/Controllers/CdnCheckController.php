@@ -6,14 +6,14 @@ use App\Helpers\CdnAssetHelper;
 use App\Helpers\ThemeViewHelper;
 
 /**
- * Süper yönetici: sabit CDN sürümlerini npm/cdnjs ile karşılaştırma; isteğe bağlı HEAD sondası.
+ * Sistem sahibi (PS): sabit CDN sürümlerini npm/cdnjs ile karşılaştırma; isteğe bağlı HEAD sondası.
  * Dosyaya sürüm yazma yalnızca CLI: {@see ROOT_PATH}/tools/check_cdn_versions.php --apply
  */
 class CdnCheckController
 {
     public function __construct()
     {
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
     }
 
     public function index(): void

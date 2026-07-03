@@ -7,11 +7,13 @@
 --   esh_adrestablosu, esh_hastalikcat, esh_branslar, esh_guvence, esh_islemler,
 --   esh_hastaliklar, esh_users, esh_hastalar, esh_araclar, esh_istekler, esh_izlemler, esh_pizlemler,
 --   esh_erapor, esh_hastailacrapor, esh_hasta_ilaclar, esh_ekipler, esh_personel_izin, esh_personel_istek, esh_resmi_tatiller, esh_personel_nobet,
---   esh_hasta_yara_fotolar, esh_hasta_braden, esh_hasta_itaki, esh_hasta_harizmi, esh_hasta_mna, esh_rota_cache, esh_rehber_etken, esh_rehber_ilac, esh_rehber_import_log,
+--   esh_hasta_yara_fotolar, esh_hasta_braden, esh_hasta_itaki, esh_hasta_harizmi, esh_hasta_mna, esh_hasta_barthel, esh_rota_cache, esh_rehber_etken, esh_rehber_ilac, esh_rehber_import_log,
 --   esh_mesaj_konusmalar, esh_mesaj_konusma_uyeler, esh_mesajlar,
 --   esh_sms_sablonlari, esh_sms_gonderim, esh_sms_alici, esh_sms_optout,
 --   esh_stok_malzeme, esh_stok_mevcut, esh_stok_hareket, esh_stok_uyari_log, esh_stok_parti,
---   esh_hasta_nakil, esh_eimza_challenges, esh_eimza_login_logs
+--   esh_hasta_nakil, esh_eimza_challenges, esh_eimza_login_logs,
+--   esh_audit_log, esh_esys_sync_log, esh_api_tokens, esh_federation_regions, esh_federation_sync_log,
+--   esh_usbs_sync_log, esh_portal_appointment_requests, esh_cds_ack
 --
 -- Kurulum:
 --   • Tarayıcı: public/install.php (config/install.lock yokken index buraya yönlendirir)
@@ -21,14 +23,21 @@
 --
 -- UYARI: Bu dosya DROP TABLE IF EXISTS içerir; mevcut ESH tablolarını siler.
 --
--- Not: Güncel şema tek kaynaktır; eski migrate/patch dosyaları kaldırıldı.
--- Son senkron: üretim yedeği / uygulama modelleri (2026-06).
+-- Not: Güncel şema tek kaynaktır; migrate dosyaları mevcut kurulumlar içindir.
+-- Son senkron: uygulama modelleri + migrate_esh_* (2026-07).
 -- =============================================================================
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ---------------------------------------------------------------------------
+DROP TABLE IF EXISTS `esh_cds_ack`;
+DROP TABLE IF EXISTS `esh_portal_appointment_requests`;
+DROP TABLE IF EXISTS `esh_api_tokens`;
+DROP TABLE IF EXISTS `esh_usbs_sync_log`;
+DROP TABLE IF EXISTS `esh_federation_sync_log`;
+DROP TABLE IF EXISTS `esh_esys_sync_log`;
+DROP TABLE IF EXISTS `esh_audit_log`;
 DROP TABLE IF EXISTS `esh_rehber_ilac`;
 DROP TABLE IF EXISTS `esh_rehber_etken`;
 DROP TABLE IF EXISTS `esh_rehber_import_log`;
@@ -50,6 +59,7 @@ DROP TABLE IF EXISTS `esh_hasta_nakil`;
 DROP TABLE IF EXISTS `esh_rota_cache`;
 DROP TABLE IF EXISTS `esh_ekipler`;
 DROP TABLE IF EXISTS `esh_hasta_ilaclar`;
+DROP TABLE IF EXISTS `esh_hasta_barthel`;
 DROP TABLE IF EXISTS `esh_hasta_mna`;
 DROP TABLE IF EXISTS `esh_hasta_harizmi`;
 DROP TABLE IF EXISTS `esh_hasta_itaki`;
@@ -72,9 +82,36 @@ DROP TABLE IF EXISTS `esh_islemler`;
 DROP TABLE IF EXISTS `esh_branslar`;
 DROP TABLE IF EXISTS `esh_guvence`;
 DROP TABLE IF EXISTS `esh_hastalikcat`;
+DROP TABLE IF EXISTS `esh_kurum_hastalik`;
+DROP TABLE IF EXISTS `esh_kurum_islem`;
+DROP TABLE IF EXISTS `esh_kurum_istek`;
+DROP TABLE IF EXISTS `esh_kurum_brans`;
+DROP TABLE IF EXISTS `esh_kurum_adres`;
+DROP TABLE IF EXISTS `esh_mahalle_plan`;
+DROP TABLE IF EXISTS `esh_federation_regions`;
 DROP TABLE IF EXISTS `esh_kurumlar`;
 DROP TABLE IF EXISTS `esh_adrestablosu`;
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------------
+-- Federasyon bölgeleri (çok bölgeli SaaS)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_federation_regions` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kod` VARCHAR(64) NOT NULL,
+  `ad` VARCHAR(255) NOT NULL,
+  `il_adi` VARCHAR(64) NULL DEFAULT NULL,
+  `hub_node_ref` VARCHAR(64) NULL DEFAULT NULL COMMENT 'Merkez hub düğüm referansı',
+  `aktif` TINYINT(1) NOT NULL DEFAULT 1,
+  `aciklama` TEXT NULL DEFAULT NULL,
+  `ayarlar_json` LONGTEXT NULL DEFAULT NULL COMMENT 'Bölge varsayılan ayarları (modules, islem_ids, operational)',
+  `olusturma_tarihi` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_fed_region_kod` (`kod`),
+  KEY `idx_fed_region_aktif` (`aktif`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+INSERT INTO `esh_federation_regions` (`id`, `kod`, `ad`, `aktif`, `aciklama`) VALUES (1, 'varsayilan', 'Varsayılan bölge', 1, 'Kurulum sonrası otomatik oluşturulur');
 
 -- ---------------------------------------------------------------------------
 -- Kurumlar (multi-tenant kök)
@@ -84,6 +121,8 @@ CREATE TABLE IF NOT EXISTS `esh_kurumlar` (
   `ad` VARCHAR(255) NOT NULL,
   `kod` VARCHAR(64) NOT NULL,
   `aktif` TINYINT(1) NOT NULL DEFAULT 1,
+  `bolge_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'Federasyon bölgesi',
+  `federation_ref` VARCHAR(64) NULL DEFAULT NULL COMMENT 'Uzak düğüm kurum referansı',
   `logo` VARCHAR(255) DEFAULT NULL,
   `adres` TEXT DEFAULT NULL,
   `telefon` VARCHAR(64) DEFAULT NULL,
@@ -91,26 +130,30 @@ CREATE TABLE IF NOT EXISTS `esh_kurumlar` (
   `olusturma_tarihi` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_kurum_kod` (`kod`),
-  KEY `idx_kurum_aktif` (`aktif`)
+  KEY `idx_kurum_aktif` (`aktif`),
+  KEY `idx_kurum_bolge` (`bolge_id`),
+  KEY `idx_kurum_federation_ref` (`federation_ref`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
-INSERT INTO `esh_kurumlar` (`id`, `ad`, `kod`, `aktif`) VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1);
+INSERT INTO `esh_kurumlar` (`id`, `ad`, `kod`, `aktif`, `bolge_id`) VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1, 1);
 
 -- ---------------------------------------------------------------------------
--- Adres ağacı (ilçe → mahalle → sokak → kapı); platform geneli — tüm kurumlar ortak
+-- Adres ağacı (bölge → ilçe → mahalle → sokak → kapı); platform geneli — tüm kurumlar ortak
 -- Mahalle bölge/gün planlaması: esh_mahalle_plan (kurum bazlı)
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `esh_adrestablosu` (
   `id` VARCHAR(64) NOT NULL,
   `adi` VARCHAR(255) NOT NULL DEFAULT '',
   `ust_id` VARCHAR(64) DEFAULT NULL,
-  `tip` VARCHAR(20) NOT NULL DEFAULT 'ilce' COMMENT 'ilce, mahalle, sokak, kapino',
+  `tip` VARCHAR(20) NOT NULL DEFAULT 'bolge' COMMENT 'bolge, ilce, mahalle, sokak, kapino',
+  `federation_bolge_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'esh_federation_regions.id (tip=bolge)',
   `coords` VARCHAR(255) DEFAULT NULL COMMENT 'kapino: enlem,boylam (TomTom / harita)',
   `has_coords` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1=coords dolu (kapino)',
   PRIMARY KEY (`ust_id`, `id`),
   KEY `idx_adres_id` (`id`),
   KEY `idx_tip_ust` (`tip`, `ust_id`),
-  KEY `idx_tip_has_coords` (`tip`, `has_coords`)
+  KEY `idx_tip_has_coords` (`tip`, `has_coords`),
+  UNIQUE KEY `uk_adres_fed_bolge` (`federation_bolge_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 CREATE TABLE IF NOT EXISTS `esh_mahalle_plan` (
@@ -196,6 +239,7 @@ CREATE TABLE IF NOT EXISTS `esh_araclar` (
   `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
   `plaka` VARCHAR(32) NOT NULL DEFAULT '',
   `arac_bilgisi` VARCHAR(255) NOT NULL DEFAULT '',
+  `kapasite` TINYINT UNSIGNED NOT NULL DEFAULT 4 COMMENT 'Eşzamanlı hasta/ziyaret kapasitesi',
   PRIMARY KEY (`id`),
   KEY `idx_plaka` (`plaka`),
   KEY `idx_araclar_kurum` (`kurum_id`)
@@ -276,14 +320,16 @@ CREATE TABLE IF NOT EXISTS `esh_users` (
   `registerDate` DATETIME DEFAULT NULL,
   `activated` TINYINT(1) NOT NULL DEFAULT 0,
   `activation` VARCHAR(64) DEFAULT NULL,
-  `isadmin` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=personel, 1=admin, 2=süper yönetici',
-  `kurum_id` INT UNSIGNED NULL DEFAULT 1 COMMENT 'NULL=süper yönetici (platform)',
+  `isadmin` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=personel, 1=admin, 2=süper yönetici, 3=sistem sahibi',
+  `kurum_id` INT UNSIGNED NULL DEFAULT 1 COMMENT 'NULL=platform hesabı',
+  `bolge_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'Süper yönetici federasyon bölge kapsamı',
   `unvan` VARCHAR(64) DEFAULT NULL COMMENT 'örn. hemsire, tekniker, eczaci, diger',
   `ui_theme` VARCHAR(64) DEFAULT NULL COMMENT 'templates/<slug>; NULL = site default (config)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`),
   KEY `idx_users_activated_name` (`activated`, `name`),
-  KEY `idx_users_kurum` (`kurum_id`)
+  KEY `idx_users_kurum` (`kurum_id`),
+  KEY `idx_users_bolge` (`bolge_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
@@ -321,16 +367,6 @@ CREATE TABLE IF NOT EXISTS `esh_hastalar` (
   `diger_adres` LONGTEXT COMMENT 'JSON veya serileştirilmiş ek adresler',
   `coords` VARCHAR(255) DEFAULT NULL,
   `bagimlilik` VARCHAR(10) DEFAULT NULL,
-  `barbeslenme` TINYINT DEFAULT NULL,
-  `barbanyo` TINYINT DEFAULT NULL,
-  `barbakim` TINYINT DEFAULT NULL,
-  `bargiyinme` TINYINT DEFAULT NULL,
-  `barbarsak` TINYINT DEFAULT NULL,
-  `barmesane` TINYINT DEFAULT NULL,
-  `bartuvalet` TINYINT DEFAULT NULL,
-  `bartransfer` TINYINT DEFAULT NULL,
-  `barmobilite` TINYINT DEFAULT NULL,
-  `barmerdiven` TINYINT DEFAULT NULL,
   `pasif` VARCHAR(10) NOT NULL DEFAULT '0' COMMENT '0 aktif, 1 pasif, -3 bekleyen, -1 vefat, 4 araf, 5 silinen',
   `pasiftarihi` DATE DEFAULT NULL,
   `pasifnedeni` VARCHAR(16) DEFAULT NULL,
@@ -367,6 +403,10 @@ CREATE TABLE IF NOT EXISTS `esh_hastalar` (
   `yatak` TINYINT(1) NOT NULL DEFAULT 0,
   `hastaliklar` TEXT COMMENT 'virgülle hastalık id',
   `erapor` VARCHAR(255) DEFAULT NULL,
+  `esys_hasta_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS hasta kayıt no',
+  `esys_basvuru_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS başvuru / dosya no',
+  `enabiz_hasta_ref` VARCHAR(64) DEFAULT NULL COMMENT 'e-Nabız hasta kayıt no',
+  `usbs_hasta_ref` VARCHAR(64) DEFAULT NULL COMMENT 'USBS hasta / dosya no',
   `randevutarihi` DATE DEFAULT NULL,
   `zaman` TINYINT DEFAULT NULL COMMENT '0 sabah 1 öğle 2 akşam',
   `notes` LONGTEXT,
@@ -379,7 +419,11 @@ CREATE TABLE IF NOT EXISTS `esh_hastalar` (
   KEY `idx_randevu_pasif_zaman` (`randevutarihi`, `pasif`, `zaman`),
   KEY `idx_pansuman_slot` (`pasif`, `pansuman`, `pzaman`),
   KEY `idx_pasif_isim` (`pasif`, `isim`),
-  KEY `idx_hastalar_kurum` (`kurum_id`)
+  KEY `idx_hastalar_kurum` (`kurum_id`),
+  KEY `idx_hastalar_esys_hasta_ref` (`esys_hasta_ref`),
+  KEY `idx_hastalar_esys_basvuru_ref` (`esys_basvuru_ref`),
+  KEY `idx_hastalar_enabiz_ref` (`enabiz_hasta_ref`),
+  KEY `idx_hastalar_usbs_hasta_ref` (`usbs_hasta_ref`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
@@ -398,17 +442,27 @@ CREATE TABLE IF NOT EXISTS `esh_izlemler` (
   `checkin_lat` DECIMAL(10,7) NULL DEFAULT NULL COMMENT 'Saha ziyaret enlem (isteğe bağlı)',
   `checkin_lon` DECIMAL(10,7) NULL DEFAULT NULL COMMENT 'Saha ziyaret boylam (isteğe bağlı)',
   `checkin_at` DATETIME NULL DEFAULT NULL COMMENT 'Konum alındığı an',
+  `checkin_accuracy` DECIMAL(8,1) NULL DEFAULT NULL COMMENT 'GPS doğruluk (metre)',
   `arac` INT UNSIGNED DEFAULT NULL COMMENT 'esh_araclar.id',
   `brans` VARCHAR(255) DEFAULT NULL COMMENT 'konsültasyon: virgülle esh_branslar.id',
   `kons_istekler` VARCHAR(512) DEFAULT NULL COMMENT 'konsültasyon EK-3: virgülle esh_istekler.id',
   `kons_brans_istek` TEXT DEFAULT NULL COMMENT 'konsültasyon EK-3: JSON brans_id => [istek_id]',
+  `esys_izlem_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS izlem kayıt no',
+  `esys_konsultasyon_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS konsültasyon kayıt no',
+  `usbs_bildirim_ref` VARCHAR(64) NULL DEFAULT NULL COMMENT 'USBS izlem bildirim no',
+  `usbs_bildirim_durum` VARCHAR(16) NOT NULL DEFAULT '' COMMENT 'pending,sent,failed,skipped',
+  `usbs_bildirim_at` DATETIME NULL DEFAULT NULL COMMENT 'Bildirim gönderim / onay zamanı',
+  `erecete_ref` VARCHAR(64) NULL DEFAULT NULL COMMENT 'e-Reçete / Medula reçete no',
   PRIMARY KEY (`id`),
   KEY `idx_izlem_tc_yapildi_tarih` (`hastatckimlik`, `yapildimi`, `izlemtarihi`),
   KEY `idx_izlem_tarih_yapildi` (`izlemtarihi`, `yapildimi`),
   KEY `idx_izlem_tarih_tc` (`izlemtarihi`, `hastatckimlik`),
   KEY `idx_izlem_yapildi_tarih_dt` (`yapildimi`, `izlemtarihi_dt`),
   KEY `idx_arac` (`arac`),
-  KEY `idx_izlemler_kurum` (`kurum_id`)
+  KEY `idx_izlemler_kurum` (`kurum_id`),
+  KEY `idx_izlemler_esys_izlem_ref` (`esys_izlem_ref`),
+  KEY `idx_izlemler_usbs_bildirim_ref` (`usbs_bildirim_ref`),
+  KEY `idx_izlemler_usbs_bildirim_durum` (`usbs_bildirim_durum`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
@@ -425,6 +479,7 @@ CREATE TABLE IF NOT EXISTS `esh_pizlemler` (
   `aciklama` TEXT,
   `notlar` TEXT COMMENT 'pindex.php notlar alanı ile uyum',
   `durum` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '0 bekliyor, 1 tamamlandı',
+  `esys_plan_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS planlı ziyaret no',
   PRIMARY KEY (`id`),
   KEY `idx_plan_zaman_durum` (`planlanantarih`, `zaman`, `durum`),
   KEY `idx_tc_durum` (`hastatckimlik`, `durum`),
@@ -444,6 +499,7 @@ CREATE TABLE IF NOT EXISTS `esh_erapor` (
   `kayitlimi` TINYINT(1) NOT NULL DEFAULT 0,
   `yenilendimi` TINYINT(1) NOT NULL DEFAULT 0,
   `neden` VARCHAR(255) DEFAULT NULL,
+  `esys_erapor_ref` VARCHAR(64) DEFAULT NULL COMMENT 'ESYS e-rapor / başvuru eşleşme no',
   PRIMARY KEY (`id`),
   KEY `idx_tc` (`hastatckimlik`),
   KEY `idx_erapor_basvuru_id` (`basvurutarihi`, `id`),
@@ -458,11 +514,13 @@ CREATE TABLE IF NOT EXISTS `esh_ekipler` (
   `vardiya` VARCHAR(32) DEFAULT NULL,
   `ekip_no` INT DEFAULT NULL,
   `user_ids` VARCHAR(512) DEFAULT NULL COMMENT 'virgülle kullanıcı id',
+  `arac_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'esh_araclar.id',
   `baslangic_saati` VARCHAR(32) DEFAULT NULL,
   `kayit_tarihi` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_tarih` (`tarih`),
-  KEY `idx_ekipler_kurum` (`kurum_id`)
+  KEY `idx_ekipler_kurum` (`kurum_id`),
+  KEY `idx_ekipler_arac` (`arac_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
@@ -627,6 +685,33 @@ CREATE TABLE IF NOT EXISTS `esh_hasta_mna` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_hasta_barthel` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `degerlendirme_tarihi` DATE NOT NULL,
+  `barbeslenme` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barbanyo` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barbakim` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `bargiyinme` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barbarsak` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barmesane` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `bartuvalet` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `bartransfer` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barmobilite` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `barmerdiven` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `toplam_skor` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `bagimlilik_duzeyi` VARCHAR(32) NOT NULL DEFAULT '',
+  `notlar` TEXT DEFAULT NULL,
+  `kaydeden_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_barthel_hasta` (`hasta_id`),
+  KEY `idx_barthel_tarih` (`degerlendirme_tarihi`),
+  KEY `idx_barthel_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `esh_rota_cache` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `hash` VARCHAR(128) NOT NULL,
@@ -671,6 +756,11 @@ CREATE TABLE IF NOT EXISTS `esh_goruntulu_randevu` (
   `hastatckimlik` VARCHAR(11) NOT NULL,
   `notlar` VARCHAR(512) DEFAULT NULL,
   `hasta_geldi` TINYINT NULL DEFAULT NULL COMMENT 'NULL=belirtilmedi, 1=geldi, 0=gelmedi',
+  `video_room_id` VARCHAR(64) NULL DEFAULT NULL COMMENT 'Jitsi oda adı',
+  `video_started_at` DATETIME NULL DEFAULT NULL,
+  `video_ended_at` DATETIME NULL DEFAULT NULL,
+  `visit_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'Görüşme sonrası bağlı izlem',
+  `telehealth_summary` TEXT NULL DEFAULT NULL COMMENT 'Görüşme notu / özet',
   `olusturan_id` INT UNSIGNED DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -678,7 +768,9 @@ CREATE TABLE IF NOT EXISTS `esh_goruntulu_randevu` (
   KEY `idx_gor_randevu_tarih` (`randevu_tarihi`),
   KEY `idx_gor_randevu_hasta` (`hastatckimlik`),
   KEY `idx_gor_randevu_brans_tarih` (`brans_id`, `randevu_tarihi`),
-  KEY `idx_gor_randevu_kurum` (`kurum_id`)
+  KEY `idx_gor_randevu_kurum` (`kurum_id`),
+  KEY `idx_gor_video_room` (`video_room_id`),
+  KEY `idx_gor_visit` (`visit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------
@@ -922,6 +1014,148 @@ CREATE TABLE IF NOT EXISTS `esh_eimza_login_logs` (
   KEY `idx_eimza_logs_user_created` (`user_id`, `created_at`),
   KEY `idx_eimza_logs_tc_created` (`tc_kimlikno`, `created_at`),
   KEY `idx_eimza_logs_success_created` (`success`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- KVKK / iç denetim — işlem günlüğü
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_audit_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NULL DEFAULT NULL,
+  `user_id` INT UNSIGNED NULL DEFAULT NULL,
+  `action` VARCHAR(64) NOT NULL COMMENT 'patient.view, visit.create, stats.export, ...',
+  `entity_type` VARCHAR(32) NOT NULL DEFAULT '' COMMENT 'patient, visit, stats, auth, ...',
+  `entity_id` INT UNSIGNED NULL DEFAULT NULL,
+  `entity_ref` VARCHAR(64) NULL DEFAULT NULL COMMENT 'TC, rapor anahtarı vb.',
+  `ip_address` VARCHAR(64) NULL DEFAULT NULL,
+  `user_agent` VARCHAR(255) NULL DEFAULT NULL,
+  `request_uri` VARCHAR(512) NULL DEFAULT NULL,
+  `context_json` TEXT NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_user_created` (`user_id`, `created_at`),
+  KEY `idx_audit_action_created` (`action`, `created_at`),
+  KEY `idx_audit_entity` (`entity_type`, `entity_id`),
+  KEY `idx_audit_kurum_created` (`kurum_id`, `created_at`),
+  KEY `idx_audit_entity_ref` (`entity_ref`, `created_at`),
+  KEY `idx_audit_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- ESYS / AHBS dosya senkron günlüğü
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_esys_sync_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NULL DEFAULT NULL,
+  `user_id` INT UNSIGNED NULL DEFAULT NULL,
+  `direction` VARCHAR(24) NOT NULL COMMENT 'esh_to_esys, esys_to_esh, api_push',
+  `status` VARCHAR(16) NOT NULL COMMENT 'success, partial, failed',
+  `file_name` VARCHAR(255) NULL DEFAULT NULL,
+  `stats_json` TEXT NULL DEFAULT NULL,
+  `error_message` VARCHAR(512) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_esys_sync_created` (`created_at`),
+  KEY `idx_esys_sync_kurum_created` (`kurum_id`, `created_at`),
+  KEY `idx_esys_sync_direction` (`direction`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- REST API v1 — bearer token
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_api_tokens` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `kurum_id` INT UNSIGNED NULL DEFAULT NULL,
+  `label` VARCHAR(128) NOT NULL DEFAULT '',
+  `token_prefix` VARCHAR(16) NOT NULL COMMENT 'esh_live_ + ilk 8 hex — arama',
+  `token_hash` CHAR(64) NOT NULL COMMENT 'SHA-256(token + pepper)',
+  `scopes` VARCHAR(255) NOT NULL DEFAULT 'read' COMMENT 'read veya patients,visits,plans',
+  `expires_at` DATETIME NULL DEFAULT NULL,
+  `last_used_at` DATETIME NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `revoked_at` DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_api_token_prefix` (`token_prefix`),
+  KEY `idx_api_token_user` (`user_id`),
+  KEY `idx_api_token_kurum` (`kurum_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- Federasyon dosya köprüsü — senkron günlüğü
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_federation_sync_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NULL DEFAULT NULL,
+  `direction` VARCHAR(32) NOT NULL COMMENT 'node_snapshot, hub_to_node, node_to_hub',
+  `status` VARCHAR(16) NOT NULL COMMENT 'success, partial, failed',
+  `file_name` VARCHAR(255) NULL DEFAULT NULL,
+  `stats_json` TEXT NULL DEFAULT NULL,
+  `error_message` VARCHAR(512) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_fed_sync_created` (`created_at`),
+  KEY `idx_fed_sync_direction` (`direction`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- e-Nabız / USBS entegrasyon köprüsü — senkron günlüğü
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_usbs_sync_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `kurum_id` INT UNSIGNED NULL DEFAULT NULL,
+  `user_id` INT UNSIGNED NULL DEFAULT NULL,
+  `direction` VARCHAR(24) NOT NULL COMMENT 'esh_to_usbs, usbs_to_esh, api_push',
+  `status` VARCHAR(16) NOT NULL COMMENT 'success, partial, failed',
+  `file_name` VARCHAR(255) NULL DEFAULT NULL,
+  `stats_json` TEXT NULL DEFAULT NULL,
+  `error_message` VARCHAR(512) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_usbs_sync_created` (`created_at`),
+  KEY `idx_usbs_sync_kurum_created` (`kurum_id`, `created_at`),
+  KEY `idx_usbs_sync_direction` (`direction`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- Hasta portalı — randevu değişiklik talepleri
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_portal_appointment_requests` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `uhds_id` INT UNSIGNED NOT NULL,
+  `talep_tarihi` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `mevcut_tarih` DATE NOT NULL,
+  `talep_tarih` DATE NOT NULL,
+  `talep_zaman` TINYINT NULL DEFAULT NULL COMMENT '0 sabah 1 ogle 2 aksam',
+  `neden` VARCHAR(500) NOT NULL,
+  `durum` VARCHAR(20) NOT NULL DEFAULT 'queued',
+  `durum_notu` VARCHAR(500) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_portal_req_hasta` (`hasta_id`),
+  KEY `idx_portal_req_kurum` (`kurum_id`),
+  KEY `idx_portal_req_durum` (`durum`),
+  KEY `idx_portal_req_uhds` (`uhds_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+
+-- ---------------------------------------------------------------------------
+-- Klinik karar desteği — uyarı onay kayıtları
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `esh_cds_ack` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `hasta_id` INT UNSIGNED NOT NULL,
+  `kurum_id` INT UNSIGNED NOT NULL,
+  `alert_code` VARCHAR(80) NOT NULL,
+  `ack_by_user_id` INT UNSIGNED NULL DEFAULT NULL,
+  `ack_note` VARCHAR(500) NULL DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_cds_ack_hasta` (`hasta_id`),
+  KEY `idx_cds_ack_kurum` (`kurum_id`),
+  KEY `idx_cds_ack_code` (`alert_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
 -- ---------------------------------------------------------------------------

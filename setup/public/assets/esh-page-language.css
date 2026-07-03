@@ -1,0 +1,2474 @@
+/**
+ * ESH sayfa CSS dili — yapı ve nötr varsayılanlar (tüm temalar).
+ * Renk kimliği: templates/<slug>/theme.css içinde --esh-ui-* eşlemesi.
+ * Ayrıntı: docs/ESH_PAGE_LANGUAGE.md
+ */
+
+body.app-shell {
+    --esh-ui-text: #1e293b;
+    --esh-ui-text-muted: #64748b;
+    --esh-ui-accent: #0d6efd;
+    --esh-ui-surface: #ffffff;
+    --esh-ui-surface-muted: #f8f9fa;
+    --esh-ui-border: rgba(15, 23, 42, 0.08);
+    --esh-ui-radius: 12px;
+    --esh-ui-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+    --esh-ui-table-head-bg: #f8fafc;
+    --esh-ui-table-head-color: #64748b;
+    --esh-ui-table-head-font-size: 0.7rem;
+    --esh-ui-table-head-letter-spacing: 0.04em;
+    --esh-ui-table-head-padding: 0.75rem 0.5rem;
+    --esh-ui-row-hover: rgba(13, 110, 253, 0.04);
+    --esh-ui-filter-control-height: 38px;
+    --esh-ui-font-size-xs: 0.68rem;
+    --esh-ui-font-size-sm: 0.78rem;
+    --esh-ui-font-size-badge: 0.62rem;
+    --esh-ui-panel-subtitle-size: 0.8125rem;
+    --esh-ui-dropdown-font-size: 0.78rem;
+    --esh-ui-dropdown-header-font-size: 0.65rem;
+    --esh-ui-dropdown-header-letter-spacing: 0.5px;
+    --esh-ui-dropdown-menu-radius: 10px;
+    --esh-ui-dropdown-menu-border: var(--esh-ui-border);
+    --esh-ui-dropdown-item-hover-bg: var(--esh-ui-surface-muted);
+    --esh-ui-btn-ghost-bg: var(--esh-ui-surface);
+    --esh-ui-btn-ghost-border: var(--esh-ui-border);
+    --esh-ui-btn-ghost-hover-bg: var(--esh-ui-surface-muted);
+    --esh-ui-btn-ghost-hover-color: var(--esh-ui-accent);
+    --esh-ui-calendar-day-hover-bg: #f0f4f8;
+    --esh-ui-calendar-day-hover-ring: rgba(13, 110, 253, 0.28);
+    --esh-ui-cal-task-font-size: 0.65rem;
+    --esh-ui-cal-badge-font-size: 0.7rem;
+    --esh-ui-cal-legend-font-size: 0.75rem;
+    --esh-ui-scrollbar-thumb: #e0e0e0;
+    --esh-ui-scrollbar-radius: 10px;
+    --esh-ui-dash-plan-tabs-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --esh-ui-route-tab-font-size: 1.05rem;
+    --esh-ui-route-tab-font-size-sm: 0.95rem;
+    --esh-ui-route-tab-font-weight: 600;
+    --esh-ui-route-tab-font-weight-active: 700;
+    --esh-ui-route-tab-text: #334155;
+    --esh-ui-route-tab-bg: #f1f5f9;
+    --esh-ui-route-tab-border: #e2e8f0;
+    --esh-ui-route-tab-border-hover: #cbd5e1;
+    --esh-ui-route-tab-hover-bg: #ffffff;
+    --esh-ui-route-tab-hover-text: #0f172a;
+    --esh-ui-route-tab-active-text: #0f172a;
+    --esh-ui-route-tab-active-bg: #ffffff;
+    --esh-ui-route-tab-active-shadow: rgba(15, 23, 42, 0.06);
+    --esh-ui-route-tab-accent-sabah: #f59e0b;
+    --esh-ui-route-tab-accent-ogle: #3b82f6;
+    --esh-ui-route-tab-accent-aksam: #6366f1;
+    --esh-ui-route-tab-active-sabah: #b45309;
+    --esh-ui-route-tab-active-ogle: #1d4ed8;
+    --esh-ui-route-tab-active-aksam: #4338ca;
+    --esh-ui-route-tab-badge-empty: #94a3b8;
+    --esh-ui-route-tab-badge-font-size: 0.82rem;
+    --esh-ui-route-tab-badge-font-size-sm: 0.75rem;
+    --esh-ui-route-tab-icon-size: 1.15rem;
+    --esh-ui-route-tab-min-height: 3.35rem;
+    --esh-ui-route-tab-min-height-sm: 3rem;
+    --esh-ui-daily-plan-badge-font-size: 0.65rem;
+    --esh-patient-izlem-btn-font-size: 0.65rem;
+    --esh-patient-name-font-size: 0.82rem;
+    --esh-patient-tc-font-size: 0.72rem;
+    --esh-ui-daily-plan-meta-font-size: 0.75rem;
+    --esh-ui-daily-section-font-size: 1rem;
+    --esh-ui-coords-btn-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+    --esh-ui-coords-btn-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.24);
+    --esh-ui-coords-bul-bg: linear-gradient(180deg, #fcd34d 0%, #f59e0b 100%);
+    --esh-ui-coords-bul-bg-hover: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+    --esh-ui-coords-bul-border: #d97706;
+    --esh-ui-coords-bul-border-hover: #b45309;
+    --esh-ui-coords-bul-color: #1e293b;
+    --esh-ui-coords-bul-color-hover: #0f172a;
+    --esh-ui-coords-git-bg: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+    --esh-ui-coords-git-bg-hover: linear-gradient(180deg, #93c5fd 0%, #3b82f6 100%);
+    --esh-ui-coords-git-border: #1d4ed8;
+    --esh-ui-coords-git-border-hover: #1e40af;
+    --esh-ui-coords-git-color: #ffffff;
+    --esh-ui-detail-tabs-bg: linear-gradient(180deg, #f1f3f5 0%, #e9ecef 100%);
+    --esh-ui-detail-tab-active-bar: #0d6efd;
+    --esh-ui-detail-tab-link-bg: rgba(255, 255, 255, 0.35);
+    --esh-ui-detail-tab-hover-bg: #ffffff;
+    --esh-ui-detail-tab-hover-inset: rgba(13, 110, 253, 0.35);
+    --esh-ui-detail-tab-active-bg: #ffffff;
+    --esh-ui-detail-tab-active-text: #0a58ca;
+    --esh-ui-detail-tab-genel-text: #212529;
+    --esh-ui-detail-tab-pansuman-text: #0a58ca;
+    --esh-ui-detail-tab-sonda-text: #b02a37;
+    --esh-ui-detail-tab-mama-text: #cc9a06;
+    --esh-ui-detail-tab-bez-text: #087990;
+    --esh-ui-care-item-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --esh-ui-care-label-font-size: 0.68rem;
+    --esh-ui-care-value-font-size: 0.875rem;
+    --esh-ui-care-icon-font-size: 0.95rem;
+    --esh-ui-barthel-tooltip-font-size: 0.8125rem;
+    --esh-ui-barthel-pts-font-size: 0.7rem;
+    --esh-ui-diagnosis-rapor-font-size: 0.58rem;
+    --esh-ui-surface-warning: #fff9e6;
+    --esh-ui-alert-success-bg: #d1e7dd;
+    --esh-ui-alert-success-color: #0f5132;
+    --esh-ui-alert-success-border: #badbcc;
+    --esh-ui-alert-warning-bg: #fff3cd;
+    --esh-ui-alert-warning-color: #664d03;
+    --esh-ui-alert-warning-border: #ffecb5;
+    --esh-ui-alert-danger-bg: #f8d7da;
+    --esh-ui-alert-danger-color: #842029;
+    --esh-ui-alert-danger-border: #f5c2c7;
+    --esh-ui-alert-info-bg: #cff4fc;
+    --esh-ui-alert-info-color: #055160;
+    --esh-ui-alert-info-border: #b6effb;
+    --esh-ui-mega-menu-col-bg: rgba(248, 250, 252, 0.9);
+    --esh-ui-mega-menu-col-border: rgba(0, 0, 0, 0.06);
+    --esh-ui-mega-menu-head-font-size: 0.78rem;
+    --esh-ui-mega-menu-title-font-size: 0.68rem;
+    --esh-ui-mega-menu-item-font-size: 0.82rem;
+    --esh-ui-mega-menu-section-title-font-size: 0.8rem;
+    --esh-ui-pansuman-day-font-size: 0.8rem;
+    --esh-ui-navbar-link-font-size: 0.9rem;
+    --esh-ui-navbar-dropdown-font-size: 0.88rem;
+    --esh-ui-navbar-brand-font-size: 1.25rem;
+    --esh-ui-form-control-font-size: var(--esh-ui-font-size-base);
+    --esh-ui-form-control-sm-font-size: 0.875rem;
+    --esh-ui-form-control-lg-font-size: 1.25rem;
+    --esh-ui-table-head-border-bottom: 2px solid #e2e8f0;
+    --esh-ui-patient-row-hover-bg: #f1f5f9;
+    --esh-ui-tc-code-bg: #f1f5f9;
+    --esh-ui-tc-code-color: #475569;
+    --esh-ui-tc-code-font-size: 0.75rem;
+    --esh-ui-tc-code-radius: 4px;
+    --esh-ui-tc-copy-flash-outline: rgba(13, 110, 253, 0.35);
+    --esh-ui-status-badge-border: #e2e8f0;
+    --esh-ui-status-badge-radius: 8px;
+    --esh-ui-status-badge-bg: #ffffff;
+    --esh-ui-btn-xs-font-size: 0.7rem;
+    --esh-ui-avatar-sm-size: 32px;
+    --esh-ui-gender-male: #3498db;
+    --esh-ui-gender-female: #e91e63;
+    --esh-ui-gender-neutral: #94a3b8;
+    --esh-ui-chart-height-sm: 160px;
+    --esh-ui-chart-height-md: 220px;
+    --esh-ui-chart-height-lg: 320px;
+    --esh-ui-form-section-color: var(--esh-ui-text-muted);
+    --esh-ui-form-section-border: var(--esh-ui-border);
+    --esh-ui-search-bar-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+    --esh-ui-intro-banner-bg: var(--esh-ui-surface-muted);
+    --esh-ui-intro-banner-border: var(--esh-ui-border);
+    --esh-ui-intro-banner-color: var(--esh-ui-text-muted);
+    --esh-ui-avatar-sm-font-size: 0.8rem;
+    --esh-ui-small-text-font-size: 0.75rem;
+    --esh-ui-hier-header-bg: #37474f;
+    --esh-ui-hier-header-color: #ffffff;
+    --esh-ui-hier-column-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --esh-ui-hier-item-divider: #f0f0f0;
+    --esh-ui-hier-item-active-bg: #e3f2fd;
+    --esh-ui-hier-empty-text: #adb5bd;
+    --esh-ui-soft-danger-bg: rgba(248, 215, 218, 0.4);
+    --esh-ui-soft-info-bg: rgba(207, 244, 252, 0.4);
+    --esh-ui-surface-subtle: #f8f9fa;
+    --esh-ui-input-focus-border: #86b7fe;
+    --esh-ui-input-focus-ring: rgba(13, 110, 253, 0.25);
+    --esh-ui-profile-border-faint: rgba(0, 0, 0, 0.05);
+    --esh-ui-profile-aside-gradient: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+    --esh-ui-profile-section-head-gradient: linear-gradient(180deg, #fdfdfd 0%, #ffffff 100%);
+    --esh-ui-profile-security-head-gradient: linear-gradient(180deg, #fffbfb 0%, #ffffff 100%);
+    --esh-ui-profile-btn-primary-shadow: 0 2px 8px rgba(13, 110, 253, 0.22);
+    --esh-ui-pansuman-label-inset-shadow: rgba(0, 0, 0, 0.2);
+    --esh-ui-card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    --esh-ui-ekip-box-border: #dddddd;
+    --esh-ui-danger-text: #dc3545;
+    --esh-ui-plan-doluluk-banner-bg: linear-gradient(180deg, rgba(255, 251, 235, 0.55) 0%, rgba(248, 250, 252, 0.95) 100%);
+    --esh-ui-pasif-banner-bg: linear-gradient(180deg, rgba(254, 226, 226, 0.45) 0%, rgba(255, 255, 255, 0.95) 100%);
+    --esh-ui-arac-choice-hover-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.08);
+    --esh-ui-stats-metric-fg: #ffffff;
+    --esh-ui-stats-metric-overlay: rgba(255, 255, 255, 0.25);
+    --esh-ui-stats-metric-pill-bg: rgba(255, 255, 255, 0.2);
+    --esh-ui-print-surface: #ffffff;
+    --esh-ui-font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --esh-ui-font-size-base: 0.9375rem;
+    --esh-ui-line-height: 1.5;
+    --esh-ui-heading-size: 1.35rem;
+    --esh-ui-lead-size: 0.9375rem;
+    --esh-ui-font-weight-heading: 700;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Sayfa kökü                                                                 */
+/* ------------------------------------------------------------------------- */
+
+.esh-page {
+    color: var(--esh-ui-text);
+    font-family: var(--esh-ui-font-family);
+    font-size: var(--esh-ui-font-size-base);
+    line-height: var(--esh-ui-line-height);
+    width: 100%;
+    max-width: 100%;
+}
+
+.esh-page .alert-success {
+    background-color: var(--esh-ui-alert-success-bg);
+    border-color: var(--esh-ui-alert-success-border);
+    color: var(--esh-ui-alert-success-color);
+}
+
+.esh-page .alert-warning {
+    background-color: var(--esh-ui-alert-warning-bg);
+    border-color: var(--esh-ui-alert-warning-border);
+    color: var(--esh-ui-alert-warning-color);
+}
+
+.esh-page .alert-danger {
+    background-color: var(--esh-ui-alert-danger-bg);
+    border-color: var(--esh-ui-alert-danger-border);
+    color: var(--esh-ui-alert-danger-color);
+}
+
+.esh-page .alert-info {
+    background-color: var(--esh-ui-alert-info-bg);
+    border-color: var(--esh-ui-alert-info-border);
+    color: var(--esh-ui-alert-info-color);
+}
+
+.esh-page__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.esh-page__heading {
+    margin: 0;
+    font-size: var(--esh-ui-heading-size);
+    font-weight: var(--esh-ui-font-weight-heading);
+    color: var(--esh-ui-accent);
+    line-height: 1.3;
+}
+
+.esh-page__lead {
+    margin: 0.35rem 0 0;
+    font-size: var(--esh-ui-lead-size);
+    color: var(--esh-ui-text-muted);
+}
+
+.esh-page__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Paneller                                                                   */
+/* ------------------------------------------------------------------------- */
+
+.esh-page__panel {
+    background: var(--esh-ui-surface);
+    border: 1px solid var(--esh-ui-border);
+    border-radius: var(--esh-ui-radius);
+    box-shadow: var(--esh-ui-shadow);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+}
+
+.esh-page__panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--esh-ui-border);
+    background: var(--esh-ui-surface);
+}
+
+.esh-page__panel-body {
+    padding: 1rem 1.25rem;
+    background: var(--esh-ui-surface-muted);
+}
+
+.esh-page__panel--data > .esh-page__panel-body,
+.esh-page__panel--data > .card-body {
+    background: var(--esh-ui-surface);
+}
+
+.esh-page__panel-title {
+    font-weight: 600;
+    color: var(--esh-ui-text);
+}
+
+.esh-page__panel-subtitle {
+    font-size: var(--esh-ui-panel-subtitle-size);
+    color: var(--esh-ui-text-muted);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Tablo                                                                      */
+/* ------------------------------------------------------------------------- */
+
+.esh-page__table-wrap {
+    overflow-x: auto;
+}
+
+.esh-page .table thead th,
+.esh-page .esh-ui-table thead th,
+.esh-page__table-wrap .table thead th {
+    font-size: var(--esh-ui-table-head-font-size);
+    text-transform: uppercase;
+    letter-spacing: var(--esh-ui-table-head-letter-spacing);
+    font-weight: 700;
+    padding: var(--esh-ui-table-head-padding);
+    background-color: var(--esh-ui-table-head-bg);
+    color: var(--esh-ui-table-head-color);
+    border-bottom: 1px solid var(--esh-ui-border);
+}
+
+.esh-page .esh-ui-table tbody tr:hover,
+.esh-page__table-wrap .table-hover tbody tr:hover {
+    background-color: var(--esh-ui-row-hover);
+}
+
+.esh-page .esh-ui-table-sort,
+.esh-page__table-wrap .table thead th a.esh-ui-table-sort,
+.table thead th a.esh-ui-table-sort {
+    color: inherit;
+    text-decoration: none;
+}
+
+.esh-page .esh-ui-table-sort:hover,
+.table thead th a.esh-ui-table-sort:hover {
+    color: var(--esh-ui-accent);
+}
+
+.esh-page .esh-ui-table-sort-wrap,
+.esh-page__table-wrap .esh-ui-table-sort-wrap,
+.table thead th .esh-ui-table-sort-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+}
+
+.esh-page .esh-ui-table-sort-arrows,
+.esh-page__table-wrap .esh-ui-table-sort-arrows,
+.table thead th .esh-ui-table-sort-arrows {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: 0.1rem;
+}
+
+.esh-page .esh-ui-table-sort-dir,
+.esh-page__table-wrap .esh-ui-table-sort-dir,
+.table thead th .esh-ui-table-sort-dir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.85rem;
+    height: 0.55rem;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.6rem;
+    line-height: 1;
+    opacity: 0.35;
+    padding: 0;
+    margin: 0;
+}
+
+.esh-page .esh-ui-table-sort-dir + .esh-ui-table-sort-dir,
+.esh-page__table-wrap .esh-ui-table-sort-dir + .esh-ui-table-sort-dir,
+.table thead th .esh-ui-table-sort-dir + .esh-ui-table-sort-dir {
+    margin-top: -0.12rem;
+}
+
+.esh-page .esh-ui-table-sort-dir:hover,
+.esh-page__table-wrap .esh-ui-table-sort-dir:hover,
+.table thead th .esh-ui-table-sort-dir:hover {
+    opacity: 0.85;
+    color: var(--esh-ui-accent);
+}
+
+.esh-page .esh-ui-table-sort-dir.is-active,
+.esh-page__table-wrap .esh-ui-table-sort-dir.is-active,
+.table thead th .esh-ui-table-sort-dir.is-active {
+    opacity: 1;
+    color: var(--esh-ui-accent);
+}
+
+.esh-page__footer {
+    padding: 0.5rem 0 0;
+    border-top: 1px solid var(--esh-ui-border);
+    margin-top: 0.75rem;
+}
+
+.esh-page__table-wrap--overflow-visible {
+    overflow: visible !important;
+}
+
+/* Liste tablo kartı — tüm temalarda --esh-ui-radius; Bootstrap rounded-3/4 yerine */
+.esh-list-table-card {
+    border: 0;
+    border-radius: var(--esh-ui-radius);
+    box-shadow: var(--esh-ui-shadow);
+    background: var(--esh-ui-surface);
+    overflow: visible;
+}
+
+.esh-page__panel.esh-list-table-card {
+    overflow: hidden;
+}
+
+.esh-list-table-card > .card-body,
+.esh-list-table-card > .esh-page__panel-body {
+    padding: 0;
+    background: var(--esh-ui-surface);
+}
+
+.esh-list-table-card > .card-footer,
+.esh-list-table-card > .esh-list-table-card__footer,
+.esh-list-table-card > .esh-patient-list-footer {
+    border-top: 0;
+    border-radius: 0 0 var(--esh-ui-radius) var(--esh-ui-radius);
+    background: var(--esh-ui-surface);
+}
+
+.esh-list-table-card .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.esh-list-table-card .table thead.bg-light th,
+.esh-list-table-card .table thead.esh-page__table-head th,
+.esh-list-table-card .table thead th {
+    background-color: var(--esh-ui-table-head-bg);
+    color: var(--esh-ui-table-head-color);
+}
+
+.esh-list-table-card .table thead th:first-child {
+    border-top-left-radius: var(--esh-ui-radius);
+}
+
+.esh-list-table-card .table thead th:last-child {
+    border-top-right-radius: var(--esh-ui-radius);
+}
+
+.esh-page__panel.esh-list-table-card .table thead th:first-child,
+.esh-page__panel.esh-list-table-card .table thead th:last-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.esh-list-table-card:not(:has(.card-footer, .esh-patient-list-footer, .esh-list-table-card__footer, .esh-page__footer))
+    .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--esh-ui-radius);
+}
+
+.esh-list-table-card:not(:has(.card-footer, .esh-patient-list-footer, .esh-list-table-card__footer, .esh-page__footer))
+    .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--esh-ui-radius);
+}
+
+/* Dropdown / mega menü — kart overflow kırpmasın (panel hariç; panel overflow:hidden ile kırpar) */
+.esh-list-table-card:not(.esh-page__panel),
+.esh-list-table-card:not(.esh-page__panel) > .card-body,
+.esh-list-table-card:not(.esh-page__panel) .table-responsive,
+.esh-list-table-card:not(.esh-page__panel) .table,
+.esh-list-table-card:not(.esh-page__panel) tbody {
+    overflow: visible;
+}
+
+.esh-list-table-card:not(.esh-page__panel):has(.dropdown-menu.show),
+.esh-list-table-card:not(.esh-page__panel) > .card-body:has(.dropdown-menu.show),
+.esh-list-table-card:not(.esh-page__panel) .table-responsive:has(.dropdown-menu.show) {
+    overflow: visible !important;
+}
+
+.esh-page__panel.esh-list-table-card:has(.dropdown-menu.show),
+.esh-page__panel.esh-list-table-card:has(.dropdown.show) {
+    overflow: visible !important;
+}
+
+.esh-page__panel.esh-list-table-card:has(.dropdown.show) > .esh-page__panel-body {
+    overflow: visible !important;
+}
+
+.esh-list-table-card:has(.dropdown.show) > .card-footer,
+.esh-list-table-card:has(.dropdown.show) > .esh-patient-list-footer,
+.esh-list-table-card:has(.dropdown.show) > .esh-list-table-card__footer {
+    position: relative;
+    z-index: 0;
+}
+
+.esh-list-table-card tbody tr {
+    position: relative;
+}
+
+.esh-list-table-card tbody tr:has(.dropdown.show) {
+    z-index: 20;
+}
+
+.esh-list-table-card tbody td:has(.dropdown.show),
+.esh-list-table-card tbody td:has(.esh-patient-mega-dropdown) {
+    overflow: visible !important;
+}
+
+.esh-list-table-card .dropdown-menu {
+    z-index: 1065 !important;
+}
+
+.esh-list-table-card.overflow-hidden {
+    overflow: hidden;
+}
+
+.esh-list-table-card.overflow-hidden:has(.dropdown.show),
+.esh-list-table-card.overflow-hidden:has(.dropdown-menu.show) {
+    overflow: visible !important;
+}
+
+.esh-list-filter-card {
+    border: 0;
+    border-radius: var(--esh-ui-radius);
+    box-shadow: var(--esh-ui-shadow);
+    background: var(--esh-ui-surface);
+    overflow: hidden;
+}
+
+.esh-page__table-head {
+    font-size: var(--esh-ui-table-head-font-size);
+    text-transform: uppercase;
+    letter-spacing: var(--esh-ui-table-head-letter-spacing);
+    font-weight: 700;
+    background-color: var(--esh-ui-table-head-bg);
+    color: var(--esh-ui-table-head-color);
+}
+
+.esh-page__search-bar {
+    display: flex;
+    align-items: stretch;
+    box-shadow: var(--esh-ui-search-bar-shadow);
+    border-radius: 50rem;
+    overflow: hidden;
+    background: var(--esh-ui-surface);
+    padding: 0.25rem;
+    border: 1px solid var(--esh-ui-border);
+}
+
+.esh-page__search-bar .form-control {
+    border: 0;
+    box-shadow: none;
+}
+
+.esh-page__search-bar .btn {
+    border-radius: 50rem;
+}
+
+.esh-form-section {
+    color: var(--esh-ui-form-section-color);
+    font-size: var(--esh-ui-font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--esh-ui-form-section-border);
+}
+
+.esh-page__intro-banner {
+    background: var(--esh-ui-intro-banner-bg);
+    border: 1px solid var(--esh-ui-intro-banner-border);
+    color: var(--esh-ui-intro-banner-color);
+    border-radius: var(--esh-ui-radius);
+    font-size: var(--esh-ui-font-size-sm);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.esh-gender-male { color: var(--esh-ui-gender-male); }
+.esh-gender-female { color: var(--esh-ui-gender-female); }
+.esh-gender-neutral { color: var(--esh-ui-gender-neutral); }
+
+.esh-legend-swatch--male { background-color: var(--esh-ui-gender-male); }
+.esh-legend-swatch--female { background-color: var(--esh-ui-gender-female); }
+.esh-legend-swatch--neutral { background-color: var(--esh-ui-gender-neutral); }
+
+.esh-chart--sm { height: var(--esh-ui-chart-height-sm); }
+.esh-chart--md { height: var(--esh-ui-chart-height-md); }
+.esh-chart--lg { height: var(--esh-ui-chart-height-lg); }
+
+.esh-heat-cell {
+    transition: background-color 0.15s ease;
+}
+
+.esh-heat-cell[data-intensity="0"] { background-color: transparent; }
+.esh-heat-cell[data-intensity="1"] { background-color: rgba(13, 110, 253, 0.08); }
+.esh-heat-cell[data-intensity="2"] { background-color: rgba(13, 110, 253, 0.16); }
+.esh-heat-cell[data-intensity="3"] { background-color: rgba(13, 110, 253, 0.28); }
+.esh-heat-cell[data-intensity="4"] { background-color: rgba(13, 110, 253, 0.42); }
+.esh-legend-swatch {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.esh-dash-icon-chip {
+    width: 34px;
+    height: 34px;
+}
+
+.esh-archive-mahalle-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Filtre kontrolleri                                                         */
+/* ------------------------------------------------------------------------- */
+
+.esh-ui-filter-control,
+.esh-filter-control {
+    height: var(--esh-ui-filter-control-height) !important;
+    min-height: var(--esh-ui-filter-control-height) !important;
+    line-height: 1.25;
+}
+
+.esh-page__filter-form .input-group-text {
+    height: var(--esh-ui-filter-control-height);
+    min-height: var(--esh-ui-filter-control-height);
+}
+
+.esh-page .form-control,
+.esh-page .form-select,
+.esh-page .input-group-text {
+    font-size: var(--esh-ui-form-control-font-size);
+}
+
+.esh-page .form-control-sm,
+.esh-page .form-select-sm {
+    font-size: var(--esh-ui-form-control-sm-font-size);
+}
+
+.esh-page .form-control-lg,
+.esh-page .form-select-lg {
+    font-size: var(--esh-ui-form-control-lg-font-size);
+}
+
+.esh-ui-empty td {
+    min-height: 8rem;
+    vertical-align: middle;
+    color: var(--esh-ui-text-muted);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Eski view markup — doğrudan Bootstrap .card (panel sınıfı yok)             */
+/* ------------------------------------------------------------------------- */
+
+.esh-page > .card:not(.esh-stats-hub__group),
+.esh-page .card.border-0.shadow-sm:not(.esh-stats-hub__group) {
+    background: var(--esh-ui-surface);
+    border: 1px solid var(--esh-ui-border) !important;
+    border-radius: var(--esh-ui-radius);
+    box-shadow: var(--esh-ui-shadow);
+    color: var(--esh-ui-text);
+}
+
+.esh-page .esh-stats-hub .card.esh-stats-hub__group {
+    border: 0 !important;
+    box-shadow: var(--bs-box-shadow-sm, var(--esh-ui-shadow));
+}
+
+.esh-page > .card > .card-header,
+.esh-page .card:not(.esh-stats-hub__group) > .card-header.bg-white {
+    background: var(--esh-ui-surface) !important;
+    border-bottom: 1px solid var(--esh-ui-border);
+    color: var(--esh-ui-text);
+}
+
+.esh-page .card > .card-body.bg-body-tertiary,
+.esh-page .card > .card-body.bg-body-tertiary.bg-opacity-25 {
+    background: var(--esh-ui-surface-muted) !important;
+}
+
+.esh-page .text-primary {
+    color: var(--esh-ui-accent) !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Modül kancaları — hasta listeleri (app-shell → sayfa dili, aşama 1)        */
+/* Renk/boyut: --esh-ui-*; z-index/overflow: app-shell.css                    */
+/* ------------------------------------------------------------------------- */
+
+.esh-page-patient-table,
+.esh-page-patient-unified {
+    --esh-ui-table-head-font-size: 0.65rem;
+}
+
+.esh-page-patient-table-admin {
+    --esh-ui-table-head-font-size: 0.75rem;
+    --esh-ui-table-head-letter-spacing: 0.5px;
+    --esh-ui-table-head-padding: 1.2rem 0.5rem;
+    --esh-ui-font-size-xs: 0.72rem;
+}
+
+.esh-page-patient-table .table thead th,
+.esh-page-patient-unified .table thead th,
+.esh-page-patient-table-admin .table thead th {
+    font-size: var(--esh-ui-table-head-font-size);
+    text-transform: uppercase;
+    letter-spacing: var(--esh-ui-table-head-letter-spacing);
+    font-weight: 700;
+    padding: var(--esh-ui-table-head-padding);
+    background-color: var(--esh-ui-table-head-bg);
+    color: var(--esh-ui-table-head-color);
+}
+
+.esh-page-patient-table .x-small,
+.esh-page-patient-unified .x-small,
+.esh-page-patient-table-admin .x-small {
+    font-size: var(--esh-ui-font-size-xs);
+}
+
+.esh-page-patient-table .small {
+    font-size: var(--esh-ui-font-size-sm);
+}
+
+.esh-page-patient-table .table-hover tbody tr:hover,
+.esh-page-patient-unified .table-hover tbody tr:hover,
+.esh-page-patient-table-admin .table-hover tbody tr:hover {
+    background-color: var(--esh-ui-row-hover);
+}
+
+.esh-page-patient-table .dropdown-menu,
+.esh-page-patient-unified .dropdown-menu {
+    min-width: 200px;
+    border-radius: var(--esh-ui-dropdown-menu-radius);
+    border: 1px solid var(--esh-ui-dropdown-menu-border) !important;
+    margin-top: 5px !important;
+}
+
+.esh-page-patient-unified .dropdown-menu {
+    min-width: 220px;
+}
+
+.esh-page-patient-table .dropdown-item,
+.esh-page-patient-unified .dropdown-item {
+    font-size: var(--esh-ui-dropdown-font-size);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.esh-page-patient-table .dropdown-item:hover,
+.esh-page-patient-unified .dropdown-item:hover {
+    background-color: var(--esh-ui-dropdown-item-hover-bg);
+    transform: translateX(3px);
+}
+
+.esh-page-patient-table .dropdown-header,
+.esh-page-patient-unified .dropdown-header {
+    font-size: var(--esh-ui-dropdown-header-font-size);
+    letter-spacing: var(--esh-ui-dropdown-header-letter-spacing);
+    padding-bottom: 5px;
+}
+
+.esh-page-patient-table .patient-link:hover {
+    text-decoration: underline !important;
+    opacity: 0.8;
+}
+
+.esh-page-patient-table .mt-1 .badge {
+    font-size: var(--esh-ui-font-size-badge);
+    padding: 3px 6px;
+}
+
+.esh-page-patient-table-admin .btn-white {
+    background: var(--esh-ui-btn-ghost-bg);
+    border: 1px solid var(--esh-ui-btn-ghost-border);
+}
+
+.esh-page-patient-table-admin .btn-white:hover {
+    background: var(--esh-ui-btn-ghost-hover-bg);
+    color: var(--esh-ui-btn-ghost-hover-color);
+}
+
+.esh-page-patient-table-admin .fw-bold {
+    font-weight: 600 !important;
+}
+
+.esh-page-patient-unified .font-monospace {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Modül — dashboard + rota sekmeleri (app-shell aşama 2)                     */
+/* ------------------------------------------------------------------------- */
+
+.esh-page-dashboard .calendar-day {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.esh-page-dashboard .calendar-day:hover {
+    background-color: var(--esh-ui-calendar-day-hover-bg) !important;
+    box-shadow: inset 0 0 0 2px var(--esh-ui-calendar-day-hover-ring);
+}
+
+.esh-page-dashboard .badge {
+    font-size: var(--esh-ui-cal-badge-font-size) !important;
+}
+
+.esh-page-dashboard .esh-cal-task {
+    font-size: var(--esh-ui-cal-task-font-size) !important;
+    line-height: 1.25;
+    padding: 2px 6px !important;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.esh-page-dashboard a.esh-cal-task:hover {
+    opacity: 0.92;
+}
+
+.esh-page-dashboard a.esh-cal-task.bg-success:hover {
+    color: #fff;
+}
+
+.esh-page-dashboard .esh-cal-legend__badge {
+    font-size: var(--esh-ui-cal-legend-font-size);
+    padding: 0.35em 0.65em;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.esh-page-dashboard .table-bordered td,
+.esh-page-dashboard .table-bordered th {
+    border: 1px solid var(--esh-ui-border) !important;
+}
+
+.esh-page-dashboard #daily-events-container::-webkit-scrollbar,
+.esh-page-dashboard #daily-events-body::-webkit-scrollbar,
+.esh-page-dashboard .mr-dash-plan__scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.esh-page-dashboard #daily-events-container::-webkit-scrollbar-thumb,
+.esh-page-dashboard #daily-events-body::-webkit-scrollbar-thumb,
+.esh-page-dashboard .mr-dash-plan__scroll::-webkit-scrollbar-thumb {
+    background: var(--esh-ui-scrollbar-thumb);
+    border-radius: var(--esh-ui-scrollbar-radius);
+}
+
+.esh-page-dashboard .badge i {
+    font-size: var(--esh-ui-cal-badge-font-size);
+}
+
+.esh-page-dashboard #daily-events-container .list-group-item,
+.esh-page-dashboard #daily-events-body .list-group-item {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.esh-page-dashboard .mr-dash-plan > .mr-dash-plan__tabs,
+.esh-page-dashboard .mr-dash-plan > #daily-events-tabs {
+    background: var(--esh-ui-surface);
+    border-bottom: 1px solid var(--esh-ui-border);
+    padding: 0.5rem 0.75rem 0;
+}
+
+.esh-page-dashboard .mr-dash-plan__scroll .mr-dash-plan__tabs--sticky,
+.esh-page-dashboard .mr-dash-plan__scroll > .mr-dash-plan__tabs {
+    background: var(--esh-ui-surface);
+    border-bottom: 1px solid var(--esh-ui-border);
+    box-shadow: var(--esh-ui-dash-plan-tabs-shadow);
+}
+
+.esh-daily-plan-card__badge {
+    font-size: var(--esh-ui-daily-plan-badge-font-size) !important;
+}
+
+.esh-daily-plan-card__meta {
+    font-size: var(--esh-ui-daily-plan-meta-font-size);
+    color: var(--esh-ui-text-muted);
+}
+
+.esh-page-dashboard .esh-daily-section {
+    font-size: var(--esh-ui-daily-section-font-size);
+    line-height: 1;
+}
+
+/* Sabah / Öğle / Akşam — dashboard (#taskTab) + rota (#routeTabs) */
+.esh-route-tabs.nav-tabs {
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.esh-route-tabs.nav-tabs .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab {
+    font-size: var(--esh-ui-route-tab-font-size);
+    font-weight: var(--esh-ui-route-tab-font-weight);
+    line-height: 1.3;
+    color: var(--esh-ui-route-tab-text);
+    background-color: var(--esh-ui-route-tab-bg);
+    border: 1px solid var(--esh-ui-route-tab-border);
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-top-width: 4px;
+    border-top-style: solid;
+    min-height: var(--esh-ui-route-tab-min-height);
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab:hover {
+    background-color: var(--esh-ui-route-tab-hover-bg);
+    color: var(--esh-ui-route-tab-hover-text);
+    border-color: var(--esh-ui-route-tab-border-hover) var(--esh-ui-route-tab-border-hover) var(--esh-ui-route-tab-border);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active {
+    font-weight: var(--esh-ui-route-tab-font-weight-active);
+    color: var(--esh-ui-route-tab-active-text);
+    background-color: var(--esh-ui-route-tab-active-bg);
+    border-color: var(--esh-ui-route-tab-border) var(--esh-ui-route-tab-border) var(--esh-ui-route-tab-active-bg);
+    box-shadow: 0 -2px 0 var(--esh-ui-route-tab-active-shadow) inset;
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab--sabah {
+    border-top-color: var(--esh-ui-route-tab-accent-sabah);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab--ogle {
+    border-top-color: var(--esh-ui-route-tab-accent-ogle);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab--aksam {
+    border-top-color: var(--esh-ui-route-tab-accent-aksam);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active.esh-route-tab--sabah {
+    color: var(--esh-ui-route-tab-active-sabah);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active.esh-route-tab--ogle {
+    color: var(--esh-ui-route-tab-active-ogle);
+}
+
+.esh-route-tabs.nav-tabs .nav-link.esh-route-tab.active.esh-route-tab--aksam {
+    color: var(--esh-ui-route-tab-active-aksam);
+}
+
+.esh-route-tabs .esh-route-tab__inner {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: 0.4rem;
+    row-gap: 0.3rem;
+    max-width: 100%;
+}
+
+.esh-route-tabs .esh-route-tab__icon {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    font-size: var(--esh-ui-route-tab-icon-size);
+    opacity: 0.92;
+}
+
+.esh-route-tabs .esh-route-tab__label {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    align-self: center;
+    letter-spacing: 0.02em;
+}
+
+.esh-route-tabs .esh-route-tab__inner > .badge {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+}
+
+.esh-route-tabs .esh-route-tab-badge {
+    font-size: var(--esh-ui-route-tab-badge-font-size);
+    font-weight: 700;
+    padding: 0.35em 0.65em;
+    min-width: 1.85rem;
+}
+
+.esh-route-tabs .esh-route-tab-badge--empty {
+    background-color: var(--esh-ui-route-tab-badge-empty) !important;
+    color: #fff !important;
+}
+
+.esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--sabah {
+    background-color: var(--esh-ui-route-tab-accent-sabah) !important;
+    color: #fff !important;
+}
+
+.esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--ogle {
+    background-color: var(--esh-ui-route-tab-accent-ogle) !important;
+    color: #fff !important;
+}
+
+.esh-route-tabs .esh-route-tab-badge--on.esh-route-tab-badge--aksam {
+    background-color: var(--esh-ui-route-tab-accent-aksam) !important;
+    color: #fff !important;
+}
+
+@media (max-width: 575.98px) {
+    .esh-route-tabs.nav-tabs .nav-link.esh-route-tab {
+        font-size: var(--esh-ui-route-tab-font-size-sm);
+        min-height: var(--esh-ui-route-tab-min-height-sm);
+        padding: 0.5rem 0.45rem;
+    }
+
+    .esh-route-tabs .esh-route-tab__inner {
+        column-gap: 0.28rem;
+        row-gap: 0.22rem;
+    }
+
+    .esh-route-tabs .esh-route-tab-badge {
+        font-size: var(--esh-ui-route-tab-badge-font-size-sm);
+        padding: 0.28em 0.5em;
+    }
+}
+
+.esh-page-rota .form-control-sm {
+    border-color: var(--esh-ui-border);
+}
+
+.esh-page-rota .border-dashed {
+    border-color: var(--esh-ui-border) !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Modül — hasta kartı / düzenleme (app-shell aşama 3)                        */
+/* Koordinat gradyanları: theme.css (--esh-ui-coords-git-* meridian/winui)    */
+/* ------------------------------------------------------------------------- */
+
+.esh-hasta-izlem-ozet__tile {
+    padding: 0.45rem 0.6rem;
+}
+
+.esh-hasta-izlem-ozet__body {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 4.5rem;
+}
+
+.esh-hasta-izlem-ozet__count-col {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.5rem;
+    padding-right: 0.35rem;
+    border-right: 1px solid var(--esh-ui-border);
+}
+
+.esh-hasta-izlem-ozet__count {
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.esh-hasta-izlem-ozet__details {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    line-height: 1.3;
+}
+
+.tooltip.esh-barthel-field-tooltip .tooltip-inner {
+    max-width: min(24rem, 94vw);
+    text-align: start;
+    line-height: 1.4;
+    font-size: var(--esh-ui-barthel-tooltip-font-size);
+    padding: 0.55rem 0.65rem;
+}
+
+.tooltip.esh-barthel-field-tooltip .esh-barthel-tt-pts {
+    min-width: 4.25rem;
+    font-size: var(--esh-ui-barthel-pts-font-size);
+    letter-spacing: 0.01em;
+}
+
+.tooltip.esh-barthel-field-tooltip .esh-barthel-tt-text {
+    flex: 1 1 auto;
+    padding-top: 0.1rem;
+}
+
+.tooltip.esh-barthel-field-tooltip .esh-barthel-tt-row:last-child {
+    margin-bottom: 0 !important;
+}
+
+.tooltip.esh-sms-sablon-vars-tooltip .tooltip-inner {
+    max-width: min(28rem, 94vw);
+    text-align: start;
+    line-height: 1.4;
+    font-size: 0.8125rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.tooltip.esh-sms-sablon-vars-tooltip .esh-sms-sablon-vars-key code {
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.tooltip.esh-sms-sablon-vars-tooltip .esh-sms-sablon-vars-row + .esh-sms-sablon-vars-row td {
+    padding-top: 0.35rem;
+}
+
+.tooltip.esh-sms-sablon-vars-tooltip .esh-sms-sablon-vars-desc .text-muted {
+    font-size: 0.75rem;
+}
+
+.esh-hasta-kart-diagnosis {
+    display: inline;
+}
+
+.esh-hasta-kart-diagnosis__rapor {
+    font-size: var(--esh-ui-diagnosis-rapor-font-size);
+    font-weight: 800;
+    line-height: 0;
+    color: var(--bs-danger);
+    vertical-align: super;
+    margin-right: 0.22rem;
+}
+
+.esh-hasta-kart-diagnosis__rapor--active {
+    color: var(--bs-success);
+}
+
+.esh-hasta-kart-diagnosis__rapor--expired,
+.esh-hasta-kart-diagnosis--expired .esh-hasta-kart-diagnosis__rapor {
+    color: var(--bs-danger);
+}
+
+.esh-hasta-kart-diagnosis__rapor--expiring,
+.esh-hasta-kart-diagnosis--expiring .esh-hasta-kart-diagnosis__rapor {
+    color: var(--bs-warning);
+}
+
+.esh-hasta-kart-diagnosis--expired .esh-hasta-kart-diagnosis__label--expired {
+    color: var(--bs-danger);
+}
+
+.esh-hasta-kart-diagnosis__badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    vertical-align: baseline;
+}
+
+.esh-ilac-rapor-ozet-row--expired .fw-semibold {
+    color: var(--bs-danger);
+}
+
+.esh-ilac-rapor-ozet-row--expiring .badge {
+    font-weight: 600;
+}
+
+.esh-hasta-kimlik-kart__continuation {
+    max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .esh-hasta-kimlik-kart .esh-kimlik-adres-row .col-md-5 {
+        border-left: 1px solid var(--esh-ui-border);
+        padding-left: 1rem;
+    }
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-field + .esh-kimlik-field {
+    margin-top: 0.15rem;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-adres-box--ana {
+    border-start-width: 3px !important;
+    border-start-color: var(--bs-primary) !important;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-adres-box--diger {
+    border-start-width: 3px !important;
+    border-start-color: var(--bs-secondary) !important;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-telefon-wrap,
+.esh-hasta-kimlik-kart .esh-kimlik-iletisim-bakim-row {
+    width: 100%;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-kurum-box {
+    border-start-width: 3px !important;
+    border-start-color: var(--bs-secondary) !important;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-coords-actions .esh-coords-btn {
+    min-width: 4.25rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: var(--esh-ui-coords-btn-shadow);
+    border-width: 1px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.esh-hasta-kimlik-kart .esh-kimlik-coords-actions .esh-coords-btn:hover,
+.esh-hasta-kimlik-kart .esh-kimlik-coords-actions .esh-coords-btn:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: var(--esh-ui-coords-btn-shadow-hover);
+}
+
+.esh-hasta-kimlik-kart .esh-coords-btn--bul {
+    background: var(--esh-ui-coords-bul-bg);
+    border-color: var(--esh-ui-coords-bul-border);
+    color: var(--esh-ui-coords-bul-color);
+}
+
+.esh-hasta-kimlik-kart .esh-coords-btn--bul:hover,
+.esh-hasta-kimlik-kart .esh-coords-btn--bul:focus-visible {
+    background: var(--esh-ui-coords-bul-bg-hover);
+    border-color: var(--esh-ui-coords-bul-border-hover);
+    color: var(--esh-ui-coords-bul-color-hover);
+}
+
+.esh-hasta-kimlik-kart .esh-coords-btn--git {
+    background: var(--esh-ui-coords-git-bg);
+    border-color: var(--esh-ui-coords-git-border);
+    color: var(--esh-ui-coords-git-color);
+}
+
+.esh-hasta-kimlik-kart .esh-coords-btn--git:hover,
+.esh-hasta-kimlik-kart .esh-coords-btn--git:focus-visible {
+    background: var(--esh-ui-coords-git-bg-hover);
+    border-color: var(--esh-ui-coords-git-border-hover);
+    color: var(--esh-ui-coords-git-color);
+}
+
+.esh-wound-summary-card .rounded.border img {
+    display: block;
+}
+
+.esh-hasta-kart-diagnosis__label {
+    display: inline;
+}
+
+.esh-edit-care-supply-section {
+    border: 1px solid var(--bs-border-color-translucent);
+    background-color: var(--bs-tertiary-bg);
+}
+
+#hastaTab.esh-detail-tabs {
+    --esh-tab-active-bar: var(--esh-ui-detail-tab-active-bar);
+    background: var(--esh-ui-detail-tabs-bg);
+    border-bottom: 1px solid var(--esh-ui-border);
+}
+
+#hastaTab.esh-detail-tabs .nav-item {
+    flex: 1;
+    min-width: 0;
+}
+
+#hastaTab.esh-detail-tabs .nav-link {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1 !important;
+    font-weight: 600;
+    background-color: var(--esh-ui-detail-tab-link-bg);
+    border: 0 !important;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#hastaTab.esh-detail-tabs .nav-link i {
+    display: inline-block !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+    opacity: 1 !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link span {
+    letter-spacing: 0.02em;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active)[data-bs-target="#geneltab"] {
+    color: var(--esh-ui-detail-tab-genel-text) !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active)[data-bs-target="#pansumantab"] {
+    color: var(--esh-ui-detail-tab-pansuman-text) !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active)[data-bs-target="#sondatab"] {
+    color: var(--esh-ui-detail-tab-sonda-text) !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active)[data-bs-target="#mamatab"] {
+    color: var(--esh-ui-detail-tab-mama-text) !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active)[data-bs-target="#beztab"] {
+    color: var(--esh-ui-detail-tab-bez-text) !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link:not(.active):hover {
+    background-color: var(--esh-ui-detail-tab-hover-bg) !important;
+    box-shadow: inset 0 -3px 0 var(--esh-ui-detail-tab-hover-inset);
+}
+
+#hastaTab.esh-detail-tabs .nav-link.active {
+    background-color: var(--esh-ui-detail-tab-active-bg) !important;
+    color: var(--esh-ui-detail-tab-active-text) !important;
+    box-shadow: inset 0 -4px 0 var(--esh-tab-active-bar), 0 1px 0 rgba(0, 0, 0, 0.04);
+    border-bottom: 0 !important;
+}
+
+#hastaTab.esh-detail-tabs .nav-link.active i,
+#hastaTab.esh-detail-tabs .nav-link.active span {
+    color: inherit !important;
+    opacity: 1 !important;
+}
+
+#hastaTabContent .esh-hasta-care-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#hastaTabContent .esh-hasta-care-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+    box-shadow: var(--esh-ui-care-item-shadow);
+}
+
+#hastaTabContent .esh-hasta-care-item__icon {
+    flex-shrink: 0;
+    width: 2.35rem;
+    height: 2.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.45rem;
+    font-size: var(--esh-ui-care-icon-font-size);
+    line-height: 1;
+}
+
+#hastaTabContent .esh-hasta-care-item__body {
+    min-width: 0;
+    flex: 1;
+}
+
+#hastaTabContent .esh-hasta-care-item__label {
+    font-size: var(--esh-ui-care-label-font-size);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+#hastaTabContent .esh-hasta-care-item__value {
+    font-size: var(--esh-ui-care-value-font-size);
+    font-weight: 600;
+    color: var(--bs-emphasis-color);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+#hastaTabContent .esh-hasta-care-item__value--date {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+#hastaTabContent .esh-hasta-care-empty {
+    text-align: center;
+    border-radius: 0.5rem;
+    border: 2px dashed var(--bs-border-color);
+    padding: 1.75rem 1rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.bg-light-warning {
+    background-color: var(--esh-ui-surface-warning);
+}
+
+.font-monospace {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+#pansumanDetailsArea .pansuman-edit-gun-label {
+    border-color: var(--esh-ui-border) !important;
+    min-width: 40px;
+    font-size: var(--esh-ui-pansuman-day-font-size);
+}
+
+#pansumanDetailsArea .btn-check:checked + .pansuman-edit-gun-label {
+    background-color: var(--esh-ui-accent) !important;
+    color: #fff !important;
+    border-color: var(--esh-ui-accent) !important;
+    font-weight: 600;
+}
+
+#pansumanDetailsArea .btn-group.flex-wrap {
+    justify-content: flex-start;
+    align-content: flex-start;
+}
+
+#pansumanDetailsArea .btn-group.flex-wrap > .pansuman-edit-gun-label {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+}
+
+.dropdown-menu.esh-patient-mega-menu {
+    border-radius: var(--esh-ui-radius);
+}
+
+.esh-patient-mega-menu__head {
+    font-size: var(--esh-ui-mega-menu-head-font-size);
+}
+
+.esh-patient-mega-menu__col {
+    background: var(--esh-ui-mega-menu-col-bg);
+    border: 1px solid var(--esh-ui-mega-menu-col-border);
+    border-radius: 0.75rem;
+    padding: 0.35rem 0.25rem;
+    min-height: 3.5rem;
+    min-width: 0;
+}
+
+.esh-patient-mega-menu__col h6 {
+    font-size: var(--esh-ui-mega-menu-title-font-size);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+    padding: 0 0.35rem;
+}
+
+.esh-patient-mega-menu .dropdown-item {
+    font-size: var(--esh-ui-mega-menu-item-font-size);
+    border-radius: 0.5rem;
+    white-space: normal;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Giriş sayfası — ortak iskelet (app-shell aşama 4; tema: default-chrome / theme.css) */
+/* Not: body.page-login genelde app-shell sınıfı taşımaz — jetonlar burada tanımlı.   */
+/* ------------------------------------------------------------------------- */
+
+body.page-login {
+    --esh-ui-login-card-max: 48rem;
+    --esh-ui-login-page-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --esh-ui-login-font-family: 'Inter', sans-serif;
+    --esh-ui-login-card-width: min(392px, calc(100vw - 2rem));
+    --esh-ui-login-card-radius: 20px;
+    --esh-ui-login-card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    --esh-ui-login-header-bg: #0d6efd;
+    --esh-ui-login-header-color: #ffffff;
+    --esh-ui-login-header-icon-size: 2.75rem;
+    --esh-ui-login-input-radius: 10px;
+    --esh-ui-login-input-padding: 12px;
+    --esh-ui-login-input-border: #eeeeee;
+    --esh-ui-login-btn-radius: 10px;
+    --esh-ui-login-btn-padding: 12px;
+    background: var(--esh-ui-login-page-bg);
+    min-height: 100vh;
+    height: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: var(--esh-ui-login-font-family);
+    padding: clamp(0.9rem, 2.4vh, 1.8rem) 0;
+    overflow-y: auto;
+}
+
+body.page-login.page-login-theme-default {
+    --esh-ui-login-split-page-bg:
+        radial-gradient(circle at 15% 20%, rgba(13, 110, 253, 0.12), transparent 32%),
+        radial-gradient(circle at 85% 10%, rgba(32, 201, 151, 0.1), transparent 28%),
+        linear-gradient(135deg, #eef3fb 0%, #dbe6f6 100%);
+    --esh-ui-login-split-card-width: min(520px, calc(100vw - 2.25rem));
+    --esh-ui-login-split-card-radius: 24px;
+    --esh-ui-login-split-card-shadow: 0 22px 56px rgba(15, 23, 42, 0.18);
+    --esh-ui-login-split-card-border: 1px solid rgba(13, 110, 253, 0.14);
+    --esh-ui-login-split-header-bg: linear-gradient(120deg, #0d6efd 0%, #3b82f6 55%, #22c1c3 100%);
+    --esh-ui-login-split-brand-icon-size: 1.45rem;
+    --esh-ui-login-split-subtitle-font-size: 0.88rem;
+    --esh-ui-login-split-mode-border: #dbe4f2;
+    --esh-ui-login-split-normal-accent: #0d6efd;
+    --esh-ui-login-split-eimza-accent: #94a3b8;
+    --esh-ui-login-split-tab-color: #64748b;
+    --esh-ui-login-split-tab-active-color: #0d6efd;
+    --esh-ui-login-split-tab-border: #dbe4f2;
+    --esh-ui-login-split-input-border: #d6deea;
+    --esh-ui-login-split-input-group-bg: #f8fafc;
+}
+
+body.page-login .login-card {
+    width: var(--esh-ui-login-card-width);
+    border: none;
+    border-radius: var(--esh-ui-login-card-radius);
+    box-shadow: var(--esh-ui-login-card-shadow);
+    overflow: hidden;
+}
+
+body.page-login .login-header {
+    background: var(--esh-ui-login-header-bg);
+    color: var(--esh-ui-login-header-color);
+    padding: 2rem 1.35rem;
+    text-align: center;
+}
+
+body.page-login .login-header i {
+    font-size: var(--esh-ui-login-header-icon-size);
+    margin-bottom: 10px;
+}
+
+body.page-login .mr-login-shell > .row.justify-content-center > [class*="col-"],
+body.page-login .aurora-login-shell > .row.justify-content-center > [class*="col-"],
+body.page-login .fluent-login-shell > .row.justify-content-center > [class*="col-"] {
+    max-width: min(100%, var(--esh-ui-login-card-max));
+}
+
+body.page-login .mr-login-shell.container-xxl,
+body.page-login .aurora-login-shell.container-xxl,
+body.page-login .fluent-login-shell.container-xxl {
+    max-width: calc(var(--esh-ui-login-card-max) + 3rem);
+}
+
+body.page-login .mr-login-shell.py-4,
+body.page-login .aurora-login-shell.py-4,
+body.page-login .fluent-login-shell.py-4 {
+    padding-top: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+}
+
+@media (min-width: 992px) {
+    body.page-login .mr-login-shell.py-lg-5,
+    body.page-login .aurora-login-shell.py-lg-5,
+    body.page-login .fluent-login-shell.py-lg-5 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+}
+
+body.page-login .mr-login-brand,
+body.page-login .aurora-login-brand-col,
+body.page-login .fluent-login-brand-col {
+    padding: 1.25rem 1.5rem !important;
+}
+
+@media (min-width: 1200px) {
+    body.page-login .mr-login-brand,
+    body.page-login .aurora-login-brand-col,
+    body.page-login .fluent-login-brand-col {
+        padding: 1.5rem 1.75rem !important;
+    }
+}
+
+body.page-login .mr-login-card > .row > .mr-login-brand,
+body.page-login .aurora-login-card > .row > .aurora-login-brand-col,
+body.page-login .fluent-login-split > .row > .fluent-login-brand-col {
+    min-width: 10.5rem;
+}
+
+body.page-login .mr-login-form-col > .d-flex.flex-column,
+body.page-login .aurora-login-form-col > .d-flex.flex-column,
+body.page-login .fluent-login-form-col > .d-flex.flex-column {
+    min-height: 20rem !important;
+    padding: 1.25rem 1.5rem !important;
+}
+
+@media (min-width: 992px) {
+    body.page-login .mr-login-form-col > .d-flex.flex-column,
+    body.page-login .aurora-login-form-col > .d-flex.flex-column,
+    body.page-login .fluent-login-form-col > .d-flex.flex-column {
+        padding: 1.5rem 2rem !important;
+    }
+}
+
+body.page-login .form-control {
+    border-radius: var(--esh-ui-login-input-radius);
+    padding: var(--esh-ui-login-input-padding);
+    border: 1px solid var(--esh-ui-login-input-border);
+}
+
+body.page-login .btn-login {
+    border-radius: var(--esh-ui-login-btn-radius);
+    padding: var(--esh-ui-login-btn-padding);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: 0.3s;
+}
+
+.esh-login-hastaarama a {
+    color: inherit;
+    opacity: 0.88;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.esh-login-hastaarama a:hover {
+    opacity: 1;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Modül hook'ları — kalan presentation (app-shell aşama 5)                   */
+/* ------------------------------------------------------------------------- */
+
+/* Üst menü — tüm navbar linkleri (UIHelper nav); sayfa içi .nav-link sekmelerine sızmaz */
+body.app-shell .navbar .navbar-nav > .nav-item > .nav-link {
+    font-size: var(--esh-ui-navbar-link-font-size);
+}
+
+body.app-shell .navbar .navbar-brand {
+    font-size: var(--esh-ui-navbar-brand-font-size);
+}
+
+body.app-shell .navbar .dropdown-menu {
+    font-size: var(--esh-ui-navbar-dropdown-font-size);
+}
+
+.esh-page-user-profile .profile-img-container {
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.esh-page-user-profile .profile-img-container:hover {
+    transform: scale(1.05);
+}
+
+.esh-page-user-profile .list-group-item {
+    border-color: var(--esh-ui-profile-border-faint);
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-head__eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-head__title {
+    letter-spacing: -0.02em;
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-head__back {
+    font-weight: 600;
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-aside__card {
+    background: var(--esh-ui-profile-aside-gradient);
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-section__head {
+    background: var(--esh-ui-profile-section-head-gradient);
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-section .input-group-text {
+    min-width: 2.35rem;
+    justify-content: center;
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-section--security .card-header {
+    background: var(--esh-ui-profile-security-head-gradient);
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-actions .btn-primary {
+    box-shadow: var(--esh-ui-profile-btn-primary-shadow);
+}
+
+.esh-page-user-profile-edit #esh-ui-theme-select {
+    max-width: 100%;
+}
+
+.esh-page-user-profile-edit .esh-profile-edit-form .input-group .esh-profile-pw-input {
+    border-right: 0;
+}
+
+.esh-page-user-profile-edit .esh-profile-pw-toggle {
+    cursor: pointer;
+    user-select: none;
+    color: var(--bs-secondary-color, #6c757d);
+    background-color: var(--bs-body-bg, #fff);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.esh-page-user-profile-edit .esh-profile-pw-toggle:hover {
+    color: var(--bs-primary, #0d6efd);
+}
+
+.esh-page-user-profile-edit .esh-profile-pw-toggle:focus-visible {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: -2px;
+    z-index: 5;
+}
+
+.esh-page-user-profile-edit .esh-profile-pw-toggle[aria-pressed="true"] {
+    color: var(--bs-primary, #0d6efd);
+}
+
+.esh-page-pansuman .esh-pansuman-list-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-hasta {
+    width: 18%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-tc {
+    width: 12%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-mahalle {
+    width: 14%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-gunler {
+    width: 32%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-zaman {
+    width: 18%;
+}
+
+.esh-page-pansuman .esh-pansuman-list-table col.esh-pansuman-col-kaydet {
+    width: 6%;
+}
+
+.esh-page-pansuman .esh-pansuman-td-hasta,
+.esh-page-pansuman .esh-pansuman-th-hasta {
+    min-width: 11rem;
+    padding-right: 1rem;
+}
+
+.esh-page-pansuman .esh-pansuman-td-tc,
+.esh-page-pansuman .esh-pansuman-th-tc {
+    min-width: 8.75rem;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+}
+
+.esh-page-pansuman .esh-pansuman-td-mahalle,
+.esh-page-pansuman .esh-pansuman-th-mahalle {
+    min-width: 9rem;
+}
+
+.esh-page-pansuman .esh-pansuman-td-gunler,
+.esh-page-pansuman .esh-pansuman-th-gunler {
+    min-width: 18rem;
+}
+
+.esh-page-pansuman .esh-pansuman-td-zaman,
+.esh-page-pansuman .esh-pansuman-th-zaman {
+    min-width: 11rem;
+}
+
+.esh-page-pansuman .esh-pansuman-td-kaydet,
+.esh-page-pansuman .esh-pansuman-th-kaydet {
+    min-width: 4.5rem;
+}
+
+.esh-page-pansuman .pansuman-label {
+    border-color: var(--esh-ui-border) !important;
+}
+
+.esh-page-pansuman .btn-check:checked + .pansuman-label {
+    background-color: var(--esh-ui-accent) !important;
+    color: var(--esh-ui-stats-metric-fg) !important;
+    border-color: var(--esh-ui-accent) !important;
+    box-shadow: inset 0 2px 4px var(--esh-ui-pansuman-label-inset-shadow);
+}
+
+.esh-page-pansuman .btn-outline-secondary:hover {
+    background-color: var(--esh-ui-surface-muted) !important;
+    color: var(--esh-ui-accent) !important;
+}
+
+.esh-page-pansuman tbody tr:hover {
+    background-color: var(--esh-ui-row-hover);
+}
+
+@media print {
+    .esh-page-plan-week {
+        background: var(--esh-ui-print-surface) !important;
+        font-size: 10px;
+    }
+}
+
+.hover-shadow:hover {
+    box-shadow: var(--esh-ui-card-hover-shadow) !important;
+}
+
+#adres-hierarchy .hier-column {
+    background: var(--esh-ui-surface);
+    border: 1px solid var(--esh-ui-border);
+    border-radius: 8px;
+    height: 520px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--esh-ui-hier-column-shadow);
+}
+
+#adres-hierarchy .hier-header {
+    background: var(--esh-ui-hier-header-bg);
+    color: var(--esh-ui-hier-header-color);
+    padding: 12px 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+#adres-hierarchy .hier-list {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--esh-ui-surface);
+}
+
+#adres-hierarchy .hier-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--esh-ui-hier-item-divider);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+#adres-hierarchy .hier-item:hover {
+    background: var(--esh-ui-surface-muted);
+}
+
+#adres-hierarchy .hier-item.active {
+    background: var(--esh-ui-hier-item-active-bg);
+    border-left: 4px solid var(--esh-ui-accent);
+    font-weight: 600;
+}
+
+#adres-hierarchy .hier-actions {
+    flex-shrink: 0;
+    opacity: 0.35;
+    transition: opacity 0.15s;
+}
+
+#adres-hierarchy .hier-item:hover .hier-actions {
+    opacity: 1;
+}
+
+#adres-hierarchy .empty-msg {
+    padding: 24px 12px;
+    color: var(--esh-ui-hier-empty-text);
+    text-align: center;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* AdresFetch — lazy adres ağacı */
+.esh-page-adres-fetch .esh-adres-tree-node {
+    margin: 0;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-children {
+    margin: 0;
+    padding-left: 1.25rem;
+    border-left: 1px dashed var(--esh-ui-hier-item-divider, #dee2e6);
+}
+
+.esh-page-adres-fetch .esh-adres-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-row:hover {
+    background: var(--esh-ui-surface-muted, #f8f9fa);
+}
+
+.esh-page-adres-fetch .esh-adres-tree-toggle {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 1px solid var(--esh-ui-hier-item-divider, #dee2e6);
+    border-radius: 0.2rem;
+    background: var(--esh-ui-surface, #fff);
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-toggle:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-toggle-spacer {
+    display: inline-block;
+    width: 1.5rem;
+    flex-shrink: 0;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-badge {
+    font-size: 0.65rem;
+    flex-shrink: 0;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-label {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-id {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.esh-page-adres-fetch .esh-adres-tree-node--orphan > .esh-adres-tree-row {
+    border-left: 3px solid #dc3545;
+    background: rgba(220, 53, 69, 0.06);
+}
+
+.esh-page-adres-fetch .esh-adres-tree-node--orphan > .esh-adres-tree-row .esh-adres-tree-label {
+    color: #b02a37;
+    font-weight: 600;
+}
+
+.esh-page-adres-fetch #orphanTipTabs .nav-link {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+}
+
+.bg-danger-soft {
+    background-color: var(--esh-ui-soft-danger-bg);
+}
+
+.bg-info-soft {
+    background-color: var(--esh-ui-soft-info-bg);
+}
+
+.bg-light-50 {
+    background-color: var(--esh-ui-surface-subtle);
+}
+
+.border-dashed {
+    border-style: dashed !important;
+}
+
+.ekip-box {
+    background: var(--esh-ui-surface);
+    border: 1px solid var(--esh-ui-ekip-box-border);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.remove-ekip {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: var(--esh-ui-danger-text);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.datepicker-container {
+    background: var(--esh-ui-surface);
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--esh-ui-border);
+    display: inline-block;
+}
+
+#patientForm .ts-wrapper.single .ts-control {
+    height: 38px !important;
+    line-height: 34px !important;
+    background: var(--esh-ui-surface) !important;
+    border: 1px solid var(--esh-ui-border) !important;
+    border-radius: 0.375rem !important;
+    box-shadow: none !important;
+}
+
+#patientForm .ts-wrapper.single .ts-control::after {
+    background: none !important;
+}
+
+#patientForm .datepicker {
+    padding: 10px !important;
+}
+
+#patientForm .form-control:focus {
+    border-color: var(--esh-ui-input-focus-border);
+    box-shadow: 0 0 0 0.25rem var(--esh-ui-input-focus-ring);
+}
+
+.izlem-plan-page .izlem-plan-panel .form-select,
+.izlem-plan-page .izlem-plan-panel select.form-control {
+    border-radius: 0.5rem;
+}
+
+.izlem-plan-page .letter-spacing {
+    letter-spacing: 0.04em;
+}
+
+.izlem-plan-page .plan-doluluk-banner {
+    background: var(--esh-ui-plan-doluluk-banner-bg);
+}
+
+.esh-status-banner-alert,
+.izlem-plan-page .plan-doluluk-alert {
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+.esh-pasif-dosya-banner {
+    background: var(--esh-ui-pasif-banner-bg);
+    border-radius: 0.5rem;
+    padding: 0.15rem;
+}
+
+.izlem-form-page .izlem-form-panel .form-select,
+.izlem-form-page .izlem-form-panel select.form-control {
+    border-radius: 0.5rem;
+}
+
+.izlem-form-page .letter-spacing {
+    letter-spacing: 0.04em;
+}
+
+.izlem-form-page .izlem-arac-picker__icon-wrap {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.1rem;
+}
+
+.izlem-form-page .izlem-arac-picker__hint {
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+.izlem-form-page .izlem-arac-picker__choice {
+    border-width: 1.5px !important;
+    transition: box-shadow 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+    min-height: 2.625rem;
+}
+
+.izlem-form-page .izlem-arac-picker__choice--plate {
+    min-height: 2.125rem;
+}
+
+.izlem-form-page .izlem-arac-picker__choice--plate .izlem-arac-picker__plate-badge {
+    font-size: 0.875rem;
+}
+
+.izlem-form-page .izlem-arac-picker label[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+.izlem-form-page .izlem-arac-picker__choice:hover {
+    box-shadow: var(--esh-ui-arac-choice-hover-shadow);
+    transform: translateY(-1px);
+}
+
+.izlem-form-page .izlem-arac-picker__mini-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.izlem-form-page .izlem-arac-picker__plate-badge {
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+}
+
+.izlem-form-page .izlem-arac-picker__choice-ek3text {
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+}
+
+.esh-page-randevu a.esh-randevu-cal__cell .esh-randevu-cal__day-count {
+    color: var(--esh-ui-accent);
+}
+
+.esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-white {
+    background-color: var(--bs-tertiary-bg) !important;
+}
+
+.esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-light.text-muted {
+    background-color: var(--bs-secondary-bg) !important;
+}
+
+.esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.border-primary.border-2 {
+    background-color: var(--bs-primary-bg-subtle) !important;
+}
+
+.izlem-ek3-consult-page .izlem-arac-picker__choice:has(.izlem-arac-picker__choice-ek3text) {
+    align-items: center !important;
+    min-height: calc(0.8125rem * 1.25 + 1rem);
+}
+
+.izlem-ek3-consult-page .izlem-arac-picker__choice-ek3text,
+.izlem-ek3-consult-page .izlem-arac-picker__choice-ek3text--istek {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    max-height: calc(0.8125rem * 1.25);
+}
+
+.esh-stats-metric-card {
+    background-color: var(--esh-ui-accent) !important;
+    color: var(--esh-ui-stats-metric-fg) !important;
+}
+
+.esh-stats-metric-card .esh-stats-metric-card__icon {
+    width: 58px;
+    height: 58px;
+    background: var(--esh-ui-stats-metric-overlay);
+    color: inherit;
+}
+
+.esh-stats-metric-card .esh-stats-metric-card__label {
+    letter-spacing: 0.06em;
+    opacity: 0.92;
+}
+
+.esh-stats-metric-card .esh-stats-metric-card__pill {
+    background: var(--esh-ui-stats-metric-pill-bg);
+    color: inherit;
+}
+
+.esh-stats-metric-card .esh-stats-metric-card__pill strong {
+    color: inherit;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Varsayılan tema chrome (default-chrome.css → jetonlar; yalnızca theme-default) */
+/* ------------------------------------------------------------------------- */
+
+body.theme-default {
+    --esh-ui-shell-font-family: 'Inter', sans-serif;
+    --esh-ui-shell-bg: #f4f7f6;
+    --esh-ui-navbar-bg: #1e293b;
+    --esh-ui-navbar-link-color: rgba(255, 255, 255, 0.85);
+    --esh-ui-navbar-link-hover-color: #ffffff;
+    --esh-ui-navbar-link-active-color: #3b82f6;
+    --esh-ui-navbar-dropdown-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --esh-ui-navbar-dropdown-item-hover-bg: #f1f5f9;
+    --esh-ui-navbar-dropdown-item-hover-color: #0d6efd;
+}
+
+body.theme-default {
+    font-family: var(--esh-ui-shell-font-family);
+    background-color: var(--esh-ui-shell-bg);
+}
+
+body.theme-default .table thead th {
+    background-color: var(--esh-ui-table-head-bg);
+    color: var(--esh-ui-table-head-color);
+    font-size: var(--esh-ui-table-head-font-size) !important;
+    text-transform: uppercase;
+    letter-spacing: var(--esh-ui-table-head-letter-spacing);
+    font-weight: 700;
+    padding: var(--esh-ui-table-head-padding);
+    border-bottom: var(--esh-ui-table-head-border-bottom);
+}
+
+body.theme-default .patient-row:hover {
+    background-color: var(--esh-ui-patient-row-hover-bg) !important;
+    transition: 0.2s;
+}
+
+body.theme-default .tc-code {
+    background: var(--esh-ui-tc-code-bg);
+    padding: 2px 6px;
+    border-radius: var(--esh-ui-tc-code-radius);
+    font-family: monospace;
+    font-size: var(--esh-ui-tc-code-font-size);
+    color: var(--esh-ui-tc-code-color);
+}
+
+body.theme-default .esh-tc-copy,
+body.theme-default [data-esh-tc] {
+    cursor: copy;
+}
+
+body.theme-default .esh-tc-copy:hover,
+body.theme-default [data-esh-tc]:hover {
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+body.theme-default .esh-tc-copy.esh-tc-copy--flash,
+body.theme-default [data-esh-tc].esh-tc-copy--flash {
+    outline: 2px solid var(--esh-ui-tc-copy-flash-outline);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+body.theme-default .status-badge-group {
+    border: 1px solid var(--esh-ui-status-badge-border);
+    border-radius: var(--esh-ui-status-badge-radius);
+    overflow: hidden;
+    background: var(--esh-ui-status-badge-bg);
+    min-width: 45px;
+}
+
+body.theme-default .btn-xs {
+    padding: 0.1rem 0.3rem;
+    font-size: var(--esh-ui-btn-xs-font-size);
+}
+
+body.theme-default .avatar-sm {
+    width: var(--esh-ui-avatar-sm-size);
+    height: var(--esh-ui-avatar-sm-size);
+    font-size: var(--esh-ui-avatar-sm-font-size);
+    font-weight: bold;
+}
+
+body.theme-default .small-text {
+    font-size: var(--esh-ui-small-text-font-size);
+}
+
+body.theme-default .navbar {
+    z-index: 1040;
+    background-color: var(--esh-ui-navbar-bg) !important;
+}
+
+body.theme-default .navbar .navbar-nav > .nav-item > .nav-link {
+    font-size: var(--esh-ui-navbar-link-font-size);
+    transition: color 0.2s ease, border-color 0.2s ease;
+    color: var(--esh-ui-navbar-link-color) !important;
+}
+
+body.theme-default .navbar .navbar-nav > .nav-item > .nav-link:hover {
+    color: var(--esh-ui-navbar-link-hover-color) !important;
+}
+
+body.theme-default .navbar .navbar-nav > .nav-item > .nav-link.active {
+    color: var(--esh-ui-navbar-link-active-color) !important;
+}
+
+body.theme-default .navbar .nav-link.dropdown-toggle.bg-warning.text-dark {
+    color: #000 !important;
+}
+
+body.theme-default .navbar .nav-link.dropdown-toggle.bg-warning.text-dark:hover {
+    background-color: #ffca2c !important;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.35);
+}
+
+body.theme-default .navbar .dropdown-menu {
+    z-index: 1040;
+    border: none;
+    box-shadow: var(--esh-ui-navbar-dropdown-shadow);
+    font-size: var(--esh-ui-navbar-dropdown-font-size);
+}
+
+body.theme-default .dropdown-menu .dropdown-item:hover {
+    background-color: var(--esh-ui-navbar-dropdown-item-hover-bg);
+    color: var(--esh-ui-navbar-dropdown-item-hover-color);
+}
+
+body.theme-default .ts-wrapper.single .ts-control {
+    height: var(--esh-ui-filter-control-height);
+    line-height: calc(var(--esh-ui-filter-control-height) - 4px);
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+/* Giriş — iki modlu kart (page-login-theme-default); default-chrome yüklenir */
+body.page-login.page-login-theme-default {
+    background: var(--esh-ui-login-split-page-bg);
+}
+
+body.page-login.page-login-theme-default .login-card.login-card-split {
+    width: var(--esh-ui-login-split-card-width);
+    border-radius: var(--esh-ui-login-split-card-radius);
+    box-shadow: var(--esh-ui-login-split-card-shadow);
+    border: var(--esh-ui-login-split-card-border);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+body.page-login.page-login-theme-default .login-header {
+    background: var(--esh-ui-login-split-header-bg);
+    padding: 2rem 1.5rem 1.65rem;
+    position: relative;
+    overflow: hidden;
+}
+
+body.page-login.page-login-theme-default .login-header::before {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    top: -120px;
+    right: -70px;
+    pointer-events: none;
+}
+
+body.page-login.page-login-theme-default .login-header::after {
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.09);
+    bottom: -90px;
+    left: -55px;
+    pointer-events: none;
+}
+
+body.page-login.page-login-theme-default .login-brand-badge i {
+    font-size: var(--esh-ui-login-split-brand-icon-size);
+}
+
+body.page-login.page-login-theme-default .login-brand-subtitle {
+    font-size: var(--esh-ui-login-split-subtitle-font-size);
+    letter-spacing: 0.02em;
+    opacity: 0.92;
+    margin-bottom: 0.2rem;
+}
+
+body.page-login.page-login-theme-default .login-mode-card {
+    border-color: var(--esh-ui-login-split-mode-border) !important;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), 0 8px 24px rgba(15, 23, 42, 0.06);
+    transition: transform 0.16s ease, box-shadow 0.18s ease;
+}
+
+body.page-login.page-login-theme-default .login-mode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), 0 14px 28px rgba(15, 23, 42, 0.1);
+}
+
+body.page-login.page-login-theme-default .login-mode-card--normal {
+    border-top: 4px solid var(--esh-ui-login-split-normal-accent) !important;
+}
+
+body.page-login.page-login-theme-default .login-mode-card--eimza {
+    border-top: 4px solid var(--esh-ui-login-split-eimza-accent) !important;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+body.page-login.page-login-theme-default .login-mode-card .form-control,
+body.page-login.page-login-theme-default .login-mode-card .input-group-text {
+    border-radius: 10px;
+    border-color: var(--esh-ui-login-split-input-border);
+}
+
+body.page-login .login-field-label,
+body.page-login .login-panel-title {
+    letter-spacing: 0.01em;
+}
+
+body.page-login.page-login-theme-default .login-mode-card .input-group-text {
+    background: var(--esh-ui-login-split-input-group-bg);
+}
+
+body.page-login.page-login-theme-default .login-tabs-nav.nav-tabs {
+    border-bottom: 1px solid var(--esh-ui-login-split-tab-border);
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+}
+
+body.page-login.page-login-theme-default .login-tabs-nav.nav-tabs .nav-link {
+    font-weight: 600;
+    color: var(--esh-ui-login-split-tab-color);
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    padding: 0.6rem 0.5rem;
+}
+
+body.page-login.page-login-theme-default .login-tabs-nav.nav-tabs .nav-link:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+    border-color: var(--esh-ui-login-split-tab-border) var(--esh-ui-login-split-tab-border) transparent;
+}
+
+body.page-login.page-login-theme-default .login-tabs-nav.nav-tabs .nav-link.active {
+    color: var(--esh-ui-login-split-tab-active-color);
+    background: #fff;
+    border-color: var(--esh-ui-login-split-tab-border) var(--esh-ui-login-split-tab-border) #fff;
+}
+
+body.page-login.page-login-theme-default .login-tabs-content .login-mode-card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: 1px solid var(--esh-ui-login-split-tab-border) !important;
+}
+
+body.page-login.page-login-theme-default .login-tabs-content .login-mode-card:hover {
+    transform: none;
+}
+
+@media (max-width: 991.98px) {
+    body.page-login.page-login-theme-default {
+        align-items: flex-start;
+        padding: 1rem 0;
+        min-height: 100vh;
+        height: auto;
+    }
+    body.page-login.page-login-theme-default .login-card.login-card-split {
+        width: min(520px, calc(100vw - 1.25rem));
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    body.page-login.page-login-theme-default .login-card.login-card-split {
+        border-radius: 16px;
+    }
+    body.page-login.page-login-theme-default .login-header {
+        padding: 1.5rem 1rem 1.25rem;
+    }
+}

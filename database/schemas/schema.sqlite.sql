@@ -5,6 +5,20 @@
 
 PRAGMA foreign_keys = OFF;
 
+DROP TABLE IF EXISTS "esh_cds_ack";
+
+DROP TABLE IF EXISTS "esh_portal_appointment_requests";
+
+DROP TABLE IF EXISTS "esh_api_tokens";
+
+DROP TABLE IF EXISTS "esh_usbs_sync_log";
+
+DROP TABLE IF EXISTS "esh_federation_sync_log";
+
+DROP TABLE IF EXISTS "esh_esys_sync_log";
+
+DROP TABLE IF EXISTS "esh_audit_log";
+
 DROP TABLE IF EXISTS "esh_rehber_ilac";
 
 DROP TABLE IF EXISTS "esh_rehber_etken";
@@ -46,6 +60,8 @@ DROP TABLE IF EXISTS "esh_rota_cache";
 DROP TABLE IF EXISTS "esh_ekipler";
 
 DROP TABLE IF EXISTS "esh_hasta_ilaclar";
+
+DROP TABLE IF EXISTS "esh_hasta_barthel";
 
 DROP TABLE IF EXISTS "esh_hasta_mna";
 
@@ -91,15 +107,48 @@ DROP TABLE IF EXISTS "esh_guvence";
 
 DROP TABLE IF EXISTS "esh_hastalikcat";
 
+DROP TABLE IF EXISTS "esh_kurum_hastalik";
+
+DROP TABLE IF EXISTS "esh_kurum_islem";
+
+DROP TABLE IF EXISTS "esh_kurum_istek";
+
+DROP TABLE IF EXISTS "esh_kurum_brans";
+
+DROP TABLE IF EXISTS "esh_kurum_adres";
+
+DROP TABLE IF EXISTS "esh_mahalle_plan";
+
+DROP TABLE IF EXISTS "esh_federation_regions";
+
 DROP TABLE IF EXISTS "esh_kurumlar";
 
 DROP TABLE IF EXISTS "esh_adrestablosu";
+
+CREATE TABLE IF NOT EXISTS "esh_federation_regions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kod" VARCHAR(64) NOT NULL,
+  "ad" VARCHAR(255) NOT NULL,
+  "il_adi" VARCHAR(64) NULL DEFAULT NULL,
+  "hub_node_ref" VARCHAR(64) NULL DEFAULT NULL,
+  "aktif" INTEGER(1) NOT NULL DEFAULT 1,
+  "aciklama" TEXT NULL DEFAULT NULL,
+  "ayarlar_json" TEXT NULL DEFAULT NULL,
+  "olusturma_tarihi" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "uk_fed_region_kod" UNIQUE ("kod")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_fed_region_aktif" ON "esh_federation_regions" ("aktif");
+
+INSERT INTO "esh_federation_regions" ("id", "kod", "ad", "aktif", "aciklama") VALUES (1, 'varsayilan', 'Varsayılan bölge', 1, 'Kurulum sonrası otomatik oluşturulur');
 
 CREATE TABLE IF NOT EXISTS "esh_kurumlar" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   "ad" VARCHAR(255) NOT NULL,
   "kod" VARCHAR(64) NOT NULL,
   "aktif" INTEGER(1) NOT NULL DEFAULT 1,
+  "bolge_id" INTEGER NULL DEFAULT NULL,
+  "federation_ref" VARCHAR(64) NULL DEFAULT NULL,
   "logo" VARCHAR(255) DEFAULT NULL,
   "adres" TEXT DEFAULT NULL,
   "telefon" VARCHAR(64) DEFAULT NULL,
@@ -109,17 +158,21 @@ CREATE TABLE IF NOT EXISTS "esh_kurumlar" (
 );
 
 CREATE INDEX IF NOT EXISTS "idx_kurum_aktif" ON "esh_kurumlar" ("aktif");
+CREATE INDEX IF NOT EXISTS "idx_kurum_bolge" ON "esh_kurumlar" ("bolge_id");
+CREATE INDEX IF NOT EXISTS "idx_kurum_federation_ref" ON "esh_kurumlar" ("federation_ref");
 
-INSERT INTO "esh_kurumlar" ("id", "ad", "kod", "aktif") VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1);
+INSERT INTO "esh_kurumlar" ("id", "ad", "kod", "aktif", "bolge_id") VALUES (1, 'Varsayılan Kurum', 'varsayilan', 1, 1);
 
 CREATE TABLE IF NOT EXISTS "esh_adrestablosu" (
   "id" VARCHAR(64) NOT NULL,
   "adi" VARCHAR(255) NOT NULL DEFAULT '',
   "ust_id" VARCHAR(64) DEFAULT NULL,
-  "tip" VARCHAR(20) NOT NULL DEFAULT 'ilce',
+  "tip" VARCHAR(20) NOT NULL DEFAULT 'bolge',
+  "federation_bolge_id" INTEGER NULL DEFAULT NULL,
   "coords" VARCHAR(255) DEFAULT NULL,
   "has_coords" INTEGER(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY ("ust_id", "id")
+  PRIMARY KEY ("ust_id", "id"),
+  CONSTRAINT "uk_adres_fed_bolge" UNIQUE ("federation_bolge_id")
 );
 
 CREATE INDEX IF NOT EXISTS "idx_adres_id" ON "esh_adrestablosu" ("id");
@@ -213,7 +266,8 @@ CREATE TABLE IF NOT EXISTS "esh_araclar" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   "kurum_id" INTEGER NOT NULL DEFAULT 1,
   "plaka" VARCHAR(32) NOT NULL DEFAULT '',
-  "arac_bilgisi" VARCHAR(255) NOT NULL DEFAULT ''
+  "arac_bilgisi" VARCHAR(255) NOT NULL DEFAULT '',
+  "kapasite" INTEGER NOT NULL DEFAULT 4
 );
 
 CREATE INDEX IF NOT EXISTS "idx_plaka" ON "esh_araclar" ("plaka");
@@ -291,6 +345,7 @@ CREATE TABLE IF NOT EXISTS "esh_users" (
   "activation" VARCHAR(64) DEFAULT NULL,
   "isadmin" INTEGER NOT NULL DEFAULT 0,
   "kurum_id" INTEGER NULL DEFAULT 1,
+  "bolge_id" INTEGER NULL DEFAULT NULL,
   "unvan" VARCHAR(64) DEFAULT NULL,
   "ui_theme" VARCHAR(64) DEFAULT NULL,
   CONSTRAINT "uk_username" UNIQUE ("username")
@@ -298,6 +353,7 @@ CREATE TABLE IF NOT EXISTS "esh_users" (
 
 CREATE INDEX IF NOT EXISTS "idx_users_activated_name" ON "esh_users" ("activated", "name");
 CREATE INDEX IF NOT EXISTS "idx_users_kurum" ON "esh_users" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_users_bolge" ON "esh_users" ("bolge_id");
 
 CREATE TABLE IF NOT EXISTS "esh_hastalar" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -333,16 +389,6 @@ CREATE TABLE IF NOT EXISTS "esh_hastalar" (
   "diger_adres" TEXT,
   "coords" VARCHAR(255) DEFAULT NULL,
   "bagimlilik" VARCHAR(10) DEFAULT NULL,
-  "barbeslenme" INTEGER DEFAULT NULL,
-  "barbanyo" INTEGER DEFAULT NULL,
-  "barbakim" INTEGER DEFAULT NULL,
-  "bargiyinme" INTEGER DEFAULT NULL,
-  "barbarsak" INTEGER DEFAULT NULL,
-  "barmesane" INTEGER DEFAULT NULL,
-  "bartuvalet" INTEGER DEFAULT NULL,
-  "bartransfer" INTEGER DEFAULT NULL,
-  "barmobilite" INTEGER DEFAULT NULL,
-  "barmerdiven" INTEGER DEFAULT NULL,
   "pasif" VARCHAR(10) NOT NULL DEFAULT '0',
   "pasiftarihi" DATE DEFAULT NULL,
   "pasifnedeni" VARCHAR(16) DEFAULT NULL,
@@ -379,6 +425,10 @@ CREATE TABLE IF NOT EXISTS "esh_hastalar" (
   "yatak" INTEGER(1) NOT NULL DEFAULT 0,
   "hastaliklar" TEXT,
   "erapor" VARCHAR(255) DEFAULT NULL,
+  "esys_hasta_ref" VARCHAR(64) DEFAULT NULL,
+  "esys_basvuru_ref" VARCHAR(64) DEFAULT NULL,
+  "enabiz_hasta_ref" VARCHAR(64) DEFAULT NULL,
+  "usbs_hasta_ref" VARCHAR(64) DEFAULT NULL,
   "randevutarihi" DATE DEFAULT NULL,
   "zaman" INTEGER DEFAULT NULL,
   "notes" TEXT,
@@ -393,6 +443,10 @@ CREATE INDEX IF NOT EXISTS "idx_randevu_pasif_zaman" ON "esh_hastalar" ("randevu
 CREATE INDEX IF NOT EXISTS "idx_pansuman_slot" ON "esh_hastalar" ("pasif", "pansuman", "pzaman");
 CREATE INDEX IF NOT EXISTS "idx_pasif_isim" ON "esh_hastalar" ("pasif", "isim");
 CREATE INDEX IF NOT EXISTS "idx_hastalar_kurum" ON "esh_hastalar" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_hastalar_esys_hasta_ref" ON "esh_hastalar" ("esys_hasta_ref");
+CREATE INDEX IF NOT EXISTS "idx_hastalar_esys_basvuru_ref" ON "esh_hastalar" ("esys_basvuru_ref");
+CREATE INDEX IF NOT EXISTS "idx_hastalar_enabiz_ref" ON "esh_hastalar" ("enabiz_hasta_ref");
+CREATE INDEX IF NOT EXISTS "idx_hastalar_usbs_hasta_ref" ON "esh_hastalar" ("usbs_hasta_ref");
 
 CREATE TABLE IF NOT EXISTS "esh_izlemler" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -409,10 +463,17 @@ CREATE TABLE IF NOT EXISTS "esh_izlemler" (
   "checkin_lat" DECIMAL(10,7) NULL DEFAULT NULL,
   "checkin_lon" DECIMAL(10,7) NULL DEFAULT NULL,
   "checkin_at" TEXT NULL DEFAULT NULL,
+  "checkin_accuracy" DECIMAL(8,1) NULL DEFAULT NULL,
   "arac" INTEGER DEFAULT NULL,
   "brans" VARCHAR(255) DEFAULT NULL,
   "kons_istekler" VARCHAR(512) DEFAULT NULL,
-  "kons_brans_istek" TEXT DEFAULT NULL
+  "kons_brans_istek" TEXT DEFAULT NULL,
+  "esys_izlem_ref" VARCHAR(64) DEFAULT NULL,
+  "esys_konsultasyon_ref" VARCHAR(64) DEFAULT NULL,
+  "usbs_bildirim_ref" VARCHAR(64) NULL DEFAULT NULL,
+  "usbs_bildirim_durum" VARCHAR(16) NOT NULL DEFAULT '',
+  "usbs_bildirim_at" TEXT NULL DEFAULT NULL,
+  "erecete_ref" VARCHAR(64) NULL DEFAULT NULL
 );
 
 CREATE INDEX IF NOT EXISTS "idx_izlem_tc_yapildi_tarih" ON "esh_izlemler" ("hastatckimlik", "yapildimi", "izlemtarihi");
@@ -421,6 +482,9 @@ CREATE INDEX IF NOT EXISTS "idx_izlem_tarih_tc" ON "esh_izlemler" ("izlemtarihi"
 CREATE INDEX IF NOT EXISTS "idx_izlem_yapildi_tarih_dt" ON "esh_izlemler" ("yapildimi", "izlemtarihi_dt");
 CREATE INDEX IF NOT EXISTS "idx_arac" ON "esh_izlemler" ("arac");
 CREATE INDEX IF NOT EXISTS "idx_izlemler_kurum" ON "esh_izlemler" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_izlemler_esys_izlem_ref" ON "esh_izlemler" ("esys_izlem_ref");
+CREATE INDEX IF NOT EXISTS "idx_izlemler_usbs_bildirim_ref" ON "esh_izlemler" ("usbs_bildirim_ref");
+CREATE INDEX IF NOT EXISTS "idx_izlemler_usbs_bildirim_durum" ON "esh_izlemler" ("usbs_bildirim_durum");
 
 CREATE TABLE IF NOT EXISTS "esh_pizlemler" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -434,7 +498,8 @@ CREATE TABLE IF NOT EXISTS "esh_pizlemler" (
   "oncelik" INTEGER NOT NULL DEFAULT 1,
   "aciklama" TEXT,
   "notlar" TEXT,
-  "durum" INTEGER(1) NOT NULL DEFAULT 0
+  "durum" INTEGER(1) NOT NULL DEFAULT 0,
+  "esys_plan_ref" VARCHAR(64) DEFAULT NULL
 );
 
 CREATE INDEX IF NOT EXISTS "idx_plan_zaman_durum" ON "esh_pizlemler" ("planlanantarih", "zaman", "durum");
@@ -452,7 +517,8 @@ CREATE TABLE IF NOT EXISTS "esh_erapor" (
   "brans" INTEGER DEFAULT NULL,
   "kayitlimi" INTEGER(1) NOT NULL DEFAULT 0,
   "yenilendimi" INTEGER(1) NOT NULL DEFAULT 0,
-  "neden" VARCHAR(255) DEFAULT NULL
+  "neden" VARCHAR(255) DEFAULT NULL,
+  "esys_erapor_ref" VARCHAR(64) DEFAULT NULL
 );
 
 CREATE INDEX IF NOT EXISTS "idx_tc" ON "esh_erapor" ("hastatckimlik");
@@ -466,12 +532,14 @@ CREATE TABLE IF NOT EXISTS "esh_ekipler" (
   "vardiya" VARCHAR(32) DEFAULT NULL,
   "ekip_no" INTEGER DEFAULT NULL,
   "user_ids" VARCHAR(512) DEFAULT NULL,
+  "arac_id" INTEGER NULL DEFAULT NULL,
   "baslangic_saati" VARCHAR(32) DEFAULT NULL,
   "kayit_tarihi" TEXT DEFAULT NULL
 );
 
 CREATE INDEX IF NOT EXISTS "idx_tarih" ON "esh_ekipler" ("tarih");
 CREATE INDEX IF NOT EXISTS "idx_ekipler_kurum" ON "esh_ekipler" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_ekipler_arac" ON "esh_ekipler" ("arac_id");
 
 CREATE TABLE IF NOT EXISTS "esh_personel_izin" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -627,6 +695,32 @@ CREATE INDEX IF NOT EXISTS "idx_mna_hasta" ON "esh_hasta_mna" ("hasta_id");
 CREATE INDEX IF NOT EXISTS "idx_mna_tarih" ON "esh_hasta_mna" ("degerlendirme_tarihi");
 CREATE INDEX IF NOT EXISTS "idx_mna_kurum" ON "esh_hasta_mna" ("kurum_id");
 
+CREATE TABLE IF NOT EXISTS "esh_hasta_barthel" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NOT NULL DEFAULT 1,
+  "hasta_id" INTEGER NOT NULL,
+  "degerlendirme_tarihi" DATE NOT NULL,
+  "barbeslenme" INTEGER NOT NULL DEFAULT 0,
+  "barbanyo" INTEGER NOT NULL DEFAULT 0,
+  "barbakim" INTEGER NOT NULL DEFAULT 0,
+  "bargiyinme" INTEGER NOT NULL DEFAULT 0,
+  "barbarsak" INTEGER NOT NULL DEFAULT 0,
+  "barmesane" INTEGER NOT NULL DEFAULT 0,
+  "bartuvalet" INTEGER NOT NULL DEFAULT 0,
+  "bartransfer" INTEGER NOT NULL DEFAULT 0,
+  "barmobilite" INTEGER NOT NULL DEFAULT 0,
+  "barmerdiven" INTEGER NOT NULL DEFAULT 0,
+  "toplam_skor" INTEGER NOT NULL DEFAULT 0,
+  "bagimlilik_duzeyi" VARCHAR(32) NOT NULL DEFAULT '',
+  "notlar" TEXT DEFAULT NULL,
+  "kaydeden_id" INTEGER DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_barthel_hasta" ON "esh_hasta_barthel" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_barthel_tarih" ON "esh_hasta_barthel" ("degerlendirme_tarihi");
+CREATE INDEX IF NOT EXISTS "idx_barthel_kurum" ON "esh_hasta_barthel" ("kurum_id");
+
 CREATE TABLE IF NOT EXISTS "esh_rota_cache" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   "hash" VARCHAR(128) NOT NULL,
@@ -669,6 +763,11 @@ CREATE TABLE IF NOT EXISTS "esh_goruntulu_randevu" (
   "hastatckimlik" VARCHAR(11) NOT NULL,
   "notlar" VARCHAR(512) DEFAULT NULL,
   "hasta_geldi" INTEGER NULL DEFAULT NULL,
+  "video_room_id" VARCHAR(64) NULL DEFAULT NULL,
+  "video_started_at" TEXT NULL DEFAULT NULL,
+  "video_ended_at" TEXT NULL DEFAULT NULL,
+  "visit_id" INTEGER NULL DEFAULT NULL,
+  "telehealth_summary" TEXT NULL DEFAULT NULL,
   "olusturan_id" INTEGER DEFAULT NULL,
   "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "uk_gor_tarih_brans_hasta" UNIQUE ("randevu_tarihi", "brans_id", "hastatckimlik")
@@ -678,6 +777,8 @@ CREATE INDEX IF NOT EXISTS "idx_gor_randevu_tarih" ON "esh_goruntulu_randevu" ("
 CREATE INDEX IF NOT EXISTS "idx_gor_randevu_hasta" ON "esh_goruntulu_randevu" ("hastatckimlik");
 CREATE INDEX IF NOT EXISTS "idx_gor_randevu_brans_tarih" ON "esh_goruntulu_randevu" ("brans_id", "randevu_tarihi");
 CREATE INDEX IF NOT EXISTS "idx_gor_randevu_kurum" ON "esh_goruntulu_randevu" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_gor_video_room" ON "esh_goruntulu_randevu" ("video_room_id");
+CREATE INDEX IF NOT EXISTS "idx_gor_visit" ON "esh_goruntulu_randevu" ("visit_id");
 
 CREATE TABLE IF NOT EXISTS "esh_hasta_nakil" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -907,6 +1008,127 @@ CREATE TABLE IF NOT EXISTS "esh_eimza_login_logs" (
 CREATE INDEX IF NOT EXISTS "idx_eimza_logs_user_created" ON "esh_eimza_login_logs" ("user_id", "created_at");
 CREATE INDEX IF NOT EXISTS "idx_eimza_logs_tc_created" ON "esh_eimza_login_logs" ("tc_kimlikno", "created_at");
 CREATE INDEX IF NOT EXISTS "idx_eimza_logs_success_created" ON "esh_eimza_login_logs" ("success", "created_at");
+
+CREATE TABLE IF NOT EXISTS "esh_audit_log" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NULL DEFAULT NULL,
+  "user_id" INTEGER NULL DEFAULT NULL,
+  "action" VARCHAR(64) NOT NULL,
+  "entity_type" VARCHAR(32) NOT NULL DEFAULT '',
+  "entity_id" INTEGER NULL DEFAULT NULL,
+  "entity_ref" VARCHAR(64) NULL DEFAULT NULL,
+  "ip_address" VARCHAR(64) NULL DEFAULT NULL,
+  "user_agent" VARCHAR(255) NULL DEFAULT NULL,
+  "request_uri" VARCHAR(512) NULL DEFAULT NULL,
+  "context_json" TEXT NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_audit_user_created" ON "esh_audit_log" ("user_id", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_audit_action_created" ON "esh_audit_log" ("action", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_audit_entity" ON "esh_audit_log" ("entity_type", "entity_id");
+CREATE INDEX IF NOT EXISTS "idx_audit_kurum_created" ON "esh_audit_log" ("kurum_id", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_audit_entity_ref" ON "esh_audit_log" ("entity_ref", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_audit_created" ON "esh_audit_log" ("created_at");
+
+CREATE TABLE IF NOT EXISTS "esh_esys_sync_log" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NULL DEFAULT NULL,
+  "user_id" INTEGER NULL DEFAULT NULL,
+  "direction" VARCHAR(24) NOT NULL,
+  "status" VARCHAR(16) NOT NULL,
+  "file_name" VARCHAR(255) NULL DEFAULT NULL,
+  "stats_json" TEXT NULL DEFAULT NULL,
+  "error_message" VARCHAR(512) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_esys_sync_created" ON "esh_esys_sync_log" ("created_at");
+CREATE INDEX IF NOT EXISTS "idx_esys_sync_kurum_created" ON "esh_esys_sync_log" ("kurum_id", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_esys_sync_direction" ON "esh_esys_sync_log" ("direction", "created_at");
+
+CREATE TABLE IF NOT EXISTS "esh_api_tokens" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "user_id" INTEGER NOT NULL,
+  "kurum_id" INTEGER NULL DEFAULT NULL,
+  "label" VARCHAR(128) NOT NULL DEFAULT '',
+  "token_prefix" VARCHAR(16) NOT NULL,
+  "token_hash" CHAR(64) NOT NULL,
+  "scopes" VARCHAR(255) NOT NULL DEFAULT 'read',
+  "expires_at" TEXT NULL DEFAULT NULL,
+  "last_used_at" TEXT NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "revoked_at" TEXT NULL DEFAULT NULL
+);
+
+CREATE INDEX IF NOT EXISTS "idx_api_token_prefix" ON "esh_api_tokens" ("token_prefix");
+CREATE INDEX IF NOT EXISTS "idx_api_token_user" ON "esh_api_tokens" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_api_token_kurum" ON "esh_api_tokens" ("kurum_id");
+
+CREATE TABLE IF NOT EXISTS "esh_federation_sync_log" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "user_id" INTEGER NULL DEFAULT NULL,
+  "direction" VARCHAR(32) NOT NULL,
+  "status" VARCHAR(16) NOT NULL,
+  "file_name" VARCHAR(255) NULL DEFAULT NULL,
+  "stats_json" TEXT NULL DEFAULT NULL,
+  "error_message" VARCHAR(512) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_fed_sync_created" ON "esh_federation_sync_log" ("created_at");
+CREATE INDEX IF NOT EXISTS "idx_fed_sync_direction" ON "esh_federation_sync_log" ("direction", "created_at");
+
+CREATE TABLE IF NOT EXISTS "esh_usbs_sync_log" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "kurum_id" INTEGER NULL DEFAULT NULL,
+  "user_id" INTEGER NULL DEFAULT NULL,
+  "direction" VARCHAR(24) NOT NULL,
+  "status" VARCHAR(16) NOT NULL,
+  "file_name" VARCHAR(255) NULL DEFAULT NULL,
+  "stats_json" TEXT NULL DEFAULT NULL,
+  "error_message" VARCHAR(512) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_usbs_sync_created" ON "esh_usbs_sync_log" ("created_at");
+CREATE INDEX IF NOT EXISTS "idx_usbs_sync_kurum_created" ON "esh_usbs_sync_log" ("kurum_id", "created_at");
+CREATE INDEX IF NOT EXISTS "idx_usbs_sync_direction" ON "esh_usbs_sync_log" ("direction", "created_at");
+
+CREATE TABLE IF NOT EXISTS "esh_portal_appointment_requests" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "hasta_id" INTEGER NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "uhds_id" INTEGER NOT NULL,
+  "talep_tarihi" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "mevcut_tarih" DATE NOT NULL,
+  "talep_tarih" DATE NOT NULL,
+  "talep_zaman" INTEGER NULL DEFAULT NULL,
+  "neden" VARCHAR(500) NOT NULL,
+  "durum" VARCHAR(20) NOT NULL DEFAULT 'queued',
+  "durum_notu" VARCHAR(500) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TEXT NULL DEFAULT NULL
+);
+
+CREATE INDEX IF NOT EXISTS "idx_portal_req_hasta" ON "esh_portal_appointment_requests" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_portal_req_kurum" ON "esh_portal_appointment_requests" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_portal_req_durum" ON "esh_portal_appointment_requests" ("durum");
+CREATE INDEX IF NOT EXISTS "idx_portal_req_uhds" ON "esh_portal_appointment_requests" ("uhds_id");
+
+CREATE TABLE IF NOT EXISTS "esh_cds_ack" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  "hasta_id" INTEGER NOT NULL,
+  "kurum_id" INTEGER NOT NULL,
+  "alert_code" VARCHAR(80) NOT NULL,
+  "ack_by_user_id" INTEGER NULL DEFAULT NULL,
+  "ack_note" VARCHAR(500) NULL DEFAULT NULL,
+  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "idx_cds_ack_hasta" ON "esh_cds_ack" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_cds_ack_kurum" ON "esh_cds_ack" ("kurum_id");
+CREATE INDEX IF NOT EXISTS "idx_cds_ack_code" ON "esh_cds_ack" ("alert_code");
 
 CREATE TABLE IF NOT EXISTS "esh_rehber_import_log" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

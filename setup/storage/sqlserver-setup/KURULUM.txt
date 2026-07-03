@@ -1,0 +1,39 @@
+SQL SERVER 2022 EXPRESS — KURULUM (basit)
+============================================
+
+Dosya konumu:
+  C:\xampp\htdocs\storage\sqlserver-setup\SQL2022-SSEI-Expr.exe
+
+NASIL KURULUR
+-------------
+1) SQL2022-SSEI-Expr.exe dosyasına SAĞ TIK → "Yönetici olarak çalıştır"
+   (Çift tık yetmeyebilir; mutlaka yönetici olarak çalıştırın.)
+
+2) Kurulum sihirbazı açılınca:
+   - "Basic" (Temel) seçeneğini seçin (en kolay yol)
+   - Instance adı: SQLEXPRESS (varsayılan kalsın)
+   - Lisansı kabul edin
+   - Kurulum bitsin (internet gerekir; ek dosyalar indirilir)
+
+3) Kurulum bitince Başlat menüsünden "SQL Server Management Studio" (SSMS) açın.
+
+4) Bağlantı penceresinde:
+   Server name:     localhost\SQLEXPRESS
+   Authentication:  Windows Authentication  (önce bunu deneyin)
+   Connect
+
+   Olmazsa:
+   Authentication:  SQL Server Authentication
+   Login:           sa
+   Password:        (Basic kurulumda SA şifresi sormazsa Windows ile girin)
+
+5) SSMS'te: File → Open → File
+   Dosya: C:\xampp\htdocs\storage\sqlserver-setup\post_install_esh4.sql
+   Execute (F5) tuşuna basın.
+
+OTOMATIK KURULUM (ileri seviye)
+-------------------------------
+Yönetici CMD/PowerShell:
+  C:\xampp\htdocs\tools\install_sqlserver_express.cmd
+
+Sorun olursa: SSMS'te gördüğünüz hata mesajını not alın.

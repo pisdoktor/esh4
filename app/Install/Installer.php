@@ -18,7 +18,9 @@ final class Installer
     public const SUPERADMIN_NAME = 'Süper Yönetici';
     public const SUPERADMIN_UNVAN = 'doktor';
     public const SUPERADMIN_EMAIL = 'esh@esh.local';
-    public const SUPERADMIN_ISADMIN = 2;
+    public const PLATFORM_OWNER_ISADMIN = 3;
+    /** @deprecated Kurulum hesabı artık PLATFORM_OWNER_ISADMIN (3) kullanır */
+    public const SUPERADMIN_ISADMIN = 3;
     public const SUPERADMIN_TC = '10000000146';
     public const SUPERADMIN_REGISTER_DATE = '2024-03-14 00:00:00';
     public const DEFAULT_DB_PREFIX = 'esh_';
@@ -435,6 +437,7 @@ final class Installer
             'seed_esh_islemler.sql' => 'Evde sağlık işlemleri',
             'seed_esh_istekler.sql' => 'Konsültasyon istek türleri',
             'seed_esh_adrestablosu.sql' => 'Adres ağacı',
+            'seed_esh_adrestablosu_bolge_tier.sql' => 'Adres ağacı — bölge katmanı',
         ];
         $catalog = [];
         foreach (self::seedSqlPaths() as $index => $path) {
@@ -676,7 +679,7 @@ final class Installer
         }
 
         $adminTc = self::SUPERADMIN_TC;
-        $isadmin = self::SUPERADMIN_ISADMIN;
+        $isadmin = self::PLATFORM_OWNER_ISADMIN;
         $hasAdminRow = $db->fetchOnePrepared('SELECT 1 AS ok FROM #__users WHERE id = ?', [1]) !== null;
 
         $userData = [

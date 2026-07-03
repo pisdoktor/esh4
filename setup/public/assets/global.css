@@ -1,0 +1,5 @@
+/**
+ * @deprecated Yeni yükleme: ThemeViewHelper::renderHeadStylesheetsHtml()
+ * Geriye dönük uyumluluk: yalnızca app-shell (renkler theme.css / default-chrome.css).
+ */
+@import url('app-shell.css');

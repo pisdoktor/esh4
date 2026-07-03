@@ -1,0 +1,1 @@
+<?php /** @var array $rows */ /** @var int $total */ /** @var int $bilinmeyen */ ?>

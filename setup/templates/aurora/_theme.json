@@ -1,0 +1,14 @@
+{
+    "name": "Aurora Light",
+    "slug": "aurora",
+    "surum": "1.2.14",
+    "olusturulma_tarihi": "2026-05-29",
+    "guncelleme_tarihi": "2026-06-01",
+    "olusturan": "Cursor (Opus 4.8)",
+    "aciklama": "Tamamen açık (light) modern glassmorphism görünüm: kırık-beyaz tuval üzerinde hafif indigo/menekşe/teal aurora gradyanları, buzlu cam komut çubuğu, yumuşak gölgeli geniş yuvarlatılmış kartlar, gradyan vurgu butonları ve pastel rozetler. Yalnızca CSS + kabuk (header/footer/login); gövde sayfaları paylaşılan partial/Bootstrap üzerinden bu katmanla yeniden giydirilir. Kapsam dışı dosyalar `templates/default/` ve `views/`'e düşer. Etkinleştirme: `active_theme` veya profil `ui_theme` => `aurora`. Yalnızca `body.aurora-theme` altında uygulanır.",
+    "css_stack": [
+        "aurora"
+    ],
+    "body_class": "app-shell aurora-theme d-flex flex-column min-vh-100",
+    "main_class": "esh-app-main aurora-main flex-grow-1 d-flex flex-column py-4"
+}

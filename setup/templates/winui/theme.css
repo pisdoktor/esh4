@@ -1,0 +1,1222 @@
+/**
+ * WinUI / Fluent — Windows 11 light shell (ESH)
+ * Yalnızca body.fluent-winui ile yüklenir (templates/winui/partials/header).
+ */
+
+:root {
+    /* Fluent / Win11 light — accent Microsoft blue */
+    --fluent-accent: #0078d4;
+    --fluent-accent-secondary: #106ebe;
+    --fluent-accent-tertiary: #005a9e;
+    --fluent-accent-subtle: rgba(0, 120, 212, 0.1);
+    --fluent-accent-glow: rgba(0, 120, 212, 0.22);
+    --fluent-bg-page: #f3f3f3;
+    --fluent-bg-page-top: #fafafa;
+    --fluent-bg-layer-base: #ffffff;
+    --fluent-bg-layer-alt: #f5f5f5;
+    --fluent-stroke-control: #c4c4c4;
+    --fluent-stroke-card: rgba(0, 0, 0, 0.057);
+    --fluent-text-primary: #1a1a1a;
+    --fluent-text-secondary: #5d5d5d;
+    --fluent-text-disabled: #b0b0b0;
+     1px 2px rgba(0, 0, 0, 0.055), 0 2px 8px rgba(0, 0, 0, 0.035);
+     4px 16px rgba(0, 0, 0, 0.09), 0 1px 3px rgba(0, 0, 0, 0.06);
+     1px 0 rgba(255, 255, 255, 0.65) inset, 0 1px 2px rgba(0, 0, 0, 0.04);
+    px;
+    px;
+    2px;
+    .17s cubic-bezier(0.33, 0, 0.25, 1);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Kabuk & tipografi                                                         */
+/* ------------------------------------------------------------------------- */
+
+.9375rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    font-feature-settings: "kern" 1, "liga" 1;
+    color: var(--fluent-text-primary);
+    background-color: var(--fluent-bg-page);
+    background-image:
+        radial-gradient(ellipse 120% 70% at 100% -15%, rgba(0, 120, 212, 0.075), transparent 52%),
+        radial-gradient(ellipse 90% 55% at -5% 105%, rgba(0, 90, 158, 0.045), transparent 48%),
+        linear-gradient(180deg, var(--fluent-bg-page-top) 0%, var(--fluent-bg-page) 48%, #ebebeb 100%);
+    background-attachment: fixed;
+}
+
+body.fluent-winui ::selection {
+    background: var(--fluent-accent-subtle);
+    color: var(--fluent-text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.fluent-winui *,
+    body.fluent-winui *::before,
+    body.fluent-winui *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body.fluent-winui .fluent-app-main {
+    padding: 1.25rem 0 1.75rem;
+}
+
+@media (min-width: 992px) {
+    body.fluent-winui .fluent-app-main {
+        padding: 1.5rem 0 2.25rem;
+    }
+}
+
+/* Mica / acrylic komut çubuğu */
+body.fluent-winui .navbar {
+    background: color-mix(in srgb, rgba(255, 255, 255, 0.82) 88%, transparent) !important;
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.055) !important;
+    box-shadow: var(--fluent-shadow-navbar) !important;
+    min-height: 52px;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+body.fluent-winui .navbar .navbar-brand,
+body.fluent-winui .navbar .nav-link,
+body.fluent-winui .navbar .dropdown-toggle {
+    color: var(--fluent-text-primary) !important;
+}
+
+body.fluent-winui .navbar .navbar-brand .bg-primary {
+    background-color: var(--fluent-accent) !important;
+    border-radius: var(--fluent-radius-control) !important;
+    box-shadow: 0 1px 3px rgba(0, 120, 212, 0.35);
+}
+
+body.fluent-winui .navbar .navbar-brand .text-primary {
+    color: var(--fluent-accent) !important;
+}
+
+body.fluent-winui .navbar .nav-link {
+    border-radius: var(--fluent-radius-control);
+    padding: 0.45rem 0.7rem !important;
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color var(--fluent-motion), color var(--fluent-motion), box-shadow var(--fluent-motion);
+}
+
+body.fluent-winui .navbar .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.045);
+    color: var(--fluent-accent) !important;
+}
+
+body.fluent-winui .navbar .nav-link.active {
+    color: var(--fluent-accent) !important;
+    font-weight: 600;
+    background-color: var(--fluent-accent-subtle);
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body.fluent-winui .navbar .nav-link.border-bottom {
+    border-bottom: none !important;
+}
+
+body.fluent-winui .navbar .navbar-nav.me-auto > .nav-item > .nav-link {
+    color: var(--fluent-text-primary) !important;
+}
+
+body.fluent-winui .navbar .navbar-nav.me-auto > .nav-item > .nav-link:hover {
+    color: var(--fluent-accent-tertiary) !important;
+}
+
+body.fluent-winui .navbar .navbar-toggler {
+    border-radius: var(--fluent-radius-control);
+    border-color: var(--fluent-stroke-control);
+}
+
+body.fluent-winui .navbar .dropdown-menu {
+    margin-top: 0.35rem !important;
+}
+
+body.fluent-winui .navbar .nav-link.dropdown-toggle.bg-warning {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Admin mega menü — kart yüzeyleri */
+body.fluent-winui .esh-admin-mega-menu {
+    border-radius: var(--fluent-radius-overlay) !important;
+    border: 1px solid var(--fluent-stroke-card) !important;
+    box-shadow: var(--fluent-shadow-elevated) !important;
+    padding: 1.25rem 1.35rem !important;
+    background: var(--fluent-bg-layer-base) !important;
+}
+
+body.fluent-winui .esh-admin-mega-menu .bg-light-subtle {
+    background: var(--fluent-bg-layer-alt) !important;
+    border-color: var(--fluent-stroke-card) !important;
+    border-radius: var(--fluent-radius-card) !important;
+}
+
+body.fluent-winui .esh-admin-mega-menu .dropdown-item {
+    padding: 0.45rem 0.65rem;
+    font-size: var(--esh-ui-mega-menu-item-font-size);
+}
+
+body.fluent-winui .esh-admin-mega-menu .dropdown-item:hover,
+body.fluent-winui .esh-admin-mega-menu .dropdown-item:focus {
+    background-color: rgba(0, 0, 0, 0.045) !important;
+}
+
+body.fluent-winui .esh-admin-mega-menu .dropdown-item.active {
+    background-color: var(--fluent-accent-subtle) !important;
+    color: var(--fluent-accent-tertiary) !important;
+    font-weight: 600;
+}
+
+/* Kullanıcı chip */
+body.fluent-winui .navbar .nav-link.bg-secondary.bg-opacity-10 {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    color: var(--fluent-text-primary) !important;
+}
+
+body.fluent-winui .fluent-winui-footer.fluent-footer-shell {
+    background: color-mix(in srgb, rgba(255, 255, 255, 0.82) 90%, transparent);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-top: 1px solid rgba(0, 0, 0, 0.055);
+}
+
+body.fluent-winui .fluent-badge-soft {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    font-weight: 500;
+    border-radius: var(--fluent-radius-control);
+}
+
+body.fluent-winui .fluent-badge-accent {
+    border-radius: var(--fluent-radius-control);
+    font-weight: 600;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Kartlar & yüzeyler                                                        */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .card,
+body.fluent-winui .fluent-layer-card {
+    border-radius: var(--fluent-radius-card) !important;
+    border: 1px solid var(--fluent-stroke-card) !important;
+    box-shadow: var(--fluent-shadow-rest) !important;
+    background: var(--fluent-bg-layer-base) !important;
+    /* clip açılır menü / tooltip keser; köşe yuvarlaklığı border-radius ile kalır */
+    overflow: visible;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, transparent 42%);
+}
+
+/* Kartta Bootstrap .overflow-hidden kullanılıyorsa menü yine kesilir — açık dropdown anında gevşet */
+body.fluent-winui .card:has(.dropdown-menu.show),
+body.fluent-winui .fluent-layer-card:has(.dropdown-menu.show),
+body.fluent-winui .card.overflow-hidden:has(.dropdown-menu.show),
+body.fluent-winui .fluent-layer-card.overflow-hidden:has(.dropdown-menu.show) {
+    overflow: visible !important;
+}
+
+/* Tablo yatay kaydırmalı sarmalayıcı menüyü kesmesin (açıkken overflow gevşer) */
+body.fluent-winui .table-responsive:has(.dropdown-menu.show) {
+    overflow: visible !important;
+}
+
+body.fluent-winui .table .dropdown-menu {
+    z-index: 1060;
+}
+
+body.fluent-winui .esh-page-patient-unified.fluent-hasta-unified {
+    overflow: visible;
+}
+
+body.fluent-winui .esh-page-patient-unified .card,
+body.fluent-winui .esh-page-patient-unified .card-body,
+body.fluent-winui .esh-page-patient-unified .table-responsive,
+body.fluent-winui .esh-page-patient-unified .table,
+body.fluent-winui .esh-page-patient-unified tbody {
+    overflow: visible !important;
+}
+
+body.fluent-winui .esh-page-patient-unified .card:has(.dropdown.show) .card-footer {
+    position: relative;
+    z-index: 0;
+}
+
+body.fluent-winui .esh-page-patient-unified.fluent-hasta-unified tbody tr:has(.dropdown.show) {
+    position: relative;
+    z-index: 20;
+}
+
+body.fluent-winui .esh-page-patient-unified tbody td:has(.dropdown.show),
+body.fluent-winui .esh-page-patient-unified tbody td:has(.esh-patient-mega-dropdown) {
+    overflow: visible !important;
+}
+
+body.fluent-winui .esh-page-patient-unified .dropdown-menu {
+    z-index: 1065 !important;
+}
+
+body.fluent-winui .izlem-list-page.fluent-izlem-index tbody tr:has(.dropdown.show) {
+    position: relative;
+    z-index: 20;
+}
+
+body.fluent-winui .izlem-list-page .dropdown-menu {
+    z-index: 1065 !important;
+}
+
+body.fluent-winui .plan-list-page.fluent-izlem-plan-index tbody tr:has(.dropdown.show) {
+    position: relative;
+    z-index: 20;
+}
+
+body.fluent-winui .plan-list-page.fluent-izlem-plan-index .dropdown-menu {
+    z-index: 1065 !important;
+}
+
+body.fluent-winui .plan-list-page .card:has(.dropdown.show) .card-footer {
+    position: relative;
+    z-index: 0;
+}
+
+/* Açık yüzey: renkli Bootstrap başlıkları (.bg-primary vb.) hariç — yoksa açık zemin + beyaz yazı çakışır */
+body.fluent-winui .card-header:not(.bg-primary):not(.bg-secondary):not(.bg-success):not(.bg-danger):not(.bg-info):not(.bg-dark):not(.bg-warning):not(.text-white) {
+    border-bottom: 1px solid var(--fluent-stroke-card) !important;
+    background: linear-gradient(180deg, #fdfdfd 0%, #f8f8f8 100%) !important;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+}
+
+body.fluent-winui .card-header.text-white .fluent-page-title,
+body.fluent-winui .card-header.text-white h1,
+body.fluent-winui .card-header.text-white h2,
+body.fluent-winui .card-header.text-white h3,
+body.fluent-winui .card-header.text-white h4,
+body.fluent-winui .card-header.text-white h5,
+body.fluent-winui .card-header.text-white h6 {
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.text-white .fluent-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/*
+ * Renkli kart başlığı — özellikle İzlem oluştur (`bg-success`) / düzenle (`bg-primary`):
+ * Bazı yükleme sıralarında veya önbellekte açık başlık kuralı yine de baskın gelebilir;
+ * bu blok renk + kontrastı kesinler.
+ */
+body.fluent-winui .card-header.bg-primary {
+    background: linear-gradient(180deg, #178be8 0%, var(--fluent-accent) 52%, var(--fluent-accent-secondary) 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-success {
+    background: linear-gradient(180deg, #2fb344 0%, #198754 52%, #157347 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.14) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-secondary {
+    background: linear-gradient(180deg, #8c959f 0%, #6c757d 52%, #565e64 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.14) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-danger {
+    background: linear-gradient(180deg, #e98590 0%, #dc3545 52%, #b02a37 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-dark {
+    background: linear-gradient(180deg, #495057 0%, #343a40 52%, #212529 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-info.text-white {
+    background: linear-gradient(180deg, #39d4f0 0%, #0dcaf0 52%, #0aa2c0 100%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) .fluent-page-title,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h1,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h2,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h3,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h4,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h5,
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) h6 {
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header:is(.bg-primary, .bg-success, .bg-secondary, .bg-danger, .bg-dark, .bg-info.text-white) .fluent-subtitle {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+body.fluent-winui .card-footer {
+    background: var(--fluent-bg-layer-alt) !important;
+    border-top-color: var(--fluent-stroke-card) !important;
+}
+
+body.fluent-winui .fluent-hover-tilt {
+    transition: transform var(--fluent-motion), box-shadow var(--fluent-motion);
+}
+
+body.fluent-winui .fluent-hover-tilt:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--fluent-shadow-elevated) !important;
+}
+
+body.fluent-winui .fluent-stat-panel {
+    border: 1px solid var(--fluent-stroke-card) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+    border-radius: var(--fluent-radius-overlay) !important;
+    box-shadow: var(--fluent-shadow-rest);
+}
+
+body.fluent-winui .fluent-page-title {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    font-size: clamp(1.125rem, 1rem + 0.35vw, 1.35rem);
+}
+
+body.fluent-winui .fluent-subtitle {
+    color: var(--fluent-text-secondary) !important;
+    max-width: 52rem;
+}
+
+/*
+ * Genel .fluent-subtitle yukarıda !important ile gri; renkli kart başlığında (planla, create, edit…)
+ * bu blok dosya sırasıyla sonradan gelerek kontrastı garanti eder (PlannedVisit create = planla).
+ */
+body.fluent-winui .card-header.bg-primary .fluent-page-title,
+body.fluent-winui .card-header.bg-success .fluent-page-title,
+body.fluent-winui .card-header.bg-secondary .fluent-page-title,
+body.fluent-winui .card-header.bg-danger .fluent-page-title,
+body.fluent-winui .card-header.bg-dark .fluent-page-title,
+body.fluent-winui .card-header.bg-info.text-white .fluent-page-title {
+    color: #fff !important;
+}
+
+body.fluent-winui .card-header.bg-primary .fluent-subtitle,
+body.fluent-winui .card-header.bg-success .fluent-subtitle,
+body.fluent-winui .card-header.bg-secondary .fluent-subtitle,
+body.fluent-winui .card-header.bg-danger .fluent-subtitle,
+body.fluent-winui .card-header.bg-dark .fluent-subtitle,
+body.fluent-winui .card-header.bg-info.text-white .fluent-subtitle {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+body.fluent-winui .fluent-izlem-plan .fluent-layer-card > .card-header.bg-primary.text-white .fluent-page-title,
+body.fluent-winui .fluent-izlem-plan .fluent-layer-card > .card-header.bg-primary.text-white .fluent-subtitle,
+body.fluent-winui .izlem-plan-page .card > .card-header.bg-primary.text-white .fluent-page-title,
+body.fluent-winui .izlem-plan-page .card > .card-header.bg-primary.text-white .fluent-subtitle {
+    color: #fff !important;
+}
+
+body.fluent-winui .fluent-izlem-plan .fluent-layer-card > .card-header.bg-primary.text-white .fluent-subtitle,
+body.fluent-winui .izlem-plan-page .card > .card-header.bg-primary.text-white .fluent-subtitle {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+body.fluent-winui .fluent-page {
+    animation: fluent-page-in 0.28s cubic-bezier(0.33, 0, 0.25, 1) both;
+}
+
+@keyframes fluent-page-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.fluent-winui .fluent-page {
+        animation: none;
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Düğmeler                                                                  */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .btn {
+    border-radius: var(--fluent-radius-control);
+    font-weight: 600;
+    transition: background-color var(--fluent-motion), border-color var(--fluent-motion), box-shadow var(--fluent-motion), filter var(--fluent-motion);
+}
+
+body.fluent-winui .btn-primary {
+    background: linear-gradient(180deg, #178be8 0%, var(--fluent-accent) 48%, var(--fluent-accent-secondary) 100%);
+    border-color: var(--fluent-accent-secondary);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 1px 3px rgba(0, 120, 212, 0.28);
+}
+
+body.fluent-winui .btn-primary:hover,
+body.fluent-winui .btn-primary:focus {
+    background: linear-gradient(180deg, #1f93ea 0%, #1783da 55%, var(--fluent-accent-secondary) 100%);
+    border-color: var(--fluent-accent-secondary);
+    filter: brightness(1.02);
+}
+
+body.fluent-winui .btn-outline-secondary {
+    border-color: rgba(0, 0, 0, 0.14);
+    color: var(--fluent-text-primary);
+    background: rgba(255, 255, 255, 0.65);
+}
+
+body.fluent-winui .btn-outline-secondary:hover {
+    background: rgba(0, 0, 0, 0.045);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: var(--fluent-text-primary);
+}
+
+body.fluent-winui .btn-outline-primary {
+    color: var(--fluent-accent);
+    border-color: color-mix(in srgb, var(--fluent-accent) 48%, #fff);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+body.fluent-winui .btn-outline-primary:hover {
+    background: var(--fluent-accent-subtle);
+    color: var(--fluent-accent-tertiary);
+    border-color: var(--fluent-accent);
+}
+
+body.fluent-winui .btn:focus-visible {
+    outline: 2px solid var(--fluent-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--fluent-accent-glow);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Formlar                                                                   */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .form-control,
+body.fluent-winui .form-select,
+body.fluent-winui .input-group-text {
+    border-radius: var(--fluent-radius-control) !important;
+    border-color: var(--fluent-stroke-control);
+    transition: border-color var(--fluent-motion), box-shadow var(--fluent-motion);
+}
+
+body.fluent-winui .form-control:focus,
+body.fluent-winui .form-select:focus {
+    border-color: var(--fluent-accent);
+    box-shadow: 0 0 0 1px var(--fluent-accent), 0 0 0 4px var(--fluent-accent-glow);
+}
+
+body.fluent-winui .form-label {
+    color: var(--fluent-text-secondary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+}
+
+/* Tom Select jetonları */
+body.fluent-winui {
+    --esh-ts-control-bg: var(--fluent-bg-layer-base);
+    --esh-ts-control-border: var(--fluent-stroke-control);
+    --esh-ts-control-color: var(--fluent-text-primary);
+    --esh-ts-control-radius: var(--fluent-radius-control, 0.5rem);
+    --esh-ts-control-focus-border: var(--fluent-accent);
+    --esh-ts-control-focus-shadow: 0 0 0 1px var(--fluent-accent), 0 0 0 4px var(--fluent-accent-glow);
+    --esh-ts-caret-color: var(--fluent-accent);
+    --esh-ts-dropdown-bg: var(--fluent-bg-layer-base);
+    --esh-ts-dropdown-border: var(--fluent-stroke-card);
+    --esh-ts-dropdown-color: var(--fluent-text-primary);
+    --esh-ts-dropdown-shadow: var(--fluent-shadow-elevated, 0 4px 16px rgba(0, 0, 0, 0.09));
+    --esh-ts-option-active-bg: var(--fluent-accent);
+    --esh-ts-option-active-color: #ffffff;
+    --esh-ts-item-bg: var(--fluent-accent-subtle);
+    --esh-ts-item-border: rgba(0, 120, 212, 0.28);
+    --esh-ts-item-color: var(--fluent-accent);
+    --esh-ts-item-remove-border: rgba(0, 120, 212, 0.3);
+    --esh-ts-item-remove-hover-bg: rgba(0, 120, 212, 0.14);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Tablolar                                                                  */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .table {
+    --bs-table-border-color: var(--fluent-stroke-card);
+}
+
+body.fluent-winui .table thead th {
+    background: var(--fluent-bg-layer-alt);
+    color: var(--fluent-text-secondary);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+    border-bottom: 1px solid var(--fluent-stroke-card);
+}
+
+body.fluent-winui .table-hover > tbody > tr:hover > * {
+    background-color: rgba(0, 120, 212, 0.045);
+}
+
+body.fluent-winui .table tbody td {
+    vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Yardımcılar                                                               */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .badge.bg-primary,
+body.fluent-winui .bg-primary {
+    background-color: var(--fluent-accent) !important;
+}
+
+body.fluent-winui .text-primary {
+    color: var(--fluent-accent) !important;
+}
+
+body.fluent-winui a:not(.btn):not(.nav-link):not(.dropdown-item):not(.page-link) {
+    color: var(--fluent-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+body.fluent-winui a:not(.btn):not(.nav-link):not(.dropdown-item):not(.page-link):hover {
+    color: var(--fluent-accent-secondary);
+}
+
+body.fluent-winui .dropdown-menu {
+    border-radius: var(--fluent-radius-overlay);
+    border: 1px solid var(--fluent-stroke-card);
+    box-shadow: var(--fluent-shadow-elevated);
+    padding: 0.4rem;
+}
+
+body.fluent-winui .dropdown-item {
+    border-radius: var(--fluent-radius-control);
+    padding: 0.45rem 0.65rem;
+    font-size: 0.875rem;
+}
+
+body.fluent-winui .dropdown-item:hover,
+body.fluent-winui .dropdown-item:focus {
+    background: rgba(0, 0, 0, 0.045);
+}
+
+body.fluent-winui .breadcrumb {
+    --bs-breadcrumb-divider-color: var(--fluent-text-disabled);
+    font-size: 0.875rem;
+}
+
+body.fluent-winui .alert {
+    border-radius: var(--fluent-radius-card);
+    border-width: 1px;
+}
+
+body.fluent-winui .modal-content {
+    border-radius: var(--fluent-radius-overlay);
+    border: 1px solid var(--fluent-stroke-card);
+    box-shadow: var(--fluent-shadow-elevated);
+}
+
+body.fluent-winui .pagination .page-link {
+    border-radius: var(--fluent-radius-control);
+}
+
+body.fluent-winui .nav-tabs .nav-link {
+    border-radius: var(--fluent-radius-control) var(--fluent-radius-control) 0 0;
+}
+
+body.fluent-winui ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body.fluent-winui ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+body.fluent-winui ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.26);
+    background-clip: padding-box;
+}
+
+body.fluent-winui ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Site hasta modülü                                                         */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .fluent-hasta .fluent-layer-card.shadow-sm:not(.fluent-hover-tilt:hover) {
+    transition: box-shadow var(--fluent-motion), border-color var(--fluent-motion);
+}
+
+/* Hasta düzenleme: hover’da transform yeni stacking context açar; Tom Select listesi alttaki kartın altında kalır */
+body.fluent-winui .fluent-hasta-edit .fluent-hover-tilt:hover {
+    transform: none;
+}
+
+body.fluent-winui form.fluent-hasta-filter-panel {
+    box-shadow: var(--fluent-shadow-rest) !important;
+    border-color: var(--fluent-stroke-card) !important;
+}
+
+body.fluent-winui .fluent-hasta-detail-main > .card-header {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+body.fluent-winui .fluent-hasta-detail-main > .card-header .btn {
+    font-weight: 600;
+}
+
+body.fluent-winui .fluent-hastailacrapor-index .card.shadow-sm > .card-header {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+body.fluent-winui .fluent-hastailacrapor-index .card.fluent-layer-card.shadow-sm:not(.fluent-hover-tilt:hover) {
+    transition: box-shadow var(--fluent-motion), border-color var(--fluent-motion);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Site izlem ve planlı izlem (Fluent)                                       */
+/* ------------------------------------------------------------------------- */
+
+body.fluent-winui .fluent-izlem-plan .izlem-plan-panel {
+    border-color: var(--fluent-stroke-card) !important;
+    background-color: var(--fluent-bg-layer-base) !important;
+    box-shadow: var(--fluent-shadow-rest) !important;
+}
+
+body.fluent-winui .fluent-izlem-arac-picker .border-bottom {
+    border-color: var(--fluent-stroke-card) !important;
+}
+
+body.fluent-winui .fluent-izlem-ek3-consult .izlem-arac-picker .border-bottom {
+    border-color: var(--fluent-stroke-card) !important;
+}
+
+body.fluent-winui .hastailacrapor-brans-picker .border-bottom {
+    border-color: var(--fluent-stroke-card) !important;
+}
+
+/* Site: e-Rapor, nöbet, rota, kullanıcı (Fluent sayfa kökleri)               */
+
+body.fluent-winui .fluent-rota-shell.planning-wrapper {
+    border-color: var(--fluent-stroke-card) !important;
+    box-shadow: var(--fluent-shadow-rest) !important;
+}
+
+body.fluent-winui .fluent-rota-ekip-card {
+    border: 1px solid var(--fluent-stroke-card) !important;
+}
+
+body.fluent-winui .fluent-nobet-mine .card-header {
+    border-bottom-color: var(--fluent-stroke-card) !important;
+}
+
+/* Dashboard — günün planı işlem rozeti (BS varsayılan --bs-badge-color: #fff; açık kartta okunmuyor) */
+body.fluent-winui .esh-page-dashboard .esh-daily-plan-card__badge {
+    --bs-badge-color: var(--fluent-text-primary);
+    color: var(--fluent-text-primary) !important;
+    background-color: var(--fluent-bg-layer-alt) !important;
+    border-color: var(--fluent-stroke-control) !important;
+    font-weight: 600;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Giriş — Windows 11 Fluent oturum yüzeyi (templates/winui/login.php)       */
+/* ------------------------------------------------------------------------- */
+
+/* Tüm Fluent giriş varyantları (winui / winui-dark — `page-login-theme-*`) */
+.01em;
+}
+
+body.page-login.fluent-login-winui .fluent-login-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Win11 kilit / ayarlar benzeri katmanlı “bulut” zemin */
+    background:
+        radial-gradient(ellipse 120% 80% at 12% -5%, rgba(0, 120, 212, 0.2), transparent 52%),
+        radial-gradient(ellipse 90% 70% at 88% 102%, rgba(120, 160, 200, 0.22), transparent 48%),
+        radial-gradient(ellipse 60% 45% at 50% 50%, rgba(255, 255, 255, 0.45), transparent 70%),
+        linear-gradient(168deg, #e9edf2 0%, #f2f4f7 42%, #dde5ee 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    body.page-login.fluent-login-winui .fluent-login-backdrop {
+        animation: fluent-login-backdrop-drift 18s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes fluent-login-backdrop-drift {
+    0% {
+        filter: saturate(1);
+    }
+    100% {
+        filter: saturate(1.08);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.page-login.fluent-login-winui .fluent-login-backdrop {
+        animation: none;
+    }
+}
+
+body.page-login.fluent-login-winui .fluent-login-shell {
+    z-index: 1;
+}
+
+/* Diyalog kartı — derin gölge + hafif iç ışık (Win11 yüzen panel) */
+body.page-login.fluent-login-winui .fluent-login-split {
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: var(--fluent-radius-overlay) !important;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.55) inset,
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 12px 40px rgba(0, 0, 0, 0.1),
+        0 32px 64px rgba(0, 0, 0, 0.06) !important;
+    overflow: hidden;
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-col {
+    position: relative;
+    background: linear-gradient(
+        152deg,
+        #004578 0%,
+        var(--fluent-accent-tertiary, #005a9e) 18%,
+        var(--fluent-accent, #0078d4) 45%,
+        #1a6cbd 78%,
+        #1e2a3a 118%
+    );
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-col::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, transparent 42%),
+        radial-gradient(ellipse 80% 60% at 20% 100%, rgba(0, 0, 0, 0.15), transparent 55%);
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-col > * {
+    position: relative;
+    z-index: 1;
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-icon {
+    width: 3.35rem;
+    height: 3.35rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-size: 1.65rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-icon-inline {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.35rem;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #1a8cff 0%, var(--fluent-accent) 45%, var(--fluent-accent-secondary) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 6px 16px rgba(0, 90, 158, 0.35);
+}
+
+body.page-login.fluent-login-winui .fluent-login-brand-kicker {
+    letter-spacing: 0.16em;
+    font-size: 0.7rem;
+}
+
+body.page-login.fluent-login-winui .fluent-login-highlight {
+    opacity: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.page-login.fluent-login-winui .fluent-login-version-pill {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.42) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+body.page-login.fluent-login-winui .fluent-login-form-col {
+    border-left: 1px solid rgba(0, 0, 0, 0.06);
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fc 55%, #f2f4f8 100%) !important;
+}
+
+@media (max-width: 991.98px) {
+    body.page-login.fluent-login-winui .fluent-login-form-col {
+        border-left: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+}
+
+body.page-login.fluent-login-winui .fluent-login-heading {
+    font-family: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    font-size: clamp(1.5rem, 1.35rem + 0.45vw, 1.85rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+}
+
+body.page-login.fluent-login-winui .fluent-login-form-col header p.small {
+    font-size: 0.8125rem;
+    color: var(--fluent-text-secondary) !important;
+    letter-spacing: 0.01em;
+}
+
+body.page-login.fluent-login-winui .fluent-login-alert {
+    border-radius: var(--fluent-radius-card);
+    border-width: 1px;
+}
+
+body.page-login.fluent-login-winui .fluent-login-input-group .input-group-text {
+    border-color: var(--fluent-stroke-control, #c4c4c4);
+    border-radius: var(--fluent-radius-control) 0 0 var(--fluent-radius-control) !important;
+    background: #fafbfc !important;
+}
+
+body.page-login.fluent-login-winui .fluent-login-input-group .form-control {
+    border-color: var(--fluent-stroke-control, #c4c4c4);
+    border-radius: 0 var(--fluent-radius-control) var(--fluent-radius-control) 0 !important;
+    font-size: 0.9375rem;
+    min-height: 2.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background: #fff;
+}
+
+body.page-login.fluent-login-winui .fluent-login-input-group .form-control:focus {
+    border-color: var(--fluent-accent);
+    box-shadow: 0 0 0 1px var(--fluent-accent), 0 0 0 4px var(--fluent-accent-glow);
+}
+
+body.page-login.fluent-login-winui .fluent-login-form .form-label {
+    color: var(--fluent-text-secondary);
+    font-size: 0.8125rem;
+    margin-bottom: 0.35rem;
+}
+
+body.page-login.fluent-login-winui .fluent-login-submit {
+    border-radius: var(--fluent-radius-control);
+    letter-spacing: 0.03em;
+    border: none;
+    min-height: 2.75rem;
+    background: linear-gradient(180deg, #28a0f0 0%, var(--fluent-accent, #0078d4) 42%, var(--fluent-accent-secondary, #106ebe) 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 14px rgba(0, 103, 192, 0.35),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.page-login.fluent-login-winui .fluent-login-submit:hover {
+    filter: brightness(1.04);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.32) inset,
+        0 6px 20px rgba(0, 103, 192, 0.38),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+body.page-login.fluent-login-winui .fluent-login-submit:focus-visible {
+    outline: 2px solid var(--fluent-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--fluent-accent-glow);
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs {
+    border-bottom: 1px solid var(--fluent-stroke-control, #c4c4c4);
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs .nav-link {
+    width: 100%;
+    font-weight: 600;
+    color: var(--fluent-text-secondary, #5b5b5b);
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: var(--fluent-radius-control, 0.5rem) var(--fluent-radius-control, 0.5rem) 0 0;
+    padding: 0.6rem 0.5rem;
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs .nav-link:hover {
+    color: var(--fluent-accent, #0078d4);
+    background: rgba(0, 120, 212, 0.06);
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs .nav-link.active {
+    color: var(--fluent-accent, #0078d4);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: inset 0 -2px 0 var(--fluent-accent, #0078d4);
+}
+
+body.page-login.fluent-login-winui .fluent-login-tabs-nav.nav-tabs .nav-link:focus-visible {
+    outline: 2px solid var(--fluent-accent);
+    outline-offset: 2px;
+}
+
+body.page-login.fluent-login-winui .fluent-login-eimza-badge {
+    background: rgba(91, 91, 91, 0.16);
+    color: var(--fluent-text-secondary, #5b5b5b);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+body.page-login.fluent-login-winui .fluent-login-shell .text-muted.small.text-center {
+    font-size: 0.75rem;
+    color: var(--fluent-text-secondary) !important;
+    opacity: 0.92;
+}
+
+/* Branş randevu takvimi — hafta sonu hücreleri (Fluent açık kabuk) */
+body.fluent-winui.app-shell .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-white {
+    background-color: #e8eaed !important;
+}
+body.fluent-winui.app-shell .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.bg-light {
+    background-color: #dde1e6 !important;
+}
+body.fluent-winui.app-shell .esh-page-randevu a.esh-randevu-cal__cell.esh-randevu-cal__cell--weekend.border-primary.border-2 {
+    background-color: rgba(0, 120, 212, 0.12) !important;
+}
+
+/* --------------------------------------------------------------------------
+   ESH sayfa dili (--esh-ui-*) — docs/ESH_PAGE_LANGUAGE.md
+   -------------------------------------------------------------------------- */
+
+body.app-shell.fluent-winui {
+  --esh-ui-text: var(--fluent-text-primary);
+  --esh-ui-text-muted: var(--fluent-text-secondary);
+  --esh-ui-accent: var(--fluent-accent);
+  --esh-ui-surface: var(--fluent-bg-layer-base);
+  --esh-ui-surface-muted: var(--fluent-bg-layer-alt);
+  --esh-ui-border: var(--fluent-stroke-card);
+  --esh-ui-radius: var(--fluent-radius-card);
+  --esh-ui-shadow: var(--fluent-shadow-rest);
+  --esh-ui-table-head-bg: var(--fluent-bg-layer-alt);
+  --esh-ui-table-head-color: var(--fluent-text-secondary);
+  --esh-ui-row-hover: var(--fluent-accent-subtle);
+  --esh-ui-coords-git-bg: linear-gradient(180deg, #4cc2ff 0%, #0078d4 100%);
+  --esh-ui-coords-git-bg-hover: linear-gradient(180deg, #7dd4ff 0%, #106ebe 100%);
+  --esh-ui-coords-git-border: #005a9e;
+  --esh-ui-coords-git-border-hover: #106ebe;
+  --esh-ui-surface-subtle: #f8f9fa;
+  --esh-ui-surface-warning: #fff9e6;
+  --esh-ui-soft-danger-bg: rgba(248, 215, 218, 0.4);
+  --esh-ui-soft-info-bg: rgba(207, 244, 252, 0.4);
+  --esh-ui-card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  --esh-ui-print-surface: #ffffff;
+  --esh-ui-panel-subtitle-size: 0.8125rem;
+  --esh-ui-table-head-font-size: 0.7rem;
+  --esh-ui-table-head-letter-spacing: 0.04em;
+  --esh-ui-table-head-padding: 0.75rem 0.5rem;
+  --esh-ui-font-size-xs: 0.68rem;
+  --esh-ui-font-size-sm: 0.78rem;
+  --esh-ui-font-size-badge: 0.62rem;
+  --esh-ui-dropdown-font-size: 0.78rem;
+  --esh-ui-dropdown-header-font-size: 0.65rem;
+  --esh-ui-dropdown-header-letter-spacing: 0.5px;
+  --esh-ui-dropdown-menu-radius: 10px;
+  --esh-ui-dropdown-menu-border: var(--esh-ui-border);
+  --esh-ui-dropdown-item-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-bg: var(--esh-ui-surface);
+  --esh-ui-btn-ghost-border: var(--esh-ui-border);
+  --esh-ui-btn-ghost-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-hover-color: var(--esh-ui-accent);
+  --esh-ui-filter-control-height: 38px;
+  --esh-ui-alert-success-bg: #d1e7dd;
+  --esh-ui-alert-success-color: #0f5132;
+  --esh-ui-alert-success-border: #badbcc;
+  --esh-ui-alert-warning-bg: #fff3cd;
+  --esh-ui-alert-warning-color: #664d03;
+  --esh-ui-alert-warning-border: #ffecb5;
+  --esh-ui-alert-danger-bg: #f8d7da;
+  --esh-ui-alert-danger-color: #842029;
+  --esh-ui-alert-danger-border: #f5c2c7;
+  --esh-ui-alert-info-bg: #cff4fc;
+  --esh-ui-alert-info-color: #055160;
+  --esh-ui-alert-info-border: #b6effb;
+  --esh-ui-navbar-link-font-size: 0.9rem;
+  --esh-ui-navbar-dropdown-font-size: 0.88rem;
+  --esh-ui-table-head-border-bottom: 2px solid #e2e8f0;
+  --esh-ui-patient-row-hover-bg: #f1f5f9;
+  --esh-ui-tc-code-bg: #f1f5f9;
+  --esh-ui-tc-code-color: #475569;
+  --esh-ui-tc-code-font-size: 0.75rem;
+  --esh-ui-tc-code-radius: 4px;
+  --esh-ui-tc-copy-flash-outline: rgba(13, 110, 253, 0.35);
+  --esh-ui-status-badge-border: #e2e8f0;
+  --esh-ui-status-badge-radius: 8px;
+  --esh-ui-status-badge-bg: #ffffff;
+  --esh-ui-btn-xs-font-size: 0.7rem;
+  --esh-ui-avatar-sm-size: 32px;
+  --esh-ui-avatar-sm-font-size: 0.8rem;
+  --esh-ui-small-text-font-size: 0.75rem;
+  --esh-ui-calendar-day-hover-bg: #f0f4f8;
+  --esh-ui-calendar-day-hover-ring: rgba(13, 110, 253, 0.28);
+  --esh-ui-cal-task-font-size: 0.65rem;
+  --esh-ui-cal-badge-font-size: 0.7rem;
+  --esh-ui-cal-legend-font-size: 0.75rem;
+  --esh-ui-scrollbar-thumb: #e0e0e0;
+  --esh-ui-scrollbar-radius: 10px;
+  --esh-ui-dash-plan-tabs-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --esh-ui-daily-plan-badge-font-size: 0.65rem;
+  --esh-ui-daily-plan-meta-font-size: 0.75rem;
+  --esh-ui-daily-section-font-size: 1rem;
+  --esh-ui-route-tab-font-size: 1.05rem;
+  --esh-ui-route-tab-font-size-sm: 0.95rem;
+  --esh-ui-route-tab-font-weight: 600;
+  --esh-ui-route-tab-font-weight-active: 700;
+  --esh-ui-route-tab-text: #334155;
+  --esh-ui-route-tab-bg: #f1f5f9;
+  --esh-ui-route-tab-border: #e2e8f0;
+  --esh-ui-route-tab-border-hover: #cbd5e1;
+  --esh-ui-route-tab-hover-bg: #ffffff;
+  --esh-ui-route-tab-hover-text: #0f172a;
+  --esh-ui-route-tab-active-text: #0f172a;
+  --esh-ui-route-tab-active-bg: #ffffff;
+  --esh-ui-route-tab-active-shadow: rgba(15, 23, 42, 0.06);
+  --esh-ui-route-tab-accent-sabah: #f59e0b;
+  --esh-ui-route-tab-accent-ogle: #3b82f6;
+  --esh-ui-route-tab-accent-aksam: #6366f1;
+  --esh-ui-route-tab-active-sabah: #b45309;
+  --esh-ui-route-tab-active-ogle: #1d4ed8;
+  --esh-ui-route-tab-active-aksam: #4338ca;
+  --esh-ui-route-tab-badge-empty: #94a3b8;
+  --esh-ui-route-tab-badge-font-size: 0.82rem;
+  --esh-ui-route-tab-badge-font-size-sm: 0.75rem;
+  --esh-ui-route-tab-icon-size: 1.15rem;
+  --esh-ui-route-tab-min-height: 3.35rem;
+  --esh-ui-route-tab-min-height-sm: 3rem;
+  --esh-ui-detail-tabs-bg: linear-gradient(180deg, #f1f3f5 0%, #e9ecef 100%);
+  --esh-ui-detail-tab-active-bar: #0d6efd;
+  --esh-ui-detail-tab-link-bg: rgba(255, 255, 255, 0.35);
+  --esh-ui-detail-tab-hover-bg: #ffffff;
+  --esh-ui-detail-tab-hover-inset: rgba(13, 110, 253, 0.35);
+  --esh-ui-detail-tab-active-bg: #ffffff;
+  --esh-ui-detail-tab-active-text: #0a58ca;
+  --esh-ui-detail-tab-genel-text: #212529;
+  --esh-ui-detail-tab-pansuman-text: #0a58ca;
+  --esh-ui-detail-tab-sonda-text: #b02a37;
+  --esh-ui-detail-tab-mama-text: #cc9a06;
+  --esh-ui-detail-tab-bez-text: #087990;
+  --esh-ui-care-item-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --esh-ui-care-label-font-size: 0.68rem;
+  --esh-ui-care-value-font-size: 0.875rem;
+  --esh-ui-care-icon-font-size: 0.95rem;
+  --esh-ui-barthel-tooltip-font-size: 0.8125rem;
+  --esh-ui-barthel-pts-font-size: 0.7rem;
+  --esh-ui-diagnosis-rapor-font-size: 0.58rem;
+  --esh-ui-coords-btn-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+  --esh-ui-coords-btn-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.24);
+  --esh-ui-coords-bul-bg: linear-gradient(180deg, #fcd34d 0%, #f59e0b 100%);
+  --esh-ui-coords-bul-bg-hover: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  --esh-ui-coords-bul-border: #d97706;
+  --esh-ui-coords-bul-border-hover: #b45309;
+  --esh-ui-coords-bul-color: #1e293b;
+  --esh-ui-coords-bul-color-hover: #0f172a;
+  --esh-ui-coords-git-color: #ffffff;
+  --esh-ui-pansuman-day-font-size: 0.8rem;
+  --esh-ui-mega-menu-col-bg: rgba(248, 250, 252, 0.9);
+  --esh-ui-mega-menu-col-border: rgba(0, 0, 0, 0.06);
+  --esh-ui-mega-menu-head-font-size: 0.78rem;
+  --esh-ui-mega-menu-title-font-size: 0.68rem;
+  --esh-ui-mega-menu-item-font-size: 0.82rem;
+  --esh-ui-login-card-max: 48rem;
+  --esh-ui-login-page-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --esh-ui-login-font-family: 'Inter', sans-serif;
+  --esh-ui-login-card-width: min(392px, calc(100vw - 2rem));
+  --esh-ui-login-card-radius: 20px;
+  --esh-ui-login-card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  --esh-ui-login-header-bg: #0d6efd;
+  --esh-ui-login-header-color: #ffffff;
+  --esh-ui-login-header-icon-size: 2.75rem;
+  --esh-ui-login-input-radius: 10px;
+  --esh-ui-login-input-padding: 12px;
+  --esh-ui-login-input-border: #eeeeee;
+  --esh-ui-login-btn-radius: 10px;
+  --esh-ui-login-btn-padding: 12px;
+  --esh-ui-login-split-page-bg: radial-gradient(circle at 15% 20%, rgba(13, 110, 253, 0.12), transparent 32%),        radial-gradient(circle at 85% 10%, rgba(32, 201, 151, 0.1), transparent 28%),        linear-gradient(135deg, #eef3fb 0%, #dbe6f6 100%);
+  --esh-ui-login-split-card-width: min(520px, calc(100vw - 2.25rem));
+  --esh-ui-login-split-card-radius: 24px;
+  --esh-ui-login-split-card-shadow: 0 22px 56px rgba(15, 23, 42, 0.18);
+  --esh-ui-login-split-card-border: 1px solid rgba(13, 110, 253, 0.14);
+  --esh-ui-login-split-header-bg: linear-gradient(120deg, #0d6efd 0%, #3b82f6 55%, #22c1c3 100%);
+  --esh-ui-login-split-brand-icon-size: 1.45rem;
+  --esh-ui-login-split-subtitle-font-size: 0.88rem;
+  --esh-ui-login-split-mode-border: #dbe4f2;
+  --esh-ui-login-split-normal-accent: #0d6efd;
+  --esh-ui-login-split-eimza-accent: #94a3b8;
+  --esh-ui-login-split-tab-color: #64748b;
+  --esh-ui-login-split-tab-active-color: #0d6efd;
+  --esh-ui-login-split-tab-border: #dbe4f2;
+  --esh-ui-login-split-input-border: #d6deea;
+  --esh-ui-login-split-input-group-bg: #f8fafc;
+  --esh-ui-hier-header-bg: #37474f;
+  --esh-ui-hier-header-color: #ffffff;
+  --esh-ui-hier-column-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --esh-ui-hier-item-divider: #f0f0f0;
+  --esh-ui-hier-item-active-bg: #e3f2fd;
+  --esh-ui-hier-empty-text: #adb5bd;
+  --esh-ui-input-focus-border: #86b7fe;
+  --esh-ui-input-focus-ring: rgba(13, 110, 253, 0.25);
+  --esh-ui-profile-border-faint: rgba(0, 0, 0, 0.05);
+  --esh-ui-profile-aside-gradient: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  --esh-ui-profile-section-head-gradient: linear-gradient(180deg, #fdfdfd 0%, #ffffff 100%);
+  --esh-ui-profile-security-head-gradient: linear-gradient(180deg, #fffbfb 0%, #ffffff 100%);
+  --esh-ui-profile-btn-primary-shadow: 0 2px 8px rgba(13, 110, 253, 0.22);
+  --esh-ui-pansuman-label-inset-shadow: rgba(0, 0, 0, 0.2);
+  --esh-ui-ekip-box-border: #dddddd;
+  --esh-ui-danger-text: #dc3545;
+  --esh-ui-plan-doluluk-banner-bg: linear-gradient(180deg, rgba(255, 251, 235, 0.55) 0%, rgba(248, 250, 252, 0.95) 100%);
+  --esh-ui-pasif-banner-bg: linear-gradient(180deg, rgba(254, 226, 226, 0.45) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --esh-ui-arac-choice-hover-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.08);
+  --esh-ui-stats-metric-fg: #ffffff;
+  --esh-ui-stats-metric-overlay: rgba(255, 255, 255, 0.25);
+  --esh-ui-stats-metric-pill-bg: rgba(255, 255, 255, 0.2);
+  --esh-ui-font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --esh-ui-font-size-base: 0.9375rem;
+  --esh-ui-line-height: 1.5;
+  --esh-ui-heading-size: 1.35rem;
+  --esh-ui-lead-size: 0.9375rem;
+  --esh-ui-font-weight-heading: 700;
+}

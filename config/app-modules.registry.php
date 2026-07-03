@@ -52,7 +52,26 @@ return [
                 'tomtomGeocodeAjax',
                 'tomtomMapKeyAjax',
                 'tomtomRouteAjax',
+                'geocodeAjax',
+                'mapConfigAjax',
+                'routeAjax',
             ],
+        ],
+    ],
+    'modern_frontend' => [
+        'key' => 'modern_frontend',
+        'label' => 'Modern frontend pilot',
+        'description' => 'Vue 3 dashboard / plan özeti — oturum tabanlı JSON.',
+        'group' => 'core',
+        'default' => true,
+        'toggleable' => true,
+        'routes' => [
+            'ModernFrontend' => [
+                'pilotData',
+            ],
+        ],
+        'controllers' => [
+            'ModernFrontend',
         ],
     ],
     'patient' => [
@@ -75,6 +94,7 @@ return [
                 'deleteBraden',
                 'deleteHarizmi',
                 'deleteItaki',
+                'deleteBarthel',
                 'deleteMna',
                 'deleteNote',
                 'deletePatientPhoto',
@@ -243,6 +263,7 @@ return [
                 'braden',
                 'charts',
                 'chronologyIssues',
+                'clinicalDecisionSupport',
                 'clinicalProfile',
                 'dataHealth',
                 'dataHealthContent',
@@ -422,6 +443,23 @@ return [
             ],
         ],
     ],
+    'patient_portal' => [
+        'key' => 'patient_portal',
+        'label' => 'Hasta / bakım veren portalı',
+        'description' => 'TC + telefon ile oturum; plan, ziyaret özeti ve SMS onayı.',
+        'group' => 'public',
+        'default' => true,
+        'toggleable' => false,
+        'routes' => [
+            'PatientPortal' => [
+                'doLogin',
+                'index',
+                'login',
+                'logout',
+                'updateSmsConsent',
+            ],
+        ],
+    ],
     'erapor' => [
         'key' => 'erapor',
         'label' => 'e-Rapor',
@@ -479,12 +517,18 @@ return [
         'toggleable' => true,
         'routes' => [
             'Uhds' => [
+                'completeSession',
                 'dayAppointmentRows',
                 'delete',
                 'index',
+                'patientJoinLink',
                 'patientSearch',
+                'patientVideo',
+                'patientVideoConfig',
                 'store',
                 'updateGeldi',
+                'video',
+                'videoConfig',
             ],
         ],
         'controllers' => [
@@ -754,7 +798,7 @@ return [
     'harita' => [
         'key' => 'harita',
         'label' => 'Hasta haritası',
-        'description' => 'TomTom tabanlı hasta haritası (yönetim).',
+        'description' => 'Hasta haritası — çoklu sağlayıcı (yönetim).',
         'group' => 'admin',
         'default' => true,
         'toggleable' => true,
@@ -763,6 +807,8 @@ return [
                 'index',
                 'tomtomMapKeyAjax',
                 'tomtomRouteAjax',
+                'mapConfigAjax',
+                'routeAjax',
             ],
         ],
         'controllers' => [
@@ -927,22 +973,133 @@ return [
         'routes' => [
             'DbMaintenance' => [
                 'analyze',
+                'analyzeTable',
                 'check',
+                'checkTable',
                 'createBackup',
+                'createGroupBackup',
                 'createTableBackup',
                 'deleteBackup',
                 'download',
                 'index',
                 'optimize',
+                'optimizeTable',
                 'restoreBackup',
                 'restoreTableBackup',
+            ],
+        ],
+    ],
+    'audit_log' => [
+        'key' => 'audit_log',
+        'label' => 'İşlem günlüğü (denetim)',
+        'description' => 'KVKK / iç denetim — hasta, izlem, dışa aktarma ve oturum kayıtları.',
+        'group' => 'admin',
+        'default' => true,
+        'toggleable' => false,
+        'routes' => [
+            'AuditLog' => [
+                'index',
+                'indexRows',
+            ],
+        ],
+    ],
+    'esys_compliance' => [
+        'key' => 'esys_compliance',
+        'label' => 'ESYS uyum hazırlığı',
+        'description' => 'ESYS alan eşlemesi, dosya köprüsü ve referans numaraları.',
+        'group' => 'admin',
+        'default' => true,
+        'toggleable' => false,
+        'routes' => [
+            'EsysCompliance' => [
+                'index',
+            ],
+            'EsysBridge' => [
+                'export',
+                'importRefs',
+                'index',
+                'syncLogRows',
+            ],
+        ],
+        'controllers' => [
+            'EsysCompliance',
+            'EsysBridge',
+        ],
+    ],
+    'usbs_compliance' => [
+        'key' => 'usbs_compliance',
+        'label' => 'USBS / e-Nabız uyum hazırlığı',
+        'description' => 'USBS alan eşlemesi, izlem bildirimi köprüsü ve referans numaraları.',
+        'group' => 'admin',
+        'default' => true,
+        'toggleable' => false,
+        'routes' => [
+            'UsbsCompliance' => [
+                'index',
+            ],
+            'UsbsBridge' => [
+                'export',
+                'importRefs',
+                'index',
+                'syncLogRows',
+            ],
+        ],
+        'controllers' => [
+            'UsbsCompliance',
+            'UsbsBridge',
+        ],
+    ],
+    'federation' => [
+        'key' => 'federation',
+        'label' => 'Federasyon / çok bölgeli SaaS',
+        'description' => 'Bölge yönetimi, süper yönetici bölge filtresi ve dosya köprüsü.',
+        'group' => 'admin',
+        'default' => true,
+        'toggleable' => false,
+        'routes' => [
+            'Federation' => [
+                'index',
+                'setBolgeFilter',
+            ],
+            'FederationRegion' => [
+                'create',
+                'delete',
+                'edit',
+                'index',
+                'store',
+            ],
+            'FederationBridge' => [
+                'export',
+                'importBundle',
+                'index',
+                'syncLogRows',
+            ],
+        ],
+        'controllers' => [
+            'Federation',
+            'FederationRegion',
+            'FederationBridge',
+        ],
+    ],
+    'rest_api' => [
+        'key' => 'rest_api',
+        'label' => 'REST API (v1)',
+        'description' => 'Bearer token ile /api/v1/patients, visits, plans JSON uçları.',
+        'group' => 'admin',
+        'default' => false,
+        'toggleable' => true,
+        'routes' => [
+            'ApiToken' => [
+                'index',
+                'revoke',
+                'store',
             ],
         ],
     ],
     'cdn_check' => [
         'key' => 'cdn_check',
         'label' => 'CDN sürüm denetimi',
-        'description' => 'Harici CDN paket sürüm kontrolü (süper yönetici).',
+        'description' => 'Harici CDN paket sürüm kontrolü (sistem sahibi).',
         'group' => 'admin',
         'default' => true,
         'toggleable' => false,

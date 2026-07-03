@@ -1,0 +1,381 @@
+/* —— Tanı raporu düzenleme modalı —— */
+.hastailacrapor-edit-modal .modal-dialog {
+    max-width: min(720px, calc(100vw - 1.25rem));
+    max-height: calc(100vh - 1rem);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-content {
+    max-height: calc(100vh - 1rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 0.75rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-form {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-header {
+    flex-shrink: 0;
+    position: relative;
+    padding: 1.25rem 1.25rem 0.5rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-header__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-subtitle {
+    line-height: 1.4;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-bottom: 1rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-footer {
+    flex-shrink: 0;
+    padding: 0.875rem 1.25rem;
+    box-shadow: 0 -0.35rem 1rem rgba(0, 0, 0, 0.04);
+}
+
+/* Bölümler */
+.hastailacrapor-edit-modal .hastailacrapor-modal-section {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.08));
+    border-radius: 0.65rem;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.85rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-section__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-section__step {
+    flex-shrink: 0;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb), 0.12));
+    color: var(--bs-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-section__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-modal-section__desc {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.15rem;
+}
+
+/* Rapor durumu — segment kartları */
+.hastailacrapor-edit-modal .hastailacrapor-segment-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border-width: 1.5px !important;
+    min-height: 5rem;
+    transition: box-shadow 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-segment-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.35rem 0.9rem rgba(0, 0, 0, 0.07);
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-segment-btn__icon {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-segment-btn__label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-segment-btn__hint {
+    font-size: 0.68rem;
+    color: var(--bs-secondary-color);
+    font-weight: 400;
+}
+
+.hastailacrapor-edit-modal .btn-check:checked + .hastailacrapor-segment-btn.btn-outline-primary {
+    box-shadow: 0 0.25rem 0.75rem rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.hastailacrapor-edit-modal .btn-check:checked + .hastailacrapor-segment-btn.btn-outline-secondary {
+    background-color: var(--bs-secondary);
+    border-color: var(--bs-secondary);
+    color: #fff;
+}
+
+.hastailacrapor-edit-modal .btn-check:checked + .hastailacrapor-segment-btn.btn-outline-secondary .hastailacrapor-segment-btn__hint,
+.hastailacrapor-edit-modal .btn-check:checked + .hastailacrapor-segment-btn.btn-outline-secondary .hastailacrapor-segment-btn__icon {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Bitiş tarihi */
+.hastailacrapor-edit-modal .hastailacrapor-date-input .input-group-text {
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-date-input .form-control {
+    border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* Rapor yeri — pill grubu */
+.hastailacrapor-edit-modal .hastailacrapor-pill-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-pill-btn {
+    flex: 1 1 50%;
+    border-radius: 2rem !important;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-width: 1.5px !important;
+}
+
+.hastailacrapor-edit-modal .btn-check:checked + .hastailacrapor-pill-btn {
+    box-shadow: 0 0.2rem 0.6rem rgba(var(--bs-primary-rgb), 0.22);
+}
+
+/* Branş seçici */
+.hastailacrapor-edit-modal .hastailacrapor-brans-scroll {
+    max-height: min(42vh, 15rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 576px) {
+    .hastailacrapor-edit-modal .hastailacrapor-brans-scroll {
+        max-height: min(40vh, 17rem);
+    }
+}
+
+@media (min-width: 992px) {
+    .hastailacrapor-edit-modal .hastailacrapor-brans-scroll {
+        max-height: min(38vh, 19rem);
+    }
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-brans-picker__choice {
+    border-width: 1.5px !important;
+    transition: box-shadow 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+    min-height: 2.75rem;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-brans-picker__choice:hover {
+    box-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-brans-picker__name {
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-brans-picker .btn-check:focus-visible + .btn-outline-primary.hastailacrapor-brans-picker__choice {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.hastailacrapor-edit-modal .hastailacrapor-brans-picker__item.hastailacrapor-brans-picker__item--hidden {
+    display: none !important;
+}
+
+/* Sekmeler + özet şeridi */
+.hastailacrapor-tabs .nav-link {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.hastailacrapor-summary-strip__value {
+    font-size: 1.35rem;
+    line-height: 1.2;
+}
+
+.hastailacrapor-filter-bar .btn.active {
+    font-weight: 600;
+}
+
+.hastailacrapor-ilac-quick-add .form-label {
+    margin-bottom: 0.25rem;
+}
+
+/*
+ * İlaç adı öneri listesi (JSON; randevu hasta araması ile aynı list-group kalıbı).
+ * Yüksek z-index tek başına yetmez: kardeş kolonlar / tablo sonradan boyanır.
+ */
+.hastailacrapor-index .card-body,
+.hastailacrapor-index .tab-content,
+.hastailacrapor-index #tab-ilaclar {
+    overflow: visible;
+}
+
+.hastailacrapor-index #tab-ilaclar .table-responsive {
+    position: relative;
+    z-index: 1;
+}
+
+.hastailacrapor-ilac-adi-wrap {
+    position: relative;
+    overflow: visible;
+    z-index: 1;
+}
+
+.hastailacrapor-ilac-adi-wrap:has(.hastailacrapor-ilac-suggest:not([hidden])) {
+    z-index: 50;
+}
+
+.hastailacrapor-ilac-quick-add > [class*='col-']:has(.hastailacrapor-ilac-adi-wrap) {
+    position: relative;
+    z-index: 2;
+}
+
+.hastailacrapor-ilac-suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 51;
+    max-height: 14rem;
+    overflow-y: auto;
+    margin-top: 0.125rem;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color-translucent, var(--bs-border-color));
+}
+
+/* Tema list-group stilleri yarı saydam; öneri kutusu opak olmalı (tablo / form arkası görünmesin). */
+.hastailacrapor-ilac-suggest .list-group-item {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color-translucent, var(--bs-border-color));
+}
+
+.hastailacrapor-ilac-suggest .list-group-item-action:hover,
+.hastailacrapor-ilac-suggest .list-group-item-action:focus {
+    background-color: var(--bs-tertiary-bg, var(--bs-secondary-bg));
+    color: inherit;
+}
+
+body.fluent-winui .fluent-hastailacrapor-index .hastailacrapor-ilac-suggest,
+body.fluent-winui .fluent-hastailacrapor-index .hastailacrapor-ilac-suggest .list-group-item {
+    background-color: var(--fluent-bg-layer-base, #fff);
+    border-color: var(--fluent-stroke-card, var(--bs-border-color));
+}
+
+body.fluent-winui .fluent-hastailacrapor-index .hastailacrapor-ilac-suggest .list-group-item-action:hover,
+body.fluent-winui .fluent-hastailacrapor-index .hastailacrapor-ilac-suggest .list-group-item-action:focus {
+    background-color: var(--fluent-bg-layer-alt, #f5f5f5);
+}
+
+body.theme-meridian .hastailacrapor-ilac-suggest,
+body.theme-meridian .hastailacrapor-ilac-suggest .list-group-item {
+    background-color: var(--mr-bg1, #111b2e);
+    color: var(--mr-text, inherit);
+    border-color: var(--mr-border, rgba(148, 163, 184, 0.22));
+}
+
+body.theme-meridian .hastailacrapor-ilac-suggest .list-group-item-action:hover,
+body.theme-meridian .hastailacrapor-ilac-suggest .list-group-item-action:focus {
+    background-color: #1a2740;
+    color: var(--mr-text, inherit);
+}
+
+body.theme-meridian.theme-meridian-soft .hastailacrapor-ilac-suggest,
+body.theme-meridian.theme-meridian-soft .hastailacrapor-ilac-suggest .list-group-item {
+    background-color: #fff;
+}
+
+body.theme-meridian.theme-meridian-soft .hastailacrapor-ilac-suggest .list-group-item-action:hover,
+body.theme-meridian.theme-meridian-soft .hastailacrapor-ilac-suggest .list-group-item-action:focus {
+    background-color: #f0fdfa;
+}
+
+body.theme-meridian.theme-evcare .hastailacrapor-ilac-suggest,
+body.theme-meridian.theme-evcare .hastailacrapor-ilac-suggest .list-group-item {
+    background-color: #fffefb;
+}
+
+body.theme-meridian.theme-evcare .hastailacrapor-ilac-suggest .list-group-item-action:hover,
+body.theme-meridian.theme-evcare .hastailacrapor-ilac-suggest .list-group-item-action:focus {
+    background-color: #f5f3ee;
+}
+
+.hastailacrapor-ilac-suggest__meta {
+    line-height: 1.25;
+    margin-top: 0.1rem;
+}
+
+body.fluent-winui .fluent-hastailacrapor-index .card.fluent-layer-card:has(.hastailacrapor-ilac-suggest:not([hidden])) {
+    overflow: visible !important;
+}
+
+/*
+ * Meridian / Meridian Soft — templates/meridian/theme.css .card { overflow: clip }
+ * öneri listesini keser veya tablo satırlarının altında kalır (.mr-page--hastailacrapor-index).
+ */
+body.theme-meridian .mr-page--hastailacrapor-index .card,
+body.theme-meridian .mr-page--hastailacrapor-index .card:has(.hastailacrapor-ilac-suggest:not([hidden])) {
+    overflow: visible !important;
+}
+
+body.theme-meridian .mr-page--hastailacrapor-index .card-body,
+body.theme-meridian .mr-page--hastailacrapor-index .tab-content,
+body.theme-meridian .mr-page--hastailacrapor-index #tab-ilaclar,
+body.theme-meridian .mr-page--hastailacrapor-index #tab-ilaclar .table-responsive {
+    overflow: visible !important;
+}
+
+#hastailacIlacModal .hastailacrapor-ilac-adi-wrap:has(.hastailacrapor-ilac-suggest:not([hidden])) {
+    z-index: 10;
+}
+
+#hastailacIlacModal .modal-body:has(.hastailacrapor-ilac-suggest:not([hidden])) {
+    overflow: visible;
+}

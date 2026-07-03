@@ -419,7 +419,7 @@ $moduleDefs = [
     [
         'key' => 'cdn_check',
         'label' => 'CDN sürüm denetimi',
-        'description' => 'Harici CDN paket sürüm kontrolü (süper yönetici).',
+        'description' => 'Harici CDN paket sürüm kontrolü (sistem sahibi).',
         'group' => 'admin',
         'default' => true,
         'toggleable' => false,

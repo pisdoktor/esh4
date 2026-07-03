@@ -1,0 +1,17 @@
+{
+    "name": "GitHub Dark",
+    "slug": "github-dark",
+    "surum": "1.0.0",
+    "olusturulma_tarihi": "2026-06-30",
+    "guncelleme_tarihi": "2026-06-30",
+    "olusturan": "ESH / Cursor",
+    "aciklama": "GitHub arayüzünün **Primer** tasarım sistemi `dark_dimmed` paleti: `bgColor-default` `#212830`, `fgColor-default` `#d1d7e0`, `fgColor-accent` `#478be6`, birincil düğme yeşili `#347d39`, uyarı `#c69026`, tehlike `#e5534b`. Kaynak: primer.style / github.com/primer/primitives. Meridian HTML5 şablonları üzerine `theme.css` ile `--mr-*` eşlemesi. `active_theme` veya profil `ui_theme` => `github-dark`.",
+    "extends": "meridian",
+    "css_stack": [
+        "meridian",
+        "github-dark"
+    ],
+    "body_class": "app-shell theme-meridian theme-github-dark cpp-shell d-flex flex-column min-vh-100",
+    "main_class": "esh-app-main flex-grow-1 d-flex flex-column mr-main cpp-main",
+    "main_wrapper": "cpp"
+}

@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "title": "ESH federasyon paketi",
+    "description": "Çok bölgeli SaaS / merkez hub ile kurum düğümleri arasında dosya tabanlı senkron. Hasta/izlem klinik verisi içermez; yalnızca bölge, kurum meta ve özet istatistik.",
+    "directions": {
+        "node_snapshot": "Düğüm anlık görüntüsü (dışa aktarma)",
+        "hub_to_node": "Hub → düğüm bölge/kurum eşlemesi (içe aktarma)"
+    },
+    "entities": ["node", "regions", "kurumlar", "stats"]
+}

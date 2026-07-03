@@ -1,0 +1,30 @@
+/**
+ * Profil fotoğrafı kırpma (User::image — default tema photo.php).
+ */
+.esh-cropper-page {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.esh-cropper-page__stage,
+#esh-cropper-host {
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#esh-cropper-host cropper-canvas {
+    display: block;
+    max-width: 100%;
+}
+
+#cropbox {
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.esh-cropper-page__upload-card {
+    max-width: 500px;
+}

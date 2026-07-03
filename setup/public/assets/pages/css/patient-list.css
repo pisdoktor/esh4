@@ -1,0 +1,92 @@
+/**
+ * Hasta liste sayfaları — listactive, listpassive, listwaiting
+ */
+
+.esh-page-hasta.esh-page--list .esh-page__search-bar .form-control {
+    padding-left: 1rem;
+}
+
+.esh-page-hasta.esh-page--list .esh-page__search-bar .btn {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+.esh-patient-list-table .table thead th {
+    vertical-align: middle;
+}
+
+.esh-patient-list-table .table thead th a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.esh-patient-list-table .table thead th a:hover {
+    color: var(--esh-ui-accent);
+}
+
+.esh-patient-list-table .x-small {
+    font-size: var(--esh-ui-font-size-xs);
+}
+
+.esh-patient-list-table .esh-tc-code {
+    font-size: var(--esh-ui-tc-code-font-size);
+    background: var(--esh-ui-tc-code-bg);
+    color: var(--esh-ui-tc-code-color);
+    border-radius: var(--esh-ui-tc-code-radius);
+    padding: 0.15rem 0.35rem;
+}
+
+.esh-patient-list-table .esh-contact-muted {
+    font-size: var(--esh-ui-font-size-sm);
+    color: var(--esh-ui-text-muted);
+}
+
+.esh-patient-list-alert {
+    border-radius: var(--esh-ui-radius);
+}
+
+.esh-patient-list-actions .btn {
+    white-space: nowrap;
+}
+
+.esh-patient-gender-male {
+    color: var(--esh-ui-gender-male);
+}
+
+.esh-patient-gender-female {
+    color: var(--esh-ui-gender-female);
+}
+
+.esh-patient-row-hover:hover {
+    background-color: var(--esh-ui-patient-row-hover-bg);
+}
+
+.esh-patient-list-empty {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--esh-ui-text-muted);
+}
+
+.esh-patient-izlem-btn {
+    font-size: var(--esh-patient-izlem-btn-font-size);
+}
+
+.esh-patient-name-link {
+    font-size: var(--esh-patient-name-font-size);
+    font-weight: 700;
+}
+
+.esh-patient-address-col {
+    line-height: 1.2;
+}
+
+.esh-patient-list-reason-select {
+    width: 150px;
+    border-radius: 20px;
+}
+
+.esh-patient-list-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--esh-ui-border);
+    background: var(--esh-ui-surface);
+}

@@ -1,0 +1,332 @@
+/* Tema editörü — site temasından bağımsız chrome (#esh-theme-editor kapsamı). */
+
+#esh-theme-editor {
+    --esh-theme-editor-sticky-top: 0.75rem;
+    --esh-theme-editor-nav-offset: 3.5rem;
+    --esh-theme-editor-top-chrome: var(--esh-theme-editor-nav-offset);
+    --esh-theme-editor-preview-head: 3.25rem;
+    --esh-theme-editor-preview-foot: 2.85rem;
+    --esh-theme-editor-preview-pad: 1rem;
+    --esh-te-tabs-bg: #f1f5f9;
+    --esh-te-tabs-border: rgba(15, 23, 42, 0.1);
+    --esh-te-tab-color: #475569;
+    --esh-te-tab-hover-bg: rgba(255, 255, 255, 0.72);
+    --esh-te-tab-active-bg: #ffffff;
+    --esh-te-tab-active-color: #0d6efd;
+    --esh-te-tab-active-border: #0d6efd;
+    --esh-te-badge-bg: rgba(15, 23, 42, 0.08);
+    --esh-te-badge-color: #475569;
+    --esh-te-badge-active-bg: rgba(13, 110, 253, 0.12);
+    --esh-te-badge-active-color: #0d6efd;
+}
+
+#esh-theme-editor .esh-theme-typo-preview {
+    font-family: var(--esh-ui-font-family, system-ui, sans-serif);
+    font-size: var(--esh-ui-font-size-base, 0.9375rem);
+    line-height: var(--esh-ui-line-height, 1.5);
+    color: var(--esh-ui-text, #1e293b);
+}
+
+#esh-theme-editor .esh-theme-typo-preview .esh-typo-preview-heading {
+    font-size: var(--esh-ui-heading-size, 1.35rem);
+    font-weight: var(--esh-ui-font-weight-heading, 700);
+    color: var(--esh-ui-accent, #0d6efd);
+    line-height: 1.3;
+}
+
+#esh-theme-editor .esh-theme-typo-preview .esh-typo-preview-lead {
+    font-size: var(--esh-ui-lead-size, 0.9375rem);
+    color: var(--esh-ui-text-muted, #64748b);
+}
+
+/* Sol kart — başlık + sekme şeridi */
+#esh-theme-editor .esh-theme-editor-card__head {
+    border-bottom: 1px solid var(--esh-te-tabs-border);
+}
+
+#esh-theme-editor .esh-theme-editor-tabs-header {
+    background: var(--esh-te-tabs-bg) !important;
+    border-bottom: 1px solid var(--esh-te-tabs-border) !important;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15, 23, 42, 0.25) transparent;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs-wrap:focus-visible {
+    outline: 2px solid var(--esh-te-tab-active-border);
+    outline-offset: -2px;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs {
+    flex-wrap: nowrap;
+    border-bottom: none;
+    gap: 0.125rem;
+    padding: 0.4rem 0.5rem 0;
+    margin-bottom: 0;
+    min-width: max-content;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-item {
+    flex: 0 0 auto;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25;
+    padding: 0.5rem 0.7rem;
+    margin: 0;
+    color: var(--esh-te-tab-color) !important;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 0.4rem 0.4rem 0 0;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-link:hover:not(.disabled):not(:disabled) {
+    color: #0f172a !important;
+    background: var(--esh-te-tab-hover-bg);
+    border-color: var(--esh-te-tabs-border);
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-link.active {
+    color: var(--esh-te-tab-active-color) !important;
+    background: var(--esh-te-tab-active-bg) !important;
+    border-color: var(--esh-te-tabs-border);
+    border-bottom-color: var(--esh-te-tab-active-bg);
+    box-shadow: 0 -1px 0 var(--esh-te-tab-active-border) inset, 0 1px 0 var(--esh-te-tab-active-bg);
+    font-weight: 600;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-link.disabled,
+#esh-theme-editor .esh-theme-editor-tabs .nav-link:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs__badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.1;
+    padding: 0.15rem 0.4rem;
+    background: var(--esh-te-badge-bg) !important;
+    color: var(--esh-te-badge-color) !important;
+}
+
+#esh-theme-editor .esh-theme-editor-tabs .nav-link.active .esh-theme-editor-tabs__badge {
+    background: var(--esh-te-badge-active-bg) !important;
+    color: var(--esh-te-badge-active-color) !important;
+}
+
+/* Sayfa standardı — modül filtresi (pill şerit) */
+#esh-theme-editor .esh-esh-ui-module-strip-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.15rem;
+}
+
+#esh-theme-editor .esh-esh-ui-module-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-width: min-content;
+}
+
+#esh-theme-editor .esh-esh-ui-module-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--esh-te-tabs-border);
+    background: #fff;
+    color: var(--esh-te-tab-color);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+#esh-theme-editor .esh-esh-ui-module-pill:hover {
+    background: var(--esh-te-tab-hover-bg);
+    color: #0f172a;
+}
+
+#esh-theme-editor .esh-esh-ui-module-pill.active {
+    background: var(--esh-te-tab-active-bg);
+    border-color: var(--esh-te-tab-active-border);
+    color: var(--esh-te-tab-active-color);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.12);
+}
+
+#esh-theme-editor .esh-esh-ui-module-pill__badge {
+    font-size: 0.62rem;
+    font-weight: 600;
+    padding: 0.12rem 0.38rem;
+    background: var(--esh-te-badge-bg) !important;
+    color: var(--esh-te-badge-color) !important;
+}
+
+#esh-theme-editor .esh-esh-ui-module-pill.active .esh-esh-ui-module-pill__badge {
+    background: var(--esh-te-badge-active-bg) !important;
+    color: var(--esh-te-badge-active-color) !important;
+}
+
+#esh-theme-editor #esh-esh-ui-var-table tr.esh-esh-ui-module-hidden {
+    display: none;
+}
+
+/* Sekme içeriği — uzun jeton listelerinde kart içi kaydırma */
+#esh-theme-editor .esh-theme-editor-tab-body {
+    max-height: min(72vh, calc(100vh - 13rem));
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 992px) {
+    #esh-theme-editor .esh-theme-editor-tab-body {
+        max-height: min(
+            78vh,
+            calc(100vh - var(--esh-theme-editor-nav-offset) - var(--esh-theme-editor-sticky-top) - 10rem)
+        );
+    }
+}
+
+#esh-theme-editor .esh-theme-editor-tab-body .table-responsive {
+    margin-bottom: 0;
+}
+
+#esh-theme-editor .esh-token-group-row td {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bs-tertiary-bg, #e9ecef);
+    border-top: 1px solid var(--bs-border-color);
+    letter-spacing: 0.03em;
+    box-shadow: 0 1px 0 var(--bs-border-color);
+}
+
+#esh-theme-editor .esh-token-group-head {
+    min-height: 1.75rem;
+}
+
+#esh-theme-editor .esh-token-value-wrap {
+    min-width: 0;
+}
+
+#esh-theme-editor .esh-token-value-wrap .esh-token-value {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#esh-theme-editor .esh-token-row-reset {
+    line-height: 1;
+    padding: 0.2rem 0.45rem;
+}
+
+#esh-theme-editor .esh-theme-save-diff-list {
+    max-height: 20rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+#esh-theme-editor #esh-session-preview-main-hint {
+    font-weight: 500;
+}
+
+#esh-theme-editor .esh-token-value {
+    min-width: 6rem;
+}
+
+/* Sağ önizleme — yapışkan sütun, viewport yüksekliği iframe */
+@media (min-width: 992px) {
+    #esh-theme-editor .esh-theme-preview-col {
+        position: sticky;
+        top: calc(var(--esh-theme-editor-top-chrome) + var(--esh-theme-editor-sticky-top));
+        z-index: 5;
+        align-self: flex-start;
+    }
+
+    #esh-theme-editor .esh-theme-preview-panel {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(
+            100vh - var(--esh-theme-editor-top-chrome) - var(--esh-theme-editor-sticky-top) - var(--esh-theme-editor-preview-pad)
+        );
+    }
+
+    #esh-theme-editor .esh-theme-preview-frame-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    #esh-theme-editor #esh-theme-preview-frame {
+        display: block;
+        width: 100%;
+        height: calc(
+            100vh - var(--esh-theme-editor-top-chrome) - var(--esh-theme-editor-sticky-top)
+            - var(--esh-theme-editor-preview-head) - var(--esh-theme-editor-preview-foot) - var(--esh-theme-editor-preview-pad)
+        );
+        min-height: 520px;
+    }
+}
+
+body.theme-meridian #esh-theme-editor .esh-theme-preview-col,
+body.theme-meridian-soft #esh-theme-editor .esh-theme-preview-col {
+    overflow: visible;
+}
+
+body.theme-meridian #esh-theme-editor .esh-theme-preview-panel,
+body.theme-meridian-soft #esh-theme-editor .esh-theme-preview-panel {
+    overflow: visible !important;
+}
+
+@media (max-width: 575.98px) {
+    #esh-theme-editor .esh-theme-editor-tabs__label {
+        max-width: 5.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* Standalone pencere — site theme.css / navbar yok */
+body.esh-theme-editor-standalone {
+    margin: 0;
+    min-height: 100vh;
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+body.esh-theme-editor-standalone #esh-theme-editor {
+    --esh-theme-editor-nav-offset: 0;
+    --esh-theme-editor-top-chrome: 0px;
+    --esh-theme-editor-sticky-top: 0.5rem;
+    max-width: 100%;
+}
+
+body.esh-theme-editor-standalone .esh-theme-editor-standalone-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+@media (max-width: 991.98px) {
+    #esh-theme-editor #esh-theme-preview-frame {
+        min-height: 420px;
+        height: 70vh;
+    }
+}

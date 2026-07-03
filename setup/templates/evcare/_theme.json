@@ -1,0 +1,16 @@
+{
+    "name": "Vitality Ev Bakım",
+    "slug": "evcare",
+    "surum": "1.1.13",
+    "olusturulma_tarihi": "2026-05-15",
+    "guncelleme_tarihi": "2026-06-01",
+    "olusturan": "ESH / Cursor",
+    "aciklama": "Evde sağlık görünümü: Meridian tabanı + sıcak palet; tam HTML kabuğu (`templates/evcare/partials/`), giriş ve **`templates/evcare/site/**`** altında Meridian ile eşlenmiş tüm site sayfaları (kök `ev-sheet`; hasta kartı, düzenleme, randevu, nöbet, izlem, rota vb. için ek üst bölümler). Yönetim şablonları eksikse Meridian admin’e düşer. Etkinleştirme: `active_theme` veya profil `ui_theme` => `evcare`.",
+    "extends": "meridian",
+    "css_stack": [
+        "meridian",
+        "evcare"
+    ],
+    "body_class": "app-shell theme-meridian theme-evcare d-flex flex-column min-vh-100",
+    "main_class": "esh-app-main flex-grow-1 d-flex flex-column mr-main ev-main py-4"
+}

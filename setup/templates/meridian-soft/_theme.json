@@ -1,0 +1,16 @@
+{
+    "name": "Meridian (Soft)",
+    "slug": "meridian-soft",
+    "surum": "1.0.28",
+    "olusturulma_tarihi": "2026-05-13",
+    "guncelleme_tarihi": "2026-05-31",
+    "olusturan": "ESH / Cursor",
+    "aciklama": "Meridian’ın pastel açık varyantı: `meridian/theme.css` üzerine bu dosya ile yumuşak renkler. Şablonlar `templates/meridian/` ile paylaşılır (`ThemeViewHelper`).",
+    "extends": "meridian",
+    "css_stack": [
+        "meridian",
+        "meridian-soft"
+    ],
+    "body_class": "app-shell theme-meridian theme-meridian-soft d-flex flex-column min-vh-100",
+    "main_class": "esh-app-main flex-grow-1 d-flex flex-column mr-main py-4"
+}

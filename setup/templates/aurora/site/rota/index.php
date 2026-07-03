@@ -1,0 +1,61 @@
+<div class="au-panel au-ekip-karti mb-4" style="border-top: 4px solid <?php echo $t['color']; ?>;">
+    <div class="au-panel__head au-panel__head--split py-2">
+        <h6 class="mb-0 fw-bold" style="color:<?php echo $t['color']; ?>;">
+            <i class="fa fa-car me-2"></i><?php echo htmlspecialchars((string) $eData['isim'], ENT_QUOTES, 'UTF-8'); ?>
+        </h6>
+    </div>
+
+    <div class="au-panel__body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" style="font-size: 0.85rem;">
+                <tbody>
+                    <?php foreach($eData['hastalar'] as $h): ?>
+                        <tr <?php if($h->oncelik == 2) echo 'class="table-danger" style="--bs-table-bg: #fff5f5;"'; ?>>
+
+                            <td style="width: 70px;" class="text-center border-end bg-light-subtle">
+                                <div class="fw-bold text-primary"><?php echo htmlspecialchars((string) $h->varis_saati, ENT_QUOTES, 'UTF-8'); ?></div>
+                            </td>
+
+                            <td class="px-3" style="min-width: 150px;">
+                                <div class="fw-bold text-dark text-nowrap"><?php echo htmlspecialchars(trim((string) $h->isim . ' ' . (string) $h->soyisim), ENT_QUOTES, 'UTF-8'); ?></div>
+                                <div class="text-muted small">
+                                    <i class="fa fa-map-marker-alt me-1" style="font-size: 0.7rem;"></i><?php echo htmlspecialchars((string) $h->mahalle_adi, ENT_QUOTES, 'UTF-8'); ?>
+                                </div>
+                            </td>
+
+                            <td class="px-2">
+                                <div class="d-flex flex-wrap gap-1 justify-content-start">
+                                    <?php 
+                                        // Etiketleri Bootstrap 5 badge formatına çevir
+                                        $etiket = str_replace('label label-', 'badge fw-medium bg-', $h->etiket);
+                                        
+                                        // Eğer etiketler virgülle ayrılmış birden fazla işlem içeriyorsa 
+                                        // her birini ayrı birer rozet gibi göstermek için küçük bir dokunuş:
+                                        if(strpos($etiket, ',') !== false) {
+                                            echo str_replace(', ', '</span><span class="badge fw-medium bg-secondary">', $etiket);
+                                        } else {
+                                            echo $etiket;
+                                        }
+                                    ?>
+                                </div>
+                            </td>
+
+                            <td class="text-end px-3" style="width: 90px;">
+                                <span class="badge rounded-pill bg-white text-secondary border fw-normal">
+                                    +<?php echo number_format($h->mesafe_artisi, 1); ?> km
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="au-panel__foot py-2" style="font-size: 0.75rem;">
+        <div class="d-flex justify-content-between">
+            <span>Hasta: <strong><?php echo count($eData['hastalar']); ?></strong></span>
+            <span>Yol: <strong><?php echo number_format($eData['toplam_km'], 1); ?> km</strong></span>
+        </div>
+    </div>
+</div>

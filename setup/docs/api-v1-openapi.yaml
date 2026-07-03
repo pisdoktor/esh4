@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: ESH REST API v1
+  version: 1.0.0
+  description: Kurum içi evde sağlık REST API — Bearer token ile.
+servers:
+  - url: /public/api/v1
+paths:
+  /patients:
+    get:
+      summary: Hasta listesi
+      security:
+        - bearerAuth: []
+  /patients/{id}:
+    get:
+      summary: Hasta detayı
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+  /visits:
+    get:
+      summary: İzlem listesi
+      security:
+        - bearerAuth: []
+  /visits/{id}:
+    get:
+      summary: İzlem detayı
+      security:
+        - bearerAuth: []
+    patch:
+      summary: İzlem kısmi güncelleme (yapildimi, aciklama)
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                yapildimi:
+                  type: integer
+                aciklama:
+                  type: string
+  /visits/checkin:
+    post:
+      summary: Saha GPS check-in
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [visit_id, checkin_lat, checkin_lon]
+              properties:
+                visit_id:
+                  type: integer
+                checkin_lat:
+                  type: number
+                checkin_lon:
+                  type: number
+                checkin_accuracy:
+                  type: number
+  /plans:
+    get:
+      summary: Planlı izlem listesi
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^v1/(patients|visits|plans)/?$ index.php?resource=$1 [QSA,L]
+    RewriteRule ^v1/(patients|visits|plans)/([0-9]+)/?$ index.php?resource=$1&id=$2 [QSA,L]
+</IfModule>

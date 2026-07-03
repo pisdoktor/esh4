@@ -1,0 +1,552 @@
+/*
+ * GitHub Light — Meridian katmanı (`body.theme-meridian.theme-github-light`).
+ * Primer `light` fonksiyonel token'ları — kaynak: github.com/primer/primitives
+ * bgColor-default #ffffff, bgColor-muted #f6f8fa, bgColor-inset #eff2f5,
+ * fgColor-default #1f2328, fgColor-muted #656d76, fgColor-accent #0969da,
+ * fgColor-attention #9a6700, fgColor-danger #d1242f, fgColor-success #1a7f37,
+ * borderColor-default #d1d9e0, button-primary #1f883d.
+ */
+
+body.theme-meridian.theme-github-light {
+  --mr-bg0: #ffffff;
+  --mr-bg1: #f6f8fa;
+  --mr-surface: rgba(255, 255, 255, 0.92);
+  --mr-surface2: #eff2f5;
+  --mr-border: rgba(209, 217, 224, 0.95);
+  --mr-text: #1f2328;
+  --mr-muted: #656d76;
+  --mr-accent: #0969da;
+  --mr-accent2: #218bff;
+  --mr-warn: #9a6700;
+  --mr-danger: #d1242f;
+  --mr-radius: 0.5rem;
+  --mr-radius-sm: 0.375rem;
+  --mr-shadow: 0 8px 24px rgba(31, 35, 40, 0.08);
+  --esh-ts-control-bg: #ffffff;
+  --esh-ts-control-border: var(--mr-border);
+  --esh-ts-control-color: var(--mr-text);
+  --esh-ts-control-radius: var(--mr-radius-sm);
+  --esh-ts-control-focus-border: rgba(9, 105, 218, 0.55);
+  --esh-ts-control-focus-shadow: 0 0 0 0.2rem rgba(9, 105, 218, 0.15);
+  --esh-ts-caret-color: var(--mr-accent);
+  --esh-ts-dropdown-bg: #ffffff;
+  --esh-ts-dropdown-border: var(--mr-border);
+  --esh-ts-dropdown-color: var(--mr-text);
+  --esh-ts-option-active-bg: rgba(9, 105, 218, 0.88);
+  --esh-ts-option-active-color: #ffffff;
+  --esh-ts-item-bg: rgba(9, 105, 218, 0.08);
+  --esh-ts-item-border: rgba(9, 105, 218, 0.28);
+  --esh-ts-item-color: var(--mr-accent);
+  --esh-ts-item-remove-border: rgba(9, 105, 218, 0.3);
+  --esh-ts-item-remove-hover-bg: rgba(9, 105, 218, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  color: var(--mr-text);
+  background-color: var(--mr-bg0);
+  background-image:
+    radial-gradient(900px 460px at 8% -4%, rgba(9, 105, 218, 0.06), transparent 54%),
+    radial-gradient(760px 400px at 96% 6%, rgba(31, 136, 61, 0.04), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f6f8fa 55%, #eff2f5 100%);
+  background-attachment: fixed;
+}
+
+body.theme-meridian.theme-github-light a {
+  color: var(--mr-accent);
+}
+
+body.theme-meridian.theme-github-light a:hover {
+  color: #0550ae;
+}
+
+body.theme-meridian.theme-github-light .text-muted {
+  color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-github-light .navbar.navbar-dark.bg-dark,
+body.theme-meridian.theme-github-light nav.navbar {
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fa 52%, #eff2f5 100%) !important;
+  border-bottom: 1px solid #d1d9e0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 0 rgba(31, 35, 40, 0.04);
+  backdrop-filter: blur(10px);
+  --bs-navbar-color: #1f2328;
+  --bs-navbar-hover-color: #0969da;
+  --bs-navbar-active-color: #0969da;
+  --bs-navbar-brand-color: #1f2328;
+}
+
+body.theme-meridian.theme-github-light .navbar .nav-link,
+body.theme-meridian.theme-github-light .navbar .navbar-brand {
+  color: #1f2328 !important;
+}
+
+body.theme-meridian.theme-github-light .navbar .nav-link:hover,
+body.theme-meridian.theme-github-light .navbar .nav-link:focus {
+  color: #0969da !important;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--mr-radius-sm);
+}
+
+body.theme-meridian.theme-github-light .navbar .navbar-brand .text-primary {
+  color: #0969da !important;
+}
+
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link {
+  color: #1f2328 !important;
+  font-weight: 600;
+}
+
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:hover,
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link:focus {
+  color: #0969da !important;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.me-auto > .nav-item > .nav-link.active {
+  color: #0969da !important;
+}
+
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link {
+  color: #1f2328 !important;
+}
+
+body.theme-meridian.theme-github-light.app-shell .navbar .navbar-nav.ms-auto > .nav-item > .nav-link:hover {
+  color: #0969da !important;
+}
+
+body.theme-meridian.theme-github-light .navbar-dark .navbar-toggler {
+  border-color: #d1d9e0;
+}
+
+body.theme-meridian.theme-github-light .navbar-dark .navbar-toggler-icon {
+  filter: invert(0.2);
+}
+
+body.theme-meridian.theme-github-light .dropdown-menu {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--mr-border);
+  border-radius: var(--mr-radius-sm);
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-meridian.theme-github-light .dropdown-item {
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-github-light .dropdown-item:hover,
+body.theme-meridian.theme-github-light .dropdown-item:focus {
+  background: rgba(9, 105, 218, 0.08);
+  color: var(--mr-text);
+}
+
+body.theme-meridian.theme-github-light main.mr-main {
+  background: transparent;
+}
+
+body.theme-meridian.theme-github-light .cpp-main-inner {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(246, 248, 250, 0.72));
+  border-radius: var(--mr-radius);
+  border: 1px solid #d1d9e0;
+  box-shadow: var(--mr-shadow);
+}
+
+body.theme-meridian.theme-github-light .footer.cpp-site-footer {
+  background: rgba(246, 248, 250, 0.96) !important;
+  border-top: 1px solid #d1d9e0 !important;
+  color: var(--mr-muted);
+}
+
+body.theme-meridian.theme-github-light .cpp-footer-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.5rem;
+  border-radius: var(--mr-radius-sm);
+  background: rgba(9, 105, 218, 0.1);
+  color: var(--mr-accent);
+  vertical-align: middle;
+}
+
+body.theme-meridian.theme-github-light .cpp-footer-pill {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: var(--mr-text) !important;
+  border: 1px solid var(--mr-border) !important;
+  font-weight: 600;
+}
+
+body.theme-meridian.theme-github-light .btn-primary {
+  background: linear-gradient(180deg, #2ea44f 0%, #1f883d 100%);
+  border: 1px solid rgba(27, 31, 36, 0.15);
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: var(--mr-radius-sm);
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+body.theme-meridian.theme-github-light .btn-primary:hover {
+  background: linear-gradient(180deg, #2c974b 0%, #1a7f37 100%);
+  color: #ffffff !important;
+}
+
+body.theme-meridian.theme-github-light .btn-outline-primary {
+  color: var(--mr-accent);
+  border-color: rgba(9, 105, 218, 0.45);
+  border-radius: var(--mr-radius-sm);
+}
+
+body.theme-meridian.theme-github-light .btn-outline-primary:hover {
+  background: rgba(9, 105, 218, 0.08);
+  color: #0550ae;
+  border-color: rgba(9, 105, 218, 0.6);
+}
+
+body.theme-meridian.theme-github-light .btn-warning {
+  color: #1f2328;
+  font-weight: 600;
+  background: #bf8700;
+  border-color: #9a6700;
+  border-radius: var(--mr-radius-sm);
+}
+
+body.theme-meridian.theme-github-light .alert-success {
+  background: rgba(26, 127, 55, 0.1);
+  border-color: rgba(26, 127, 55, 0.3);
+  color: #116329;
+}
+
+body.theme-meridian.theme-github-light .alert-danger {
+  background: rgba(209, 36, 47, 0.08);
+  border-color: rgba(209, 36, 47, 0.3);
+  color: #a40e26;
+}
+
+body.theme-meridian.theme-github-light .alert-info {
+  background: rgba(9, 105, 218, 0.08);
+  border-color: rgba(9, 105, 218, 0.3);
+  color: #0550ae;
+}
+
+body.theme-meridian.theme-github-light .form-control,
+body.theme-meridian.theme-github-light .form-select {
+  background: #ffffff;
+  border-color: #d1d9e0;
+  color: var(--mr-text);
+  border-radius: var(--mr-radius-sm);
+}
+
+body.theme-meridian.theme-github-light .form-control:focus,
+body.theme-meridian.theme-github-light .form-select:focus {
+  border-color: rgba(9, 105, 218, 0.55);
+  box-shadow: 0 0 0 0.2rem rgba(9, 105, 218, 0.15);
+}
+
+body.theme-meridian.theme-github-light .input-group-text {
+  background: #f6f8fa;
+  border-color: #d1d9e0;
+  color: var(--mr-muted);
+  border-radius: var(--mr-radius-sm);
+}
+
+body.theme-meridian.theme-github-light .card {
+  background: var(--mr-surface);
+  border-color: var(--mr-border);
+  border-radius: var(--mr-radius);
+}
+
+body.theme-meridian.theme-github-light .esh-stats-metric-card {
+  background: linear-gradient(180deg, rgba(9, 105, 218, 0.1) 0%, rgba(9, 105, 218, 0.04) 100%) !important;
+  color: var(--mr-text) !important;
+  border: 1px solid rgba(9, 105, 218, 0.2);
+  box-shadow: none;
+  border-radius: var(--mr-radius);
+}
+
+body.theme-meridian.theme-github-light .esh-stats-metric-card .esh-stats-metric-card__icon {
+  background: rgba(9, 105, 218, 0.1) !important;
+  color: var(--mr-accent) !important;
+}
+
+body.theme-meridian.theme-github-light .esh-stats-metric-card .esh-stats-metric-card__label,
+body.theme-meridian.theme-github-light .esh-stats-metric-card .display-3,
+body.theme-meridian.theme-github-light .esh-stats-metric-card .esh-stats-metric-card__pill,
+body.theme-meridian.theme-github-light .esh-stats-metric-card .esh-stats-metric-card__pill strong {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-github-light .esh-stats-metric-card .esh-stats-metric-card__pill {
+  background: rgba(9, 105, 218, 0.08) !important;
+}
+
+body.theme-meridian.theme-github-light .table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--mr-text);
+}
+
+body.page-login.theme-meridian.theme-github-light.mr-login-page {
+  background-image:
+    radial-gradient(1000px 500px at 10% -6%, rgba(9, 105, 218, 0.07), transparent 54%),
+    radial-gradient(800px 420px at 92% 6%, rgba(31, 136, 61, 0.05), transparent 52%),
+    linear-gradient(180deg, #ffffff 0%, #f6f8fa 100%);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-backdrop {
+  background: radial-gradient(560px 380px at 48% 18%, rgba(9, 105, 218, 0.05), transparent 72%);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-card.card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(246, 248, 250, 0.92));
+  border: 1px solid #d1d9e0 !important;
+  border-radius: var(--mr-radius);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-brand {
+  background: linear-gradient(165deg, rgba(246, 248, 250, 0.98), rgba(239, 242, 245, 0.94));
+  border-right: 1px solid #d1d9e0;
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-brand-icon {
+  background: rgba(9, 105, 218, 0.1);
+  border: 1px solid rgba(9, 105, 218, 0.25);
+  color: var(--mr-accent);
+  border-radius: var(--mr-radius);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-kicker {
+  color: var(--mr-muted) !important;
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-highlight {
+  color: var(--mr-accent);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-version {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--mr-text);
+  border: 1px solid #d1d9e0;
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .mr-login-form-col {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .text-white {
+  color: var(--mr-text) !important;
+}
+
+body.theme-meridian.theme-github-light.mr-login-page .opacity-75,
+body.theme-meridian.theme-github-light.mr-login-page .opacity-80,
+body.theme-meridian.theme-github-light.mr-login-page .opacity-90 {
+  opacity: 1 !important;
+  color: var(--mr-muted) !important;
+}
+
+@media print {
+  body.theme-meridian.theme-github-light {
+    background: #fff;
+    color: #000;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ESH sayfa dili (--esh-ui-*) — docs/ESH_PAGE_LANGUAGE.md
+   -------------------------------------------------------------------------- */
+
+body.app-shell.theme-meridian.theme-github-light.cpp-shell {
+  --esh-ui-text: var(--mr-text);
+  --esh-ui-text-muted: var(--mr-muted);
+  --esh-ui-accent: var(--mr-accent);
+  --esh-ui-surface: var(--mr-surface);
+  --esh-ui-surface-muted: var(--mr-surface2);
+  --esh-ui-border: var(--mr-border);
+  --esh-ui-radius: var(--mr-radius-sm, 0.375rem);
+  --esh-ui-shadow: var(--mr-shadow);
+  --esh-ui-table-head-bg: var(--mr-surface2);
+  --esh-ui-table-head-color: var(--mr-muted);
+  --esh-ui-row-hover: rgba(9, 105, 218, 0.06);
+  --esh-ui-surface-subtle: #f6f8fa;
+  --esh-ui-surface-warning: #fff8c5;
+  --esh-ui-soft-danger-bg: rgba(255, 235, 233, 0.8);
+  --esh-ui-soft-info-bg: rgba(221, 244, 255, 0.8);
+  --esh-ui-card-hover-shadow: 0 4px 12px rgba(31, 35, 40, 0.08);
+  --esh-ui-print-surface: #ffffff;
+  --esh-ui-panel-subtitle-size: 0.8125rem;
+  --esh-ui-table-head-font-size: 0.7rem;
+  --esh-ui-table-head-letter-spacing: 0.04em;
+  --esh-ui-table-head-padding: 0.75rem 0.5rem;
+  --esh-ui-font-size-xs: 0.68rem;
+  --esh-ui-font-size-sm: 0.78rem;
+  --esh-ui-font-size-badge: 0.62rem;
+  --esh-ui-dropdown-font-size: 0.78rem;
+  --esh-ui-dropdown-header-font-size: 0.65rem;
+  --esh-ui-dropdown-header-letter-spacing: 0.5px;
+  --esh-ui-dropdown-menu-radius: 6px;
+  --esh-ui-dropdown-menu-border: var(--esh-ui-border);
+  --esh-ui-dropdown-item-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-bg: var(--esh-ui-surface);
+  --esh-ui-btn-ghost-border: var(--esh-ui-border);
+  --esh-ui-btn-ghost-hover-bg: var(--esh-ui-surface-muted);
+  --esh-ui-btn-ghost-hover-color: var(--esh-ui-accent);
+  --esh-ui-filter-control-height: 38px;
+  --esh-ui-alert-success-bg: #dafbe1;
+  --esh-ui-alert-success-color: #116329;
+  --esh-ui-alert-success-border: #aceebb;
+  --esh-ui-alert-warning-bg: #fff8c5;
+  --esh-ui-alert-warning-color: #7d4e00;
+  --esh-ui-alert-warning-border: #fae17d;
+  --esh-ui-alert-danger-bg: #ffebe9;
+  --esh-ui-alert-danger-color: #a40e26;
+  --esh-ui-alert-danger-border: #ffcecb;
+  --esh-ui-alert-info-bg: #ddf4ff;
+  --esh-ui-alert-info-color: #0550ae;
+  --esh-ui-alert-info-border: #b6e3ff;
+  --esh-ui-navbar-link-font-size: 0.9rem;
+  --esh-ui-navbar-dropdown-font-size: 0.88rem;
+  --esh-ui-table-head-border-bottom: 1px solid #d1d9e0;
+  --esh-ui-patient-row-hover-bg: #f6f8fa;
+  --esh-ui-tc-code-bg: #f6f8fa;
+  --esh-ui-tc-code-color: #656d76;
+  --esh-ui-tc-code-font-size: 0.75rem;
+  --esh-ui-tc-code-radius: 4px;
+  --esh-ui-tc-copy-flash-outline: rgba(9, 105, 218, 0.35);
+  --esh-ui-status-badge-border: #d1d9e0;
+  --esh-ui-status-badge-radius: 6px;
+  --esh-ui-status-badge-bg: #ffffff;
+  --esh-ui-btn-xs-font-size: 0.7rem;
+  --esh-ui-avatar-sm-size: 32px;
+  --esh-ui-avatar-sm-font-size: 0.8rem;
+  --esh-ui-small-text-font-size: 0.75rem;
+  --esh-ui-calendar-day-hover-bg: #f6f8fa;
+  --esh-ui-calendar-day-hover-ring: rgba(9, 105, 218, 0.25);
+  --esh-ui-cal-task-font-size: 0.65rem;
+  --esh-ui-cal-badge-font-size: 0.7rem;
+  --esh-ui-cal-legend-font-size: 0.75rem;
+  --esh-ui-scrollbar-thumb: #d1d9e0;
+  --esh-ui-scrollbar-radius: 6px;
+  --esh-ui-dash-plan-tabs-shadow: 0 4px 12px rgba(31, 35, 40, 0.06);
+  --esh-ui-daily-plan-badge-font-size: 0.65rem;
+  --esh-ui-daily-plan-meta-font-size: 0.75rem;
+  --esh-ui-daily-section-font-size: 1rem;
+  --esh-ui-route-tab-font-size: 1.05rem;
+  --esh-ui-route-tab-font-size-sm: 0.95rem;
+  --esh-ui-route-tab-font-weight: 600;
+  --esh-ui-route-tab-font-weight-active: 700;
+  --esh-ui-route-tab-text: #656d76;
+  --esh-ui-route-tab-bg: #f6f8fa;
+  --esh-ui-route-tab-border: #d1d9e0;
+  --esh-ui-route-tab-border-hover: #afb8c1;
+  --esh-ui-route-tab-hover-bg: #ffffff;
+  --esh-ui-route-tab-hover-text: #1f2328;
+  --esh-ui-route-tab-active-text: #1f2328;
+  --esh-ui-route-tab-active-bg: #ffffff;
+  --esh-ui-route-tab-active-shadow: rgba(31, 35, 40, 0.06);
+  --esh-ui-route-tab-accent-sabah: #bf8700;
+  --esh-ui-route-tab-accent-ogle: #0969da;
+  --esh-ui-route-tab-accent-aksam: #8250df;
+  --esh-ui-route-tab-active-sabah: #9a6700;
+  --esh-ui-route-tab-active-ogle: #0550ae;
+  --esh-ui-route-tab-active-aksam: #6639ba;
+  --esh-ui-route-tab-badge-empty: #8c959f;
+  --esh-ui-route-tab-badge-font-size: 0.82rem;
+  --esh-ui-route-tab-badge-font-size-sm: 0.75rem;
+  --esh-ui-route-tab-icon-size: 1.15rem;
+  --esh-ui-route-tab-min-height: 3.35rem;
+  --esh-ui-route-tab-min-height-sm: 3rem;
+  --esh-ui-detail-tabs-bg: linear-gradient(180deg, #f6f8fa 0%, #eff2f5 100%);
+  --esh-ui-detail-tab-active-bar: #0969da;
+  --esh-ui-detail-tab-link-bg: rgba(255, 255, 255, 0.6);
+  --esh-ui-detail-tab-hover-bg: #ffffff;
+  --esh-ui-detail-tab-hover-inset: rgba(9, 105, 218, 0.3);
+  --esh-ui-detail-tab-active-bg: #ffffff;
+  --esh-ui-detail-tab-active-text: #0550ae;
+  --esh-ui-detail-tab-genel-text: #1f2328;
+  --esh-ui-detail-tab-pansuman-text: #0550ae;
+  --esh-ui-detail-tab-sonda-text: #a40e26;
+  --esh-ui-detail-tab-mama-text: #9a6700;
+  --esh-ui-detail-tab-bez-text: #0969da;
+  --esh-ui-care-item-shadow: 0 1px 2px rgba(31, 35, 40, 0.06);
+  --esh-ui-care-label-font-size: 0.68rem;
+  --esh-ui-care-value-font-size: 0.875rem;
+  --esh-ui-care-icon-font-size: 0.95rem;
+  --esh-ui-barthel-tooltip-font-size: 0.8125rem;
+  --esh-ui-barthel-pts-font-size: 0.7rem;
+  --esh-ui-diagnosis-rapor-font-size: 0.58rem;
+  --esh-ui-coords-btn-shadow: 0 2px 10px rgba(31, 35, 40, 0.12);
+  --esh-ui-coords-btn-shadow-hover: 0 4px 14px rgba(31, 35, 40, 0.16);
+  --esh-ui-coords-bul-bg: linear-gradient(180deg, #f0b72a 0%, #bf8700 100%);
+  --esh-ui-coords-bul-bg-hover: linear-gradient(180deg, #f5cc4d 0%, #d4a72c 100%);
+  --esh-ui-coords-bul-border: #9a6700;
+  --esh-ui-coords-bul-border-hover: #7d4e00;
+  --esh-ui-coords-bul-color: #1f2328;
+  --esh-ui-coords-bul-color-hover: #1f2328;
+  --esh-ui-coords-git-bg: linear-gradient(180deg, #218bff 0%, #0969da 100%);
+  --esh-ui-coords-git-bg-hover: linear-gradient(180deg, #54aeff 0%, #218bff 100%);
+  --esh-ui-coords-git-border: #0550ae;
+  --esh-ui-coords-git-border-hover: #033d8b;
+  --esh-ui-coords-git-color: #ffffff;
+  --esh-ui-pansuman-day-font-size: 0.8rem;
+  --esh-ui-mega-menu-col-bg: rgba(255, 255, 255, 0.98);
+  --esh-ui-mega-menu-col-border: rgba(209, 217, 224, 0.8);
+  --esh-ui-mega-menu-head-font-size: 0.78rem;
+  --esh-ui-mega-menu-title-font-size: 0.68rem;
+  --esh-ui-mega-menu-item-font-size: 0.82rem;
+  --esh-ui-login-card-max: 48rem;
+  --esh-ui-login-page-bg: linear-gradient(180deg, #ffffff 0%, #f6f8fa 100%);
+  --esh-ui-login-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --esh-ui-login-card-width: min(392px, calc(100vw - 2rem));
+  --esh-ui-login-card-radius: 12px;
+  --esh-ui-login-card-shadow: 0 8px 24px rgba(31, 35, 40, 0.1);
+  --esh-ui-login-header-bg: #1f883d;
+  --esh-ui-login-header-color: #ffffff;
+  --esh-ui-login-header-icon-size: 2.75rem;
+  --esh-ui-login-input-radius: 6px;
+  --esh-ui-login-input-padding: 12px;
+  --esh-ui-login-input-border: #d1d9e0;
+  --esh-ui-login-btn-radius: 6px;
+  --esh-ui-login-btn-padding: 12px;
+  --esh-ui-login-split-page-bg: radial-gradient(circle at 15% 20%, rgba(9, 105, 218, 0.08), transparent 32%), radial-gradient(circle at 85% 10%, rgba(31, 136, 61, 0.06), transparent 28%), linear-gradient(180deg, #ffffff 0%, #f6f8fa 100%);
+  --esh-ui-login-split-card-width: min(520px, calc(100vw - 2.25rem));
+  --esh-ui-login-split-card-radius: 12px;
+  --esh-ui-login-split-card-shadow: 0 8px 24px rgba(31, 35, 40, 0.1);
+  --esh-ui-login-split-card-border: 1px solid #d1d9e0;
+  --esh-ui-login-split-header-bg: linear-gradient(120deg, #1f883d 0%, #2ea44f 55%, #0969da 100%);
+  --esh-ui-login-split-brand-icon-size: 1.45rem;
+  --esh-ui-login-split-subtitle-font-size: 0.88rem;
+  --esh-ui-login-split-mode-border: #d1d9e0;
+  --esh-ui-login-split-normal-accent: #0969da;
+  --esh-ui-login-split-eimza-accent: #8c959f;
+  --esh-ui-login-split-tab-color: #656d76;
+  --esh-ui-login-split-tab-active-color: #0969da;
+  --esh-ui-login-split-tab-border: #d1d9e0;
+  --esh-ui-login-split-input-border: #d1d9e0;
+  --esh-ui-login-split-input-group-bg: #f6f8fa;
+  --esh-ui-hier-header-bg: #24292f;
+  --esh-ui-hier-header-color: #ffffff;
+  --esh-ui-hier-column-shadow: 0 2px 8px rgba(31, 35, 40, 0.06);
+  --esh-ui-hier-item-divider: #d1d9e0;
+  --esh-ui-hier-item-active-bg: #ddf4ff;
+  --esh-ui-hier-empty-text: #8c959f;
+  --esh-ui-input-focus-border: rgba(9, 105, 218, 0.55);
+  --esh-ui-input-focus-ring: rgba(9, 105, 218, 0.15);
+  --esh-ui-profile-border-faint: rgba(209, 217, 224, 0.8);
+  --esh-ui-profile-aside-gradient: linear-gradient(165deg, #ffffff 0%, #f6f8fa 100%);
+  --esh-ui-profile-section-head-gradient: linear-gradient(180deg, #ffffff 0%, #f6f8fa 100%);
+  --esh-ui-profile-security-head-gradient: linear-gradient(180deg, #fff8f8 0%, #ffffff 100%);
+  --esh-ui-profile-btn-primary-shadow: 0 2px 8px rgba(31, 136, 61, 0.22);
+  --esh-ui-pansuman-label-inset-shadow: rgba(31, 35, 40, 0.12);
+  --esh-ui-ekip-box-border: #d1d9e0;
+  --esh-ui-danger-text: #d1242f;
+  --esh-ui-plan-doluluk-banner-bg: linear-gradient(180deg, rgba(255, 248, 197, 0.6) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --esh-ui-pasif-banner-bg: linear-gradient(180deg, rgba(255, 235, 233, 0.6) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --esh-ui-arac-choice-hover-shadow: 0 4px 12px rgba(31, 35, 40, 0.08);
+  --esh-ui-stats-metric-fg: #1f2328;
+  --esh-ui-stats-metric-overlay: rgba(9, 105, 218, 0.08);
+  --esh-ui-stats-metric-pill-bg: rgba(9, 105, 218, 0.1);
+  --esh-ui-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --esh-ui-font-size-base: 0.875rem;
+  --esh-ui-line-height: 1.5;
+  --esh-ui-heading-size: 1.25rem;
+  --esh-ui-lead-size: 0.875rem;
+  --esh-ui-font-weight-heading: 600;
+}

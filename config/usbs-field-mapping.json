@@ -1,0 +1,62 @@
+{
+    "version": 1,
+    "system": "USBS",
+    "title": "USBS / e-Nabız — alan eşlemesi",
+    "description": "SONEV/ESH izlem ve hasta alanlarının USBS (Ulusal Sağlık Bilgi Sistemi) / e-Nabız bildirim paketine karşılıkları. Resmi API yayınlanana kadar dosya köprüsü ve usbs_* referans sütunları kullanılır.",
+    "updated": "2026-07-02",
+    "entities": {
+        "patient": {
+            "label": "Hasta",
+            "esh_table": "esh_hastalar",
+            "usbs_ref_columns": {
+                "enabiz_hasta_ref": "e-Nabız hasta kayıt numarası",
+                "usbs_hasta_ref": "USBS hasta / dosya numarası"
+            },
+            "fields": [
+                {"esh": "tckimlik", "usbs": "tcKimlikNo", "label": "TC Kimlik No", "required": true},
+                {"esh": "isim", "usbs": "ad", "label": "Ad", "required": true},
+                {"esh": "soyisim", "usbs": "soyad", "label": "Soyad", "required": true},
+                {"esh": "dogumtarihi", "usbs": "dogumTarihi", "label": "Doğum tarihi", "format": "date"},
+                {"esh": "cinsiyet", "usbs": "cinsiyet", "label": "Cinsiyet"},
+                {"esh": "ceptel1", "usbs": "cepTelefonu", "label": "Cep telefonu"},
+                {"esh": "guvence", "usbs": "guvenceTuru", "label": "Güvence", "lookup": "esh_guvence"},
+                {"esh": "ilce", "usbs": "ilceKodu", "label": "İlçe", "lookup": "adres_agaci"},
+                {"esh": "mahalle", "usbs": "mahalleKodu", "label": "Mahalle", "lookup": "adres_agaci"},
+                {"esh": "hastaliklar", "usbs": "taniListesi", "label": "Tanılar", "lookup": "icd10_skrs"}
+            ]
+        },
+        "visit_bildirim": {
+            "label": "İzlem bildirimi (USBS)",
+            "esh_table": "esh_izlemler",
+            "usbs_ref_columns": {
+                "usbs_bildirim_ref": "USBS izlem bildirim numarası",
+                "erecete_ref": "e-Reçete referans numarası"
+            },
+            "fields": [
+                {"esh": "hastatckimlik", "usbs": "hastaTc", "label": "Hasta TC", "required": true},
+                {"esh": "izlemtarihi", "usbs": "hizmetTarihi", "label": "Hizmet / izlem tarihi", "required": true},
+                {"esh": "yapilan", "usbs": "yapilanIslemler", "label": "Yapılan işlemler", "lookup": "esh_islemler"},
+                {"esh": "yapildimi", "usbs": "hizmetDurumu", "label": "Yapıldı mı", "notes": "1 = bildirilebilir"},
+                {"esh": "izlemiyapan", "usbs": "hizmetVerenPersonel", "label": "Personel", "lookup": "esh_users"},
+                {"esh": "zaman", "usbs": "zamanDilimi", "label": "Zaman dilimi"},
+                {"esh": "aciklama", "usbs": "hizmetNotu", "label": "Açıklama"},
+                {"esh": "checkin_lat", "usbs": "enlem", "label": "Saha enlem"},
+                {"esh": "checkin_lon", "usbs": "boylam", "label": "Saha boylam"},
+                {"esh": "checkin_at", "usbs": "konumZamani", "label": "Konum zamanı"},
+                {"esh": "arac", "usbs": "aracId", "label": "Araç", "lookup": "esh_araclar"}
+            ]
+        },
+        "erecete": {
+            "label": "e-Reçete (hazırlık)",
+            "esh_table": "esh_izlemler",
+            "usbs_ref_columns": {
+                "erecete_ref": "e-Reçete / Medula reçete no"
+            },
+            "fields": [
+                {"esh": "hastatckimlik", "usbs": "hastaTc", "label": "Hasta TC"},
+                {"esh": "izlemtarihi", "usbs": "receteTarihi", "label": "Reçete tarihi", "format": "date"},
+                {"esh": "izlemiyapan", "usbs": "receteYazanHekim", "label": "Reçete yazan", "lookup": "esh_users"}
+            ]
+        }
+    }
+}

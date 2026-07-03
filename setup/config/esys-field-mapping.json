@@ -1,0 +1,104 @@
+{
+    "version": 1,
+    "system": "ESYS",
+    "title": "Evde Sağlık Yönetim Sistemi (ESYS) — alan eşlemesi",
+    "description": "SONEV/ESH alanlarının ESYS karşılıkları. Resmi entegrasyon gelene kadar esys_*_ref sütunları manuel köprü için kullanılır.",
+    "updated": "2026-07-02",
+    "entities": {
+        "patient": {
+            "label": "Hasta",
+            "esh_table": "esh_hastalar",
+            "esys_ref_columns": {
+                "esys_hasta_ref": "ESYS hasta kayıt numarası",
+                "esys_basvuru_ref": "ESYS başvuru / dosya numarası"
+            },
+            "fields": [
+                {"esh": "tckimlik", "esys": "tcKimlikNo", "label": "TC Kimlik No", "required": true},
+                {"esh": "isim", "esys": "ad", "label": "Ad", "required": true},
+                {"esh": "soyisim", "esys": "soyad", "label": "Soyad", "required": true},
+                {"esh": "anneAdi", "esys": "anneAdi", "label": "Anne adı"},
+                {"esh": "babaAdi", "esys": "babaAdi", "label": "Baba adı"},
+                {"esh": "dogumtarihi", "esys": "dogumTarihi", "label": "Doğum tarihi", "format": "date"},
+                {"esh": "cinsiyet", "esys": "cinsiyet", "label": "Cinsiyet", "notes": "ESH: 1/2 veya E/K"},
+                {"esh": "ceptel1", "esys": "cepTelefonu", "label": "Cep telefonu"},
+                {"esh": "guvence", "esys": "guvenceTuru", "label": "Güvence", "lookup": "esh_guvence"},
+                {"esh": "ilce", "esys": "ilceKodu", "label": "İlçe", "lookup": "adres_agaci"},
+                {"esh": "mahalle", "esys": "mahalleKodu", "label": "Mahalle", "lookup": "adres_agaci"},
+                {"esh": "sokak", "esys": "sokakKodu", "label": "Sokak", "lookup": "adres_agaci"},
+                {"esh": "kapino", "esys": "disKapiNo", "label": "Kapı no"},
+                {"esh": "adres_aciklama", "esys": "adresAciklama", "label": "Adres açıklama"},
+                {"esh": "hastaliklar", "esys": "taniListesi", "label": "Tanılar", "lookup": "icd10_skrs", "notes": "Virgülle hastalık id → ICD-10"},
+                {"esh": "kayittarihi", "esys": "kayitTarihi", "label": "Kayıt tarihi"},
+                {"esh": "pasif", "esys": "dosyaDurumu", "label": "Dosya durumu", "notes": "0 aktif, 1 pasif, -3 bekleyen"},
+                {"esh": "ailehekimi", "esys": "aileHekimi", "label": "Aile hekimi"},
+                {"esh": "bakimveren_ad", "esys": "bakimVerenAdi", "label": "Bakım veren adı"},
+                {"esh": "bakimveren_tel", "esys": "bakimVerenTelefon", "label": "Bakım veren telefonu"}
+            ]
+        },
+        "basvuru": {
+            "label": "Başvuru",
+            "esh_table": "esh_hastalar / esh_erapor",
+            "esys_ref_columns": {
+                "esys_basvuru_ref": "ESYS başvuru numarası (hasta satırında)",
+                "esys_erapor_ref": "ESYS başvuru no (e-rapor satırında)"
+            },
+            "fields": [
+                {"esh": "kayittarihi", "esys": "basvuruTarihi", "label": "Başvuru tarihi", "entity": "patient"},
+                {"esh": "randevutarihi", "esys": "ilkRandevuTarihi", "label": "İlk randevu", "entity": "patient"},
+                {"esh": "erapor", "esys": "eRaporMu", "label": "E-rapor hastası", "entity": "patient"},
+                {"esh": "basvurutarihi", "esys": "basvuruTarihi", "label": "Başvuru tarihi", "entity": "erapor"},
+                {"esh": "brans", "esys": "basvuruBransi", "label": "Branş", "entity": "erapor", "lookup": "esh_branslar"},
+                {"esh": "neden", "esys": "basvuruNedeni", "label": "Başvuru nedeni", "entity": "erapor"}
+            ]
+        },
+        "visit": {
+            "label": "İzlem",
+            "esh_table": "esh_izlemler",
+            "esys_ref_columns": {
+                "esys_izlem_ref": "ESYS izlem kayıt numarası"
+            },
+            "fields": [
+                {"esh": "hastatckimlik", "esys": "hastaTc", "label": "Hasta TC", "required": true},
+                {"esh": "izlemtarihi", "esys": "izlemTarihi", "label": "İzlem tarihi", "required": true},
+                {"esh": "yapilan", "esys": "yapilanIslemler", "label": "Yapılan işlemler", "lookup": "esh_islemler"},
+                {"esh": "yapildimi", "esys": "izlemDurumu", "label": "Yapıldı mı", "notes": "0 yapılmadı, 1 yapıldı"},
+                {"esh": "neden", "esys": "yapilmamaNedeni", "label": "Yapılmama nedeni"},
+                {"esh": "izlemiyapan", "esys": "izlemPersoneli", "label": "İzlem yapan", "lookup": "esh_users"},
+                {"esh": "zaman", "esys": "zamanDilimi", "label": "Zaman dilimi"},
+                {"esh": "aciklama", "esys": "izlemNotu", "label": "Açıklama"},
+                {"esh": "checkin_lat", "esys": "enlem", "label": "Saha enlem (GPS)"},
+                {"esh": "checkin_lon", "esys": "boylam", "label": "Saha boylam (GPS)"},
+                {"esh": "checkin_at", "esys": "konumZamani", "label": "Konum zamanı"},
+                {"esh": "arac", "esys": "aracId", "label": "Araç", "lookup": "esh_araclar"}
+            ]
+        },
+        "konsultasyon": {
+            "label": "Konsültasyon",
+            "esh_table": "esh_izlemler",
+            "esys_ref_columns": {
+                "esys_konsultasyon_ref": "ESYS konsültasyon kayıt numarası"
+            },
+            "fields": [
+                {"esh": "brans", "esys": "konsultasyonBransi", "label": "Branş(lar)", "lookup": "esh_branslar"},
+                {"esh": "kons_istekler", "esys": "basvuruAmaci", "label": "Başvuru amacı", "lookup": "esh_istekler"},
+                {"esh": "kons_brans_istek", "esys": "bransAmacMap", "label": "Branş–amaç eşlemesi", "notes": "JSON"},
+                {"esh": "aciklama", "esys": "konsultasyonNotu", "label": "Konsültasyon açıklaması"}
+            ],
+            "notes": "Konsültasyon işlemi seçili izlem satırında tutulur; ayrı ESYS konsültasyon no esys_konsultasyon_ref ile eşlenir."
+        },
+        "planned_visit": {
+            "label": "Planlı izlem",
+            "esh_table": "esh_pizlemler",
+            "esys_ref_columns": {
+                "esys_plan_ref": "ESYS planlı ziyaret numarası"
+            },
+            "fields": [
+                {"esh": "planlanantarih", "esys": "planTarihi", "label": "Plan tarihi"},
+                {"esh": "yapilacak", "esys": "planlananIslem", "label": "Yapılacak işlem", "lookup": "esh_islemler"},
+                {"esh": "zaman", "esys": "zamanDilimi", "label": "Zaman dilimi"},
+                {"esh": "durum", "esys": "planDurumu", "label": "Durum", "notes": "0 bekliyor, 1 tamamlandı"},
+                {"esh": "oncelik", "esys": "oncelik", "label": "Öncelik"}
+            ]
+        }
+    }
+}

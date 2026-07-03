@@ -2702,3 +2702,466 @@
   SQL: INSERT INTO `esh_stok_hareket` (`kurum_id`,`malzeme_id`,`hareket_tipi`,`miktar`,`hareket_tarihi`,`hasta_id`,`ekip_id`,`kullanici_id`,`aciklama`) VALUES (?,?,?,?,?,?,?,?,?) | params: [1,1,"cikis",0.5,"2026-07-01",5,null,1,null]
   İlk-uygulama-çerçevesi: App\Services\Stok\StokService->applyMovementInTransaction @ C:\xampp\htdocs\app\Services\Stok\StokService.php:95
 --------------------------------------------------------------------------------
+[2026-07-01 19:09:38] Yavaş sorgu (731.68 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/unified?status=active
+  Bellek: 4 MB
+  SQL: SELECT COUNT(h.id) FROM esh_hastalar as h 
+                LEFT JOIN esh_adrestablosu as a1 ON h.ilce = a1.id WHERE h.pasif = '0'
+  İlk-uygulama-çerçevesi: App\Models\Patient->countUnified @ C:\xampp\htdocs\app\Controllers\PatientController.php:139
+--------------------------------------------------------------------------------
+[2026-07-01 19:09:42] Yavaş sorgu (558.11 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/unifiedRows?status=active&page=1&limit=20&orderby=h.isim&orderdir=ASC
+  Bellek: 4 MB
+  SQL: SELECT h.*, a1.adi AS ilce_adi, a2.adi AS mahalle_adi, a3.adi AS sokak_adi, a4.adi AS kapino,
+
+            iz.sonizlemtarihi,
+            COALESCE(iz.izlemsayisi, 0) AS izlemsayisi,
+            COALESCE(iz.yizlemsayisi, 0) AS yizlemsayisi,
+            COALESCE(pl.totalplanli, 0) AS totalplanli
+
+            FROM esh_hastalar h
+
+            LEFT JOIN esh_adrestablosu a1 ON h.ilce = a1.id
+
+            LEFT JOIN esh_adrestablosu a2 ON h.mahalle = a2.id
+
+            LEFT JOIN esh_adrestablosu a3 ON h.sokak = a3.id
+
+            LEFT JOIN esh_adrestablosu a4 ON h.kapino = a4.id
+
+             LEFT JOIN (
+
+                SELECT hastatckimlik,
+
+                    MAX(CASE WHEN yapildimi = 1 THEN izlemtarihi END) AS sonizlemtarihi,
+
+                    SUM(yapildimi = 1) AS izlemsayisi,
+
+                    SUM(yapildimi = 0) AS yizlemsayisi
+
+                FROM esh_izlemler
+
+                WHERE hastatckimlik IN (SELECT tckimlik FROM esh_hastalar WHERE id IN (5,31,32,33,34,35,61,62,63,64,65,91,92,93,94,95,121,122,123,124))
+
+                GROUP BY hastatckimlik
+
+            ) iz ON iz.hastatckimlik = h.tckimlik
+
+            LEFT JOIN (
+
+                SELECT hastatckimlik, COUNT(*) AS totalplanli
+
+                FROM esh_pizlemler
+
+                WHERE hastatckimlik IN (SELECT tckimlik FROM esh_hastalar WHERE id IN (5,31,32,33,34,35,61,62,63,64,65,91,92,93,94,95,121,122,123,124)) AND durum = 0
+
+                GROUP BY hastatckimlik
+
+            ) pl ON pl.hastatckimlik = h.tckimlik
+
+            WHERE h.id IN (5,31,32,33,34,35,61,62,63,64,65,91,92,93,94,95,121,122,123,124)
+
+            ORDER BY FIELD(h.id, 5,31,32,33,34,35,61,62,63,64,65,91,92,93,94,95,121,122,123,124)
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Patient.php:182
+--------------------------------------------------------------------------------
+[2026-07-01 19:09:45] Yavaş sorgu (1006.49 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/unifiedRows?status=active&page=1&limit=20&orderby=h.isim&orderdir=ASC
+  Bellek: 4 MB
+  SQL: SELECT * FROM esh_guvence ORDER BY guvenceadi ASC
+  İlk-uygulama-çerçevesi: App\Models\Guvence->getList @ C:\xampp\htdocs\app\Helpers\PatientCompletenessHelper.php:458
+--------------------------------------------------------------------------------
+[2026-07-01 19:10:26] Yavaş sorgu (896.7 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT COUNT(*) FROM esh_mesajlar m
+             INNER JOIN esh_mesaj_konusma_uyeler u ON u.konusma_id = m.konusma_id AND u.user_id = ?
+             WHERE m.id > u.son_okunan_mesaj_id AND u.silindi_at IS NULL | params: [1]
+  İlk-uygulama-çerçevesi: App\Models\Mesaj::countUnreadForUser @ C:\xampp\htdocs\app\Services\MesajService.php:161
+--------------------------------------------------------------------------------
+[2026-07-01 19:40:47] Yavaş sorgu (807.57 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 19:42:16] Yavaş sorgu (863.34 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/Patient/saveBraden
+  Bellek: 4 MB
+  SQL: INSERT INTO `esh_hasta_braden` (`kurum_id`,`hasta_id`,`degerlendirme_tarihi`,`duyusal`,`nem`,`aktivite`,`hareket`,`beslenme`,`surtunme`,`toplam_skor`,`risk_duzeyi`,`notlar`,`kaydeden_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) | params: [1,5,"2026-07-01",1,1,1,1,1,1,6,"Çok yüksek risk",null,1]
+  İlk-uygulama-çerçevesi: App\Models\BaseModel->store @ C:\xampp\htdocs\app\Controllers\PatientController.php:1172
+--------------------------------------------------------------------------------
+[2026-07-01 19:42:36] Yavaş sorgu (622.41 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/barthel?id=5
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 20:01:00] Yavaş sorgu (1902.38 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Hastalik/searchAssigned?kurum_id=1&ensure_ids=3705%2C11319
+  Bellek: 4 MB
+  SQL: SELECT h.* FROM esh_hastaliklar h
+                 INNER JOIN esh_kurum_hastalik kh ON kh.hastalik_id = h.id AND kh.kurum_id = ?
+                 WHERE h.id IN (?,?) AND h.kurum_id = ?
+                 ORDER BY h.hastalikadi ASC | params: [1,3705,11319,0]
+  İlk-uygulama-çerçevesi: App\Models\Hastalik->searchAssignedForKurum @ C:\xampp\htdocs\app\Controllers\HastalikController.php:400
+--------------------------------------------------------------------------------
+[2026-07-01 20:01:49] Yavaş sorgu (978.29 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/view?id=332
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 20:02:33] Yavaş sorgu (542.54 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/getDailyEvents?date=2026-07-01
+  Bellek: 4 MB
+  SQL: SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, COALESCE(mp.bolge, 0) AS bolge,
+                    (SELECT GROUP_CONCAT(isl.islemadi ORDER BY isl.id SEPARATOR ', ')
+                FROM esh_islemler isl
+                WHERE FIND_IN_SET(isl.id, REPLACE(TRIM(p.yapilacak), ' ', ''))) AS islem_label
+                    FROM esh_pizlemler AS p
+                    LEFT JOIN esh_hastalar AS h ON p.hastatckimlik = h.tckimlik
+                    LEFT JOIN esh_adrestablosu AS il ON il.id = h.ilce
+                    LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+                     LEFT JOIN esh_mahalle_plan AS mp ON mp.mahalle_id = m.id AND mp.kurum_id = h.kurum_id
+                    WHERE p.planlanantarih = ?
+                    AND COALESCE((CASE
+
+            WHEN p.zaman IS NULL OR TRIM(CAST(p.zaman AS CHAR)) = '' THEN NULL
+
+            WHEN CAST(p.zaman AS SIGNED) BETWEEN 1 AND 3 THEN CAST(p.zaman AS SIGNED)
+
+            WHEN CAST(p.zaman AS SIGNED) BETWEEN 0 AND 2 THEN CAST(p.zaman AS SIGNED) + 1
+
+            ELSE NULL
+
+        END), 1) = 1
+                    AND COALESCE(p.durum, 0) = 0
+                    AND h.pasif = '0'
+                    AND (
+            TRIM(COALESCE(p.yapilacak, '')) = ''
+            OR FIND_IN_SET('18', REPLACE(TRIM(p.yapilacak), ' ', '')) = 0
+            OR TRIM(REPLACE(TRIM(p.yapilacak), ' ', '')) != '18'
+        ) AND h.kurum_id = 1
+                    ORDER BY h.mahalle ASC | params: ["2026-07-01"]
+  İlk-uygulama-çerçevesi: App\Models\PlannedVisit->getDailyPlans @ C:\xampp\htdocs\app\Controllers\DashboardController.php:308
+--------------------------------------------------------------------------------
+[2026-07-01 20:05:28] Yavaş sorgu (697.25 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 20:06:59] Yavaş sorgu (824.68 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 20:14:27] Yavaş sorgu (643.71 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/unified?status=active
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-01 20:36:11] Yavaş sorgu (585.53 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/Auth/doLogin
+  Bellek: 4 MB
+  SQL: SELECT role_id FROM esh_user_roles WHERE user_id = ? LIMIT 1 | params: [3]
+  İlk-uygulama-çerçevesi: App\Services\PermissionService::roleIdForUser @ C:\xampp\htdocs\app\Services\PermissionService.php:425
+--------------------------------------------------------------------------------
+[2026-07-01 20:36:13] Yavaş sorgu (576.2 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/getDailyEvents?date=2026-07-01
+  Bellek: 4 MB
+  SQL: SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, COALESCE(mp.bolge, 0) AS bolge,
+                    (SELECT GROUP_CONCAT(isl.islemadi ORDER BY isl.id SEPARATOR ', ')
+                FROM esh_islemler isl
+                WHERE FIND_IN_SET(isl.id, REPLACE(TRIM(p.yapilacak), ' ', ''))) AS islem_label
+                    FROM esh_pizlemler AS p
+                    LEFT JOIN esh_hastalar AS h ON p.hastatckimlik = h.tckimlik
+                    LEFT JOIN esh_adrestablosu AS il ON il.id = h.ilce
+                    LEFT JOIN esh_adrestablosu AS m ON m.id = h.mahalle
+                     LEFT JOIN esh_mahalle_plan AS mp ON mp.mahalle_id = m.id AND mp.kurum_id = h.kurum_id
+                    WHERE p.planlanantarih = ?
+                    AND COALESCE((CASE
+
+            WHEN p.zaman IS NULL OR TRIM(CAST(p.zaman AS CHAR)) = '' THEN NULL
+
+            WHEN CAST(p.zaman AS SIGNED) BETWEEN 1 AND 3 THEN CAST(p.zaman AS SIGNED)
+
+            WHEN CAST(p.zaman AS SIGNED) BETWEEN 0 AND 2 THEN CAST(p.zaman AS SIGNED) + 1
+
+            ELSE NULL
+
+        END), 1) = 1
+                    AND COALESCE(p.durum, 0) = 0
+                    AND h.pasif = '0'
+                    AND (
+            TRIM(COALESCE(p.yapilacak, '')) = ''
+            OR FIND_IN_SET('18', REPLACE(TRIM(p.yapilacak), ' ', '')) = 0
+            OR TRIM(REPLACE(TRIM(p.yapilacak), ' ', '')) != '18'
+        ) AND h.kurum_id = 1
+                    ORDER BY h.mahalle ASC | params: ["2026-07-01"]
+  İlk-uygulama-çerçevesi: App\Models\PlannedVisit->getDailyPlans @ C:\xampp\htdocs\app\Controllers\DashboardController.php:308
+--------------------------------------------------------------------------------
+[2026-07-01 20:36:31] Yavaş sorgu (1040.25 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Randevu/index
+  Bellek: 4 MB
+  SQL: SELECT i.*
+
+            FROM esh_istekler AS i
+
+            INNER JOIN esh_kurum_istek AS ki ON ki.istek_id = i.id AND ki.kurum_id = ?
+
+            WHERE i.kurum_id = ?
+
+            ORDER BY i.istek_adi ASC | params: [1,0]
+  İlk-uygulama-çerçevesi: App\Models\Istek->getList @ C:\xampp\htdocs\app\Controllers\RandevuController.php:89
+--------------------------------------------------------------------------------
+[2026-07-02 01:41:57] Yavaş sorgu (1034.13 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-02 01:54:23] Yavaş sorgu (582.02 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/unifiedRows?status=active&page=1&limit=20&orderby=h.isim&orderdir=ASC
+  Bellek: 4 MB
+  SQL: SELECT h.id FROM esh_hastalar h LEFT JOIN esh_adrestablosu a1 ON h.ilce = a1.id
+
+            LEFT JOIN esh_adrestablosu a2 ON h.mahalle = a2.id
+
+            LEFT JOIN esh_adrestablosu a3 ON h.sokak = a3.id
+
+            LEFT JOIN esh_adrestablosu a4 ON h.kapino = a4.id WHERE h.pasif = '0' AND h.kurum_id = 1 ORDER BY h.isim ASC LIMIT 0, 20
+  İlk-uygulama-çerçevesi: App\Helpers\PatientListSqlHelper::fetchPage @ C:\xampp\htdocs\app\Models\Patient.php:182
+--------------------------------------------------------------------------------
+[2026-07-02 19:38:07] Yavaş sorgu (667.78 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-02 20:19:22] Yavaş sorgu (606.91 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-02 20:40:43] Yavaş sorgu (654.32 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-02 21:57:30] Yavaş sorgu (681.93 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Patient/view?id=5
+  Bellek: 6 MB
+  SQL: SELECT i.adi AS ilce, m.adi as mahalle, s.adi as sokak, k.adi as kapino
+                FROM esh_hastalar as h
+                LEFT JOIN esh_adrestablosu AS i ON i.id=h.ilce
+                LEFT JOIN esh_adrestablosu AS m ON m.id=h.mahalle
+                LEFT JOIN esh_adrestablosu AS s ON s.id=h.sokak AND s.ust_id=h.mahalle
+                LEFT JOIN esh_adrestablosu AS k ON k.id=h.kapino AND k.ust_id=h.sokak
+                WHERE h.id = ? | params: [5]
+  İlk-uygulama-çerçevesi: App\Models\Address->getUserAddress @ C:\xampp\htdocs\app\Controllers\PatientController.php:942
+--------------------------------------------------------------------------------
+[2026-07-02 22:48:10] Yavaş sorgu (26343.34 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/DbMaintenance/checkTable
+  Bellek: 4 MB
+  SQL: CHECK TABLE `esh_adrestablosu`
+  İlk-uygulama-çerçevesi: App\Services\DbMaintenanceService->runTableMaintenance @ C:\xampp\htdocs\app\Controllers\DbMaintenanceController.php:256
+--------------------------------------------------------------------------------
+[2026-07-03 16:04:29] Yavaş sorgu (570.59 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Planning/index
+  Bellek: 4 MB
+  SQL: SELECT COUNT(m.id) FROM esh_adrestablosu AS m  LEFT JOIN esh_mahalle_plan AS mp ON mp.mahalle_id = m.id AND mp.kurum_id = 1  WHERE m.tip = 'mahalle' AND (m.id IN (SELECT adres_id FROM esh_kurum_adres WHERE kurum_id = 1 AND tip = 'mahalle') OR m.ust_id IN (SELECT adres_id FROM esh_kurum_adres WHERE kurum_id = 1 AND tip = 'ilce') OR m.id IN (SELECT s.ust_id FROM esh_adrestablosu s INNER JOIN esh_kurum_adres ka ON ka.adres_id = s.id AND ka.kurum_id = 1 AND ka.tip = 'sokak' WHERE s.tip = 'sokak'))
+  İlk-uygulama-çerçevesi: App\Models\Planning->getPlanningCount @ C:\xampp\htdocs\app\Controllers\PlanningController.php:105
+--------------------------------------------------------------------------------
+[2026-07-03 16:04:57] Yavaş sorgu (509.29 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Hastalik/index
+  Bellek: 4 MB
+  SQL: SELECT h.*
+            FROM esh_hastaliklar AS h
+            INNER JOIN esh_kurum_hastalik AS kh ON kh.hastalik_id = h.id AND kh.kurum_id = ?
+            WHERE h.kurum_id = ?
+            ORDER BY h.hastalikadi ASC | params: [1,0]
+  İlk-uygulama-çerçevesi: App\Models\Hastalik->getAssignedListForKurum @ C:\xampp\htdocs\app\Controllers\HastalikController.php:116
+--------------------------------------------------------------------------------
+[2026-07-03 16:04:59] Yavaş sorgu (764.36 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Hastalik/treeNodes
+  Bellek: 4 MB
+  SQL: SELECT COUNT(*) FROM esh_hastaliklar WHERE kurum_id = ? AND seviye = 2 AND parent_icd LIKE '%-%' LIMIT 1 | params: [0]
+  İlk-uygulama-çerçevesi: App\Models\Hastalik->hasSkrsTreeHierarchy @ C:\xampp\htdocs\app\Models\Hastalik.php:314
+--------------------------------------------------------------------------------
+[2026-07-03 16:10:22] Yavaş sorgu (14790.84 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 16:10:22] Yavaş sorgu (596.32 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/Federation/setBolgeFilter
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:18
+--------------------------------------------------------------------------------
+[2026-07-03 16:10:24] Yavaş sorgu (799.68 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/getDailyEvents?date=2026-07-03
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:18
+--------------------------------------------------------------------------------
+[2026-07-03 17:12:22] Yavaş sorgu (527.18 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1 | params: ["esh_mesaj_konusmalar"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::tableReady @ C:\xampp\htdocs\app\Services\MesajService.php:33
+--------------------------------------------------------------------------------
+[2026-07-03 18:18:52] Yavaş sorgu (742.5 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 18:33:08] Yavaş sorgu (932.45 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 18:43:58] Yavaş sorgu (596.96 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 18:46:55] Yavaş sorgu (652.41 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/getDailyEvents?date=2026-07-03
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 18:47:08] Yavaş sorgu (565.69 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 18:47:09] Yavaş sorgu (670.65 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 19:13:44] Yavaş sorgu (508.59 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Brans/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 19:13:44] Yavaş sorgu (511.04 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Brans/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 19:17:52] Yavaş sorgu (721.27 ms, eşik 500 ms) | Ortam: CLI | C:\xampp\htdocs/tools/verify_phase_migrations.php
+  Bellek: 2 MB
+  SQL: SELECT 1 FROM information_schema.columns
+         WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_izlemler","checkin_accuracy"]
+  İlk-uygulama-çerçevesi: columnExists @ C:\xampp\htdocs\tools\verify_phase_migrations.php:92
+--------------------------------------------------------------------------------
+[2026-07-03 20:33:50] Yavaş sorgu (19168.21 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/FederationRegion/store
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 21:24:41] Yavaş sorgu (784.84 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1 | params: ["esh_sms_gonderim"]
+  İlk-uygulama-çerçevesi: App\Models\SmsGonderim::tableReady @ C:\xampp\htdocs\app\Services\Sms\SmsService.php:33
+--------------------------------------------------------------------------------
+[2026-07-03 21:26:21] Yavaş sorgu (801.74 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 21:32:56] Yavaş sorgu (944.7 ms, eşik 500 ms) | Ortam: WEB | POST http://localhost/public/Federation/setBolgeFilter
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 21:32:58] Yavaş sorgu (1323.61 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 21:34:03] Yavaş sorgu (1009.09 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Kurum/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 22:44:40] Yavaş sorgu (507.99 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:03:31] Yavaş sorgu (2475.61 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Adrestanim/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:03:32] Yavaş sorgu (1008.67 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Adrestanim/index
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:16:25] Yavaş sorgu (818.08 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Adrestanim/ajaxList?tip=ilce&ust_id=00000000-0000-4000-a000-adrestanim001
+  Bellek: 4 MB
+  SQL: SELECT a.id, a.adi FROM esh_adrestablosu AS a WHERE a.tip = ? AND a.ust_id = ? AND (a.id IN (SELECT adres_id FROM esh_kurum_adres WHERE kurum_id = 5 AND tip = 'ilce') OR a.id IN (SELECT m.ust_id FROM esh_adrestablosu m INNER JOIN esh_kurum_adres ka ON ka.adres_id = m.id AND ka.kurum_id = 5 AND ka.tip = 'mahalle' WHERE m.tip = 'mahalle') OR a.id IN (SELECT m2.ust_id FROM esh_adrestablosu s INNER JOIN esh_adrestablosu m2 ON m2.id = s.ust_id AND m2.tip = 'mahalle' INNER JOIN esh_kurum_adres ka ON ka.adres_id = s.id AND ka.kurum_id = 5 AND ka.tip = 'sokak' WHERE s.tip = 'sokak')) ORDER BY a.adi ASC | params: ["ilce","00000000-0000-4000-a000-adrestanim001"]
+  İlk-uygulama-çerçevesi: App\Models\Address->adminListByTipUst @ C:\xampp\htdocs\app\Controllers\AdrestanimController.php:73
+--------------------------------------------------------------------------------
+[2026-07-03 23:18:12] Yavaş sorgu (574.07 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:18:12] Yavaş sorgu (756.17 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:20:24] Yavaş sorgu (551.1 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:20:25] Yavaş sorgu (511.61 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1 | params: ["esh_kurumlar","bolge_id"]
+  İlk-uygulama-çerçevesi: App\Models\FederationRegion::columnsReadyOnKurum @ C:\xampp\htdocs\app\Helpers\FederationHelper.php:20
+--------------------------------------------------------------------------------
+[2026-07-03 23:30:38] Yavaş sorgu (21859.43 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 23:36:12] Yavaş sorgu (1207.44 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 23:39:10] Yavaş sorgu (675.7 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Dashboard/index
+  Bellek: 6 MB
+  SQL: SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1 | params: ["esh_mesaj_konusmalar"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::tableReady @ C:\xampp\htdocs\app\Services\MesajService.php:33
+--------------------------------------------------------------------------------
+[2026-07-03 23:48:30] Yavaş sorgu (3372.73 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------
+[2026-07-03 23:50:04] Yavaş sorgu (7875.75 ms, eşik 500 ms) | Ortam: WEB | GET http://localhost/public/Mesaj/poll
+  Bellek: 4 MB
+  SQL: SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1 | params: ["esh_mesaj_konusma_uyeler","silindi_at"]
+  İlk-uygulama-çerçevesi: App\Models\MesajKonusma::supportsTrash @ C:\xampp\htdocs\app\Models\Mesaj.php:103
+--------------------------------------------------------------------------------

@@ -241,7 +241,11 @@ function esh_footer_badge_group_html(
 
     $items = [];
     $items[] = '<span class="badge ' . $bc . '" title="PHP ' . $phpFull . '">PHP ' . $phpShort . '</span>';
-    $items[] = \App\Helpers\CdnAssetHelper::footerCdnVendorBadgesHtml('badge ' . trim($badgeClass));
+    $showCdnVendorBadges = class_exists(\App\Helpers\AuthHelper::class)
+        && \App\Helpers\AuthHelper::sessionIsPlatformOwner();
+    if ($showCdnVendorBadges) {
+        $items[] = \App\Helpers\CdnAssetHelper::footerCdnVendorBadgesHtml('badge ' . trim($badgeClass));
+    }
     $items[] = '<span id="pageLoadTime" class="badge ' . $ltc . ' d-none" aria-live="polite">Yükleniyor...</span>';
 
     return '<div class="esh-footer-badge-group">'

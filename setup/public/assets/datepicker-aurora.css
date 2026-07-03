@@ -1,0 +1,132 @@
+/**
+ * Aurora — bootstrap-datepicker görünüm katmanı.
+ * Yükleme: vendor bootstrap-datepicker.min.css → bu dosya.
+ * Renkler `templates/aurora/theme.css` içindeki --au-* jetonlarına dayanır; `body.aurora-theme` ile kapsanır.
+ */
+
+body.aurora-theme .datepicker.datepicker-dropdown {
+    padding: 0.85rem 1rem !important;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif !important;
+    color: var(--au-text) !important;
+    background: var(--au-glass, rgba(255, 255, 255, 0.72)) !important;
+    border: 1px solid var(--au-border-strong) !important;
+    border-radius: var(--au-radius-sm, 10px) !important;
+    box-shadow: var(--au-shadow, 0 12px 30px -12px rgba(13, 148, 136, 0.26)) !important;
+    margin-top: 0.35rem !important;
+    backdrop-filter: blur(12px);
+}
+
+body.aurora-theme .datepicker-dropdown::before,
+body.aurora-theme .datepicker-dropdown::after {
+    border: none !important;
+    content: none !important;
+    display: none !important;
+}
+
+body.aurora-theme .datepicker table {
+    border-collapse: separate;
+    border-spacing: 3px;
+}
+
+body.aurora-theme .datepicker table tr th {
+    font-weight: 600;
+    color: var(--au-text) !important;
+    height: 2.25rem;
+    border-radius: var(--au-radius-sm, 10px) !important;
+    background: transparent !important;
+}
+
+body.aurora-theme .datepicker table tr th.prev,
+body.aurora-theme .datepicker table tr th.next,
+body.aurora-theme .datepicker table tr th.datepicker-switch {
+    background: transparent !important;
+}
+
+body.aurora-theme .datepicker table tr th.prev:hover,
+body.aurora-theme .datepicker table tr th.next:hover,
+body.aurora-theme .datepicker table tr th.datepicker-switch:hover {
+    background: var(--au-gradient-soft) !important;
+    color: var(--au-accent-strong) !important;
+}
+
+body.aurora-theme .datepicker table tr th.dow {
+    color: var(--au-text-muted) !important;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    padding-bottom: 0.35rem;
+}
+
+body.aurora-theme .datepicker table tr td.day {
+    width: 2.35rem;
+    height: 2.35rem;
+    line-height: 2.35rem;
+    border-radius: var(--au-radius-sm, 10px) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--au-text) !important;
+    border: none !important;
+    transition: background-color var(--au-motion, 0.2s ease), color var(--au-motion, 0.2s ease);
+}
+
+body.aurora-theme .datepicker table tr td.day:hover {
+    background: rgba(13, 148, 136, 0.1) !important;
+    color: var(--au-text) !important;
+    cursor: pointer;
+}
+
+body.aurora-theme .datepicker table tr td.today {
+    background-color: rgba(8, 145, 178, 0.14) !important;
+    color: var(--au-cyan) !important;
+    font-weight: 700;
+    background-image: none !important;
+}
+
+body.aurora-theme .datepicker table tr td.active,
+body.aurora-theme .datepicker table tr td.active:hover,
+body.aurora-theme .datepicker table tr td.active.active,
+body.aurora-theme .datepicker table tr td.selected,
+body.aurora-theme .datepicker table tr td.selected:hover,
+body.aurora-theme .datepicker table tr td.range-start,
+body.aurora-theme .datepicker table tr td.range-end {
+    background: var(--au-gradient) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(13, 148, 136, 0.32) !important;
+}
+
+body.aurora-theme .datepicker table tr td.range {
+    background: rgba(13, 148, 136, 0.12) !important;
+    color: var(--au-text) !important;
+}
+
+body.aurora-theme .datepicker table tr td.old,
+body.aurora-theme .datepicker table tr td.new {
+    color: var(--au-text-muted) !important;
+    opacity: 0.55;
+}
+
+body.aurora-theme .datepicker table tr td.disabled,
+body.aurora-theme .datepicker table tr td.disabled:hover {
+    background: transparent !important;
+    color: var(--au-text-muted) !important;
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+body.aurora-theme .datepicker table tr th.prev i,
+body.aurora-theme .datepicker table tr th.next i {
+    color: var(--au-text-muted) !important;
+    font-size: 0.75rem;
+}
+
+body.aurora-theme .datepicker table tr th.prev:hover i,
+body.aurora-theme .datepicker table tr th.next:hover i {
+    color: var(--au-accent) !important;
+}
+
+body.aurora-theme .datepicker table tfoot tr th:hover {
+    background: rgba(13, 148, 136, 0.08) !important;
+}

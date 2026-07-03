@@ -1,0 +1,74 @@
+.esh-mesaj-unread {
+    background-color: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.esh-page-mesaj .list-group-item-action {
+    color: var(--bs-body-color);
+    text-decoration: none;
+}
+
+.esh-page-mesaj .list-group-item-action:hover,
+.esh-page-mesaj .list-group-item-action:focus {
+    color: var(--bs-body-color);
+}
+
+.esh-page-mesaj .list-group-item-action .text-muted {
+    color: var(--bs-secondary-color) !important;
+}
+
+.esh-mesaj-thread-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.esh-mesaj-bubble-wrap {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.esh-mesaj-bubble-wrap--mine {
+    justify-content: flex-end;
+}
+
+.esh-mesaj-bubble {
+    max-width: min(85%, 520px);
+    padding: 0.65rem 0.9rem;
+    border-radius: 1rem;
+    background: var(--bs-light);
+    border: 1px solid var(--bs-border-color);
+}
+
+.esh-mesaj-bubble--mine {
+    background: var(--bs-primary);
+    color: #fff;
+    border-color: var(--bs-primary);
+}
+
+.esh-mesaj-bubble--mine .esh-mesaj-bubble-sender,
+.esh-mesaj-bubble--mine .esh-mesaj-bubble-time {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.esh-mesaj-bubble--system {
+    background: rgba(var(--bs-warning-rgb), 0.12);
+    border-color: rgba(var(--bs-warning-rgb), 0.35);
+    max-width: 100%;
+}
+
+.esh-mesaj-bubble-body {
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+#esh-mesaj-nav-badge.d-none {
+    display: none !important;
+}
+
+.esh-mesaj-mailbox-tabs .nav-link {
+    color: var(--bs-body-color);
+}
+
+.esh-mesaj-mailbox-tabs .nav-link.active {
+    font-weight: 600;
+}

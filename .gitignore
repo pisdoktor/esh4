@@ -1,0 +1,4 @@
+/vendor/
+/frontend/modern/node_modules/
+/frontend/modern/dist/
+/.phpunit.cache/

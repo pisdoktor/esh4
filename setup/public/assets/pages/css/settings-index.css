@@ -1,0 +1,243 @@
+/* Settings — İşlem id'leri sekmesi (scoped) */
+.esh-page-settings--islem-ids .esh-islem-id-intro {
+    border-left: 3px solid var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), 0.06);
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-intro code {
+    font-size: 0.85em;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-grid {
+    --esh-islem-id-gap: 1rem;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.125rem;
+    height: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field:focus-within {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.12);
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__head .form-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__type {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__desc {
+    margin-bottom: 0.75rem;
+    line-height: 1.45;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__meta {
+    margin-top: 0.625rem;
+    padding-top: 0.625rem;
+    border-top: 1px dashed var(--bs-border-color);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field__meta code {
+    font-size: 0.92em;
+}
+
+.esh-page-settings--islem-ids .esh-tomselect-field {
+    position: relative;
+}
+
+.esh-page-settings--islem-ids .esh-tomselect-field .ts-wrapper {
+    width: 100% !important;
+    max-width: 100%;
+}
+
+/* Tom Select dropdown stacking — kart içinde üst üste select */
+.esh-page-settings--islem-ids .card:has(.esh-islem-id-grid),
+.esh-page-settings--islem-ids .card:has(.esh-islem-id-grid) .card-body {
+    overflow: visible !important;
+}
+
+.esh-page-settings--islem-ids .esh-islem-id-field:has(.dropdown-active) {
+    position: relative;
+    z-index: 50;
+}
+
+@media (max-width: 991.98px) {
+    .esh-page-settings--islem-ids .esh-islem-id-field {
+        padding: 0.875rem 1rem;
+    }
+}
+
+/* Settings — Nöbet sekmesi (scoped) */
+.esh-page-settings--nobet .esh-nobet-intro {
+    border-left: 3px solid var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), 0.06);
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+    line-height: 1.5;
+}
+
+.esh-page-settings--nobet .esh-nobet-intro code {
+    font-size: 0.85em;
+}
+
+.esh-page-settings--nobet .esh-nobet-selected-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-grid {
+    --esh-nobet-gap: 1rem;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.125rem;
+    height: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin: 0;
+    cursor: pointer;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field:focus-within,
+.esh-page-settings--nobet .esh-nobet-unvan-field:has(.esh-nobet-unvan-field__check:checked) {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.12);
+    background: rgba(var(--bs-primary-rgb), 0.04);
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__check {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0.15rem 0 0;
+    cursor: pointer;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__title {
+    display: block;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--bs-body-color);
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__meta {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--bs-secondary-color);
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__meta code {
+    font-size: 0.92em;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--bs-border-color-translucent);
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field:not(:has(.esh-nobet-unvan-field__check:checked)) .esh-nobet-unvan-field__slot {
+    opacity: 0.55;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__slot-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
+.esh-page-settings--nobet .esh-nobet-unvan-field__slot-input {
+    width: 4.5rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.esh-page-settings--nobet .esh-nobet-footnote {
+    border-top: 1px dashed var(--bs-border-color);
+    padding-top: 1rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 991.98px) {
+    .esh-page-settings--nobet .esh-nobet-unvan-field {
+        padding: 0.875rem 1rem;
+    }
+}
+
+/* Genişletilmiş ayar sekmeleri */
+.esh-page-settings--extended .esh-settings-tabs .nav-link {
+    font-size: 0.875rem;
+}
+
+.esh-page-settings--extended .esh-settings-field {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.125rem;
+    height: 100%;
+}
+
+.esh-page-settings--extended .esh-settings-field:focus-within {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.12);
+}
