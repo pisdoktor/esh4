@@ -62,8 +62,9 @@ final class AuthHelperTest extends SessionTestCase
 
     public function test_admin_level_labels(): void
     {
-        self::assertSame('Sistem Sahibi', AuthHelper::adminLevelLabel(3));
-        self::assertSame('Süper Yönetici', AuthHelper::adminLevelLabel(2));
+        self::assertSame('Sistem Yöneticisi', AuthHelper::adminLevelLabel(3));
+        self::assertSame('Bölge Yöneticisi', AuthHelper::adminLevelLabel(2));
+        self::assertSame('Kurum Yöneticisi', AuthHelper::adminLevelLabel(1));
     }
 
     public function test_is_platform_level(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 use App\Core\Database;
+use App\Models\FederationRegion;
 use App\Models\HastaNakil;
 use App\Models\Kurum;
 use App\Models\Patient;
@@ -14,22 +15,97 @@ use App\Models\Patient;
  */
 final class PatientNakilRequest
 {
+    /** @deprecated Eski tek değer; yeni akışta bolge_{id} kullanın. */
     public const NAKIL_HEDEF_IL_DISI = 'il_disi';
 
+    public const NAKIL_HEDEF_BOLGE_PREFIX = 'bolge_';
+
     public const NAKIL_ACTIVE_ONLY_MSG = 'Nakil işlemleri yalnızca aktif hasta dosyaları için yapılabilir.';
+
+    public static function isBolgeHedef(string $nakilHedef): bool
+    {
+        return str_starts_with(trim($nakilHedef), self::NAKIL_HEDEF_BOLGE_PREFIX);
+    }
+
+    public static function parseBolgeHedef(string $nakilHedef): ?int
+    {
+        $nakilHedef = trim($nakilHedef);
+        if (!self::isBolgeHedef($nakilHedef)) {
+            return null;
+        }
+        $idPart = substr($nakilHedef, strlen(self::NAKIL_HEDEF_BOLGE_PREFIX));
+        if ($idPart === '' || !ctype_digit($idPart)) {
+            return null;
+        }
+        $id = (int) $idPart;
+
+        return $id > 0 ? $id : null;
+    }
+
+    public static function buildBolgeHedef(int $bolgeId): string
+    {
+        return self::NAKIL_HEDEF_BOLGE_PREFIX . (int) $bolgeId;
+    }
+
+    /** @return list<object> İl dışı nakil hedefi için aktif bölgeler (kaynak kurum bölgesi hariç). */
+    public static function bolgeListForNakilTarget(object $patient): array
+    {
+        if (!FederationHelper::enabled()) {
+            return [];
+        }
+        $sourceBolgeId = self::sourceKurumBolgeId($patient);
+        $out = [];
+        foreach ((new FederationRegion())->getList(true) as $row) {
+            $bid = (int) ($row->id ?? 0);
+            if ($bid <= 0) {
+                continue;
+            }
+            if ($sourceBolgeId !== null && $sourceBolgeId > 0 && $bid === $sourceBolgeId) {
+                continue;
+            }
+            $out[] = $row;
+        }
+
+        return $out;
+    }
+
+    public static function sourceKurumBolgeId(object $patient): ?int
+    {
+        $kurumId = (int) ($patient->kurum_id ?? 0);
+        if ($kurumId <= 0 || !Kurum::tableExists()) {
+            return null;
+        }
+        $kurum = new Kurum();
+        if (!$kurum->load($kurumId)) {
+            return null;
+        }
+        $bid = (int) ($kurum->bolge_id ?? 0);
+
+        return $bid > 0 ? $bid : null;
+    }
 
     public static function tableReady(): bool
     {
         return HastaNakil::tableExists();
     }
 
-    public static function hasPending(int $hastaId): bool
+    private static function patientEntityId(mixed $source): ?string
     {
-        if ($hastaId <= 0 || !self::tableReady()) {
+        if (is_object($source)) {
+            return IdHelper::normalizeRequestId($source->id ?? null);
+        }
+
+        return IdHelper::normalizeRequestId($source);
+    }
+
+    public static function hasPending(int|string $hastaId): bool
+    {
+        $hastaIdNorm = self::patientEntityId($hastaId);
+        if ($hastaIdNorm === null || !self::tableReady()) {
             return false;
         }
 
-        return (new HastaNakil())->findPendingByHastaId($hastaId) !== null;
+        return (new HastaNakil())->findPendingByHastaId($hastaIdNorm) !== null;
     }
 
     public static function countPendingForTargetKurum(int $kurumId): int
@@ -41,13 +117,14 @@ final class PatientNakilRequest
         return (new HastaNakil())->countPendingForTargetKurum($kurumId);
     }
 
-    public static function findPendingForPatient(int $hastaId): ?object
+    public static function findPendingForPatient(int|string $hastaId): ?object
     {
-        if ($hastaId <= 0 || !self::tableReady()) {
+        $hastaIdNorm = self::patientEntityId($hastaId);
+        if ($hastaIdNorm === null || !self::tableReady()) {
             return null;
         }
 
-        return (new HastaNakil())->findPendingByHastaId($hastaId);
+        return (new HastaNakil())->findPendingByHastaId($hastaIdNorm);
     }
 
     public static function getReturnTargetKurumId(object $patient): ?int
@@ -55,8 +132,8 @@ final class PatientNakilRequest
         if (!self::tableReady()) {
             return null;
         }
-        $hastaId = (int) ($patient->id ?? 0);
-        if ($hastaId <= 0) {
+        $hastaId = self::patientEntityId($patient);
+        if ($hastaId === null) {
             return null;
         }
         $inbound = (new HastaNakil())->findApprovedInboundByHedefHastaId($hastaId);
@@ -69,7 +146,7 @@ final class PatientNakilRequest
     }
 
     /**
-     * @return array{onceki_nakil_id: int, hedef_kurum_id: int}|null
+     * @return array{onceki_nakil_id: string, hedef_kurum_id: int}|null
      */
     public static function detectReturnNakilContext(object $patient, int $hedefKurumId): ?array
     {
@@ -77,8 +154,8 @@ final class PatientNakilRequest
             return null;
         }
 
-        $hastaId = (int) ($patient->id ?? 0);
-        if ($hastaId <= 0) {
+        $hastaId = self::patientEntityId($patient);
+        if ($hastaId === null) {
             return null;
         }
 
@@ -92,8 +169,8 @@ final class PatientNakilRequest
             return null;
         }
 
-        $oncekiNakilId = (int) ($inbound->id ?? 0);
-        if ($oncekiNakilId <= 0) {
+        $oncekiNakilId = IdHelper::normalizeRequestId($inbound->id ?? null);
+        if ($oncekiNakilId === null) {
             return null;
         }
 
@@ -128,8 +205,8 @@ final class PatientNakilRequest
         }
 
         if ($requireActive) {
-            $hastaId = (int) ($patient->id ?? 0);
-            if ($hastaId > 0 && self::hasPending($hastaId)) {
+            $hastaId = self::patientEntityId($patient);
+            if ($hastaId !== null && self::hasPending($hastaId)) {
                 return 'Bu hasta için bekleyen nakil talebi var.';
             }
         }
@@ -151,7 +228,7 @@ final class PatientNakilRequest
     {
         $nakilHedef = trim($nakilHedef);
         if ($nakilHedef === '') {
-            return 'Başka kuruma nakil için hedef seçin (il dışı veya kurum).';
+            return 'Başka kuruma nakil için hedef bölge veya hedef kurum seçin.';
         }
 
         if ($requireActive) {
@@ -167,7 +244,12 @@ final class PatientNakilRequest
         }
 
         if ($nakilHedef === self::NAKIL_HEDEF_IL_DISI) {
-            return null;
+            return 'İl dışı nakil için hedef bölge seçin.';
+        }
+
+        $bolgeId = self::parseBolgeHedef($nakilHedef);
+        if ($bolgeId !== null) {
+            return self::validateBolgeHedef($patient, $bolgeId, $requireActive);
         }
 
         if (!ctype_digit($nakilHedef)) {
@@ -186,6 +268,32 @@ final class PatientNakilRequest
         return PatientKurumTransfer::validateTargetKurumForApprove($patient, $hedefKurumId);
     }
 
+    public static function validateBolgeHedef(object $patient, int $hedefBolgeId, bool $requireActive = true): ?string
+    {
+        if ($hedefBolgeId <= 0) {
+            return 'Geçerli bir hedef bölge seçin.';
+        }
+        if (!FederationHelper::enabled() || !HastaNakil::hedefBolgeColumnReady()) {
+            return 'İl dışı bölge nakli için federasyon modülü kurulu değil.';
+        }
+        $region = new FederationRegion();
+        if (!$region->load($hedefBolgeId) || empty($region->aktif)) {
+            return 'Seçilen hedef bölge bulunamadı veya pasif.';
+        }
+        $sourceBolgeId = self::sourceKurumBolgeId($patient);
+        if ($sourceBolgeId !== null && $sourceBolgeId > 0 && $sourceBolgeId === $hedefBolgeId) {
+            return 'Hasta zaten bu bölgede kayıtlı; il dışı nakil için farklı bir bölge seçin.';
+        }
+        if ($requireActive) {
+            $hastaId = self::patientEntityId($patient);
+            if ($hastaId !== null && self::hasPending($hastaId)) {
+                return 'Bu hasta için bekleyen nakil talebi var.';
+            }
+        }
+
+        return null;
+    }
+
     public static function validatePasifNedeniForStore(int $pasifNedeni, bool $isAdmin): ?string
     {
         if ($pasifNedeni === PatientKurumTransfer::PASIF_NEDENI_NAKIL && !$isAdmin) {
@@ -196,16 +304,17 @@ final class PatientNakilRequest
     }
 
     /**
-     * @return int|false Log id veya false
+     * @return string|false Log id veya false
      */
-    public static function createFromPassiveSave(object $patient, string $nakilHedef, int $userId): int|false
+    public static function createFromPassiveSave(object $patient, string $nakilHedef, int|string $userId): string|false
     {
         if (!self::tableReady()) {
             return false;
         }
 
-        $hastaId = (int) ($patient->id ?? 0);
-        if ($hastaId <= 0 || $userId <= 0) {
+        $hastaId = self::patientEntityId($patient);
+        $userIdNorm = IdHelper::normalizeRequestId($userId);
+        if ($hastaId === null || $userIdNorm === null) {
             return false;
         }
 
@@ -223,7 +332,8 @@ final class PatientNakilRequest
             return false;
         }
 
-        $isIlDisi = trim($nakilHedef) === self::NAKIL_HEDEF_IL_DISI;
+        $hedefBolgeId = self::parseBolgeHedef(trim($nakilHedef));
+        $isIlDisi = $hedefBolgeId !== null;
         $geriCtx = !$isIlDisi && ctype_digit(trim($nakilHedef))
             ? self::detectReturnNakilContext($patient, (int) $nakilHedef)
             : null;
@@ -237,13 +347,17 @@ final class PatientNakilRequest
             'onceki_nakil_id' => null,
             'orijinal_kaynak_hasta_id' => null,
             'tip' => $isIlDisi ? HastaNakil::TIP_IL_DISI : HastaNakil::TIP_KURUM_ICI,
-            'durum' => $isIlDisi ? HastaNakil::DURUM_ONAYLANDI : HastaNakil::DURUM_BEKLEMEDE,
-            'talep_eden_user_id' => $userId,
+            'durum' => HastaNakil::DURUM_BEKLEMEDE,
+            'talep_eden_user_id' => $userIdNorm,
             'talep_tarihi' => date('Y-m-d H:i:s'),
-            'onaylayan_user_id' => $isIlDisi ? $userId : null,
-            'onay_tarihi' => $isIlDisi ? date('Y-m-d H:i:s') : null,
+            'onaylayan_user_id' => null,
+            'onay_tarihi' => null,
             'red_nedeni' => null,
         ];
+
+        if ($isIlDisi && HastaNakil::hedefBolgeColumnReady()) {
+            $bind['hedef_bolge_id'] = $hedefBolgeId;
+        }
 
         if ($geriCtx !== null) {
             $bind['tip'] = HastaNakil::TIP_GERI_NAKIL;
@@ -256,44 +370,47 @@ final class PatientNakilRequest
             return false;
         }
 
-        return (int) ($nakil->id ?? 0) > 0 ? (int) $nakil->id : false;
+        return IdHelper::entityIdOrFalse($nakil->id ?? null);
     }
 
     /**
      * Süper yönetici anlık kurum değiştirme — onaylı kurum içi nakil logu.
      *
-     * @return int|false Log id
+     * @return string|false Log id
      */
     public static function logInstantApprovedTransfer(
-        int $kaynakHastaId,
+        int|string $kaynakHastaId,
         int $kaynakKurumId,
         int $hedefKurumId,
-        int $hedefHastaId,
-        int $userId
-    ): int|false {
+        int|string $hedefHastaId,
+        int|string $userId
+    ): string|false {
+        $kaynakHastaIdNorm = IdHelper::normalizeRequestId($kaynakHastaId);
+        $hedefHastaIdNorm = IdHelper::normalizeRequestId($hedefHastaId);
+        $userIdNorm = IdHelper::normalizeRequestId($userId);
         if (!self::tableReady()
-            || $kaynakHastaId <= 0
+            || $kaynakHastaIdNorm === null
             || $kaynakKurumId <= 0
             || $hedefKurumId <= 0
-            || $hedefHastaId <= 0
-            || $userId <= 0) {
+            || $hedefHastaIdNorm === null
+            || $userIdNorm === null) {
             return false;
         }
 
         $now = date('Y-m-d H:i:s');
         $nakil = new HastaNakil();
         $nakil->bind([
-            'kaynak_hasta_id' => $kaynakHastaId,
+            'kaynak_hasta_id' => $kaynakHastaIdNorm,
             'kaynak_kurum_id' => $kaynakKurumId,
             'hedef_kurum_id' => $hedefKurumId,
-            'hedef_hasta_id' => $hedefHastaId,
+            'hedef_hasta_id' => $hedefHastaIdNorm,
             'onceki_nakil_id' => null,
             'orijinal_kaynak_hasta_id' => null,
             'tip' => HastaNakil::TIP_KURUM_ICI,
             'durum' => HastaNakil::DURUM_ONAYLANDI,
-            'talep_eden_user_id' => $userId,
+            'talep_eden_user_id' => $userIdNorm,
             'talep_tarihi' => $now,
-            'onaylayan_user_id' => $userId,
+            'onaylayan_user_id' => $userIdNorm,
             'onay_tarihi' => $now,
             'red_nedeni' => null,
         ], true);
@@ -302,15 +419,15 @@ final class PatientNakilRequest
             return false;
         }
 
-        return (int) ($nakil->id ?? 0) > 0 ? (int) $nakil->id : false;
+        return IdHelper::entityIdOrFalse($nakil->id ?? null);
     }
 
     /**
-     * @return int|false Onay sonrası hedef hasta id
+     * @return string|false Onay sonrası hedef hasta id
      */
-    public static function approve(int $nakilId, int $approverUserId): int|false
+    public static function approve(int|string $nakilId, int|string $approverUserId): string|false
     {
-        if (!self::tableReady() || $nakilId <= 0 || $approverUserId <= 0) {
+        if (!self::tableReady() || IdHelper::isEmptyEntityId($nakilId) || IdHelper::isEmptyEntityId($approverUserId)) {
             return false;
         }
 
@@ -338,8 +455,8 @@ final class PatientNakilRequest
         }
 
         $patient = new Patient();
-        $kaynakHastaId = (int) ($nakil->kaynak_hasta_id ?? 0);
-        if (!$patient->load($kaynakHastaId)) {
+        $kaynakHastaId = IdHelper::normalizeRequestId($nakil->kaynak_hasta_id ?? null);
+        if ($kaynakHastaId === null || !$patient->load($kaynakHastaId)) {
             return false;
         }
 
@@ -349,7 +466,7 @@ final class PatientNakilRequest
         }
 
         $db = Database::getInstance();
-        $result = $db->transaction(static function (Database $db) use ($hedefKurumId, $approverUserId, $nakilId, $kaynakHastaId): int|false {
+        $result = $db->transaction(static function (Database $db) use ($hedefKurumId, $approverUserId, $nakilId, $kaynakHastaId): string|false {
             if (!PatientKurumTransfer::movePatientToKurum($kaynakHastaId, $hedefKurumId)) {
                 return false;
             }
@@ -370,17 +487,17 @@ final class PatientNakilRequest
             return $ok ? $kaynakHastaId : false;
         });
 
-        return is_int($result) && $result > 0 ? $result : false;
+        return IdHelper::normalizeRequestId($result) ?? false;
     }
 
     /**
-     * @return int|false Onay sonrası hasta id (tek satır)
+     * @return string|false Onay sonrası hasta id (tek satır)
      */
-    private static function approveGeriNakil(HastaNakil $nakil, int $approverUserId, int $nakilId): int|false
+    private static function approveGeriNakil(HastaNakil $nakil, int|string $approverUserId, int|string $nakilId): string|false
     {
-        $hastaId = (int) ($nakil->kaynak_hasta_id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($nakil->kaynak_hasta_id ?? null);
         $hedefKurumId = (int) ($nakil->hedef_kurum_id ?? 0);
-        if ($hastaId <= 0 || $hedefKurumId <= 0) {
+        if ($hastaId === null || $hedefKurumId <= 0) {
             return false;
         }
 
@@ -395,7 +512,7 @@ final class PatientNakilRequest
         }
 
         $db = Database::getInstance();
-        $result = $db->transaction(static function (Database $db) use ($approverUserId, $nakilId, $hedefKurumId, $hastaId): int|false {
+        $result = $db->transaction(static function (Database $db) use ($approverUserId, $nakilId, $hedefKurumId, $hastaId): string|false {
             if (!PatientKurumTransfer::movePatientToKurum($hastaId, $hedefKurumId)) {
                 return false;
             }
@@ -416,12 +533,109 @@ final class PatientNakilRequest
             return $ok ? $hastaId : false;
         });
 
-        return is_int($result) && $result > 0 ? $result : false;
+        return IdHelper::normalizeRequestId($result) ?? false;
     }
 
-    public static function reject(int $nakilId, int $userId, ?string $redNedeni = null): bool
+    /**
+     * İl dışı nakil onayı — hedef kurum seçimi ile bekleyen kayıt açılır.
+     *
+     * @return string|false Onay sonrası hedef hasta id
+     */
+    public static function approveIlDisiNakil(int|string $nakilId, int $hedefKurumId, int|string $approverUserId): string|false
     {
-        if (!self::tableReady() || $nakilId <= 0 || $userId <= 0) {
+        if (!self::tableReady() || IdHelper::isEmptyEntityId($nakilId) || $hedefKurumId <= 0 || IdHelper::isEmptyEntityId($approverUserId)) {
+            return false;
+        }
+
+        if (!self::canManageIncomingNakil($nakilId, $approverUserId, 'approve')) {
+            return false;
+        }
+
+        $nakil = new HastaNakil();
+        if (!$nakil->loadPendingById($nakilId)) {
+            return false;
+        }
+
+        if ((string) ($nakil->tip ?? '') !== HastaNakil::TIP_IL_DISI) {
+            return false;
+        }
+
+        $hedefBolgeId = (int) ($nakil->hedef_bolge_id ?? 0);
+        if ($hedefBolgeId <= 0 || !HastaNakil::hedefBolgeColumnReady()) {
+            return false;
+        }
+
+        if (!self::isKurumInBolge($hedefKurumId, $hedefBolgeId)) {
+            return false;
+        }
+
+        if (!TenantContext::isKurumInScope($hedefKurumId)) {
+            return false;
+        }
+
+        $patient = new Patient();
+        $kaynakHastaId = IdHelper::normalizeRequestId($nakil->kaynak_hasta_id ?? null);
+        if ($kaynakHastaId === null || !$patient->load($kaynakHastaId)) {
+            return false;
+        }
+
+        $err = PatientKurumTransfer::validateTargetKurumForApprove($patient, $hedefKurumId);
+        if ($err !== null) {
+            return false;
+        }
+
+        $db = Database::getInstance();
+        $result = $db->transaction(static function (Database $db) use ($hedefKurumId, $approverUserId, $nakilId, $kaynakHastaId): string|false {
+            if (!PatientKurumTransfer::movePatientToKurum($kaynakHastaId, $hedefKurumId)) {
+                return false;
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $ok = $db->updatePrepared(
+                '#__hasta_nakil',
+                [
+                    'durum' => HastaNakil::DURUM_ONAYLANDI,
+                    'hedef_kurum_id' => $hedefKurumId,
+                    'hedef_hasta_id' => $kaynakHastaId,
+                    'onaylayan_user_id' => $approverUserId,
+                    'onay_tarihi' => $now,
+                ],
+                'id = ? AND durum = ?',
+                [$nakilId, HastaNakil::DURUM_BEKLEMEDE]
+            );
+
+            return $ok ? $kaynakHastaId : false;
+        });
+
+        return IdHelper::normalizeRequestId($result) ?? false;
+    }
+
+    public static function isKurumInBolge(int $kurumId, int $bolgeId): bool
+    {
+        if ($kurumId <= 0 || $bolgeId <= 0 || !Kurum::tableExists()) {
+            return false;
+        }
+        $kurum = new Kurum();
+        if (!$kurum->load($kurumId)) {
+            return false;
+        }
+
+        return (int) ($kurum->bolge_id ?? 0) === $bolgeId;
+    }
+
+    /** @return list<object> */
+    public static function kurumListForIlDisiBolge(int $bolgeId): array
+    {
+        if ($bolgeId <= 0 || !FederationHelper::columnsReady()) {
+            return [];
+        }
+
+        return (new Kurum())->getList(true, 'ad ASC', $bolgeId);
+    }
+
+    public static function reject(int|string $nakilId, int|string $userId, ?string $redNedeni = null): bool
+    {
+        if (!self::tableReady() || IdHelper::isEmptyEntityId($nakilId) || IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
 
@@ -453,9 +667,9 @@ final class PatientNakilRequest
         );
     }
 
-    public static function cancel(int $nakilId, int $userId): bool
+    public static function cancel(int|string $nakilId, int|string $userId): bool
     {
-        if (!self::tableReady() || $nakilId <= 0 || $userId <= 0) {
+        if (!self::tableReady() || IdHelper::isEmptyEntityId($nakilId) || IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
 
@@ -477,9 +691,9 @@ final class PatientNakilRequest
         );
     }
 
-    public static function canManageIncomingNakil(int $nakilId, int $userId, string $action): bool
+    public static function canManageIncomingNakil(int|string $nakilId, int|string $userId, string $action): bool
     {
-        if (!AuthHelper::sessionIsAdmin() || $nakilId <= 0) {
+        if (!AuthHelper::sessionIsAdmin() || IdHelper::isEmptyEntityId($nakilId)) {
             return false;
         }
 
@@ -492,8 +706,31 @@ final class PatientNakilRequest
             return false;
         }
 
+        $tip = (string) ($nakil->tip ?? '');
+
+        if ($tip === HastaNakil::TIP_IL_DISI) {
+            if (!AuthHelper::sessionIsSuperAdmin()) {
+                return false;
+            }
+            $hedefBolgeId = (int) ($nakil->hedef_bolge_id ?? 0);
+            if ($hedefBolgeId <= 0) {
+                return false;
+            }
+            $effectiveBolge = TenantContext::effectiveBolgeFilterId();
+            if ($effectiveBolge !== null && $effectiveBolge > 0) {
+                return $hedefBolgeId === $effectiveBolge;
+            }
+
+            return AuthHelper::sessionIsPlatformOwner();
+        }
+
         if (AuthHelper::sessionIsSuperAdmin()) {
-            return true;
+            $hedefKurumId = (int) ($nakil->hedef_kurum_id ?? 0);
+            if ($hedefKurumId <= 0) {
+                return false;
+            }
+
+            return TenantContext::isKurumInScope($hedefKurumId);
         }
 
         $hedefKurumId = (int) ($nakil->hedef_kurum_id ?? 0);
@@ -504,9 +741,9 @@ final class PatientNakilRequest
             : false;
     }
 
-    public static function canCancelNakil(int $nakilId, int $userId): bool
+    public static function canCancelNakil(int|string $nakilId, int|string $userId): bool
     {
-        if (!AuthHelper::sessionIsAdmin() || $nakilId <= 0) {
+        if (!AuthHelper::sessionIsAdmin() || IdHelper::isEmptyEntityId($nakilId)) {
             return false;
         }
 
@@ -520,7 +757,9 @@ final class PatientNakilRequest
         }
 
         if (AuthHelper::sessionIsSuperAdmin()) {
-            return true;
+            $kaynakKurumId = (int) ($nakil->kaynak_kurum_id ?? 0);
+
+            return $kaynakKurumId > 0 && TenantContext::isKurumInScope($kaynakKurumId);
         }
 
         $kaynakKurumId = (int) ($nakil->kaynak_kurum_id ?? 0);
@@ -536,19 +775,44 @@ final class PatientNakilRequest
             return [];
         }
 
-        $super = AuthHelper::sessionIsSuperAdmin();
+        $model = new HastaNakil();
+        $kurumRows = [];
+        $ilDisiRows = [];
 
-        return (new HastaNakil())->getIncomingForTargetKurum($kurumId, $super);
+        if (AuthHelper::sessionIsSuperAdmin()) {
+            $bolgeId = TenantContext::effectiveBolgeFilterId();
+            if ($bolgeId !== null && $bolgeId > 0) {
+                $scopeKurumIds = FederationHelper::activeKurumIdsForBolge($bolgeId);
+                $kurumRows = $model->getIncomingForTargetKurum(null, false, $scopeKurumIds);
+                $ilDisiRows = $model->getIncomingIlDisiForBolge($bolgeId, false);
+            } elseif (AuthHelper::sessionIsPlatformOwner()) {
+                $kurumRows = $model->getIncomingForTargetKurum(null, true);
+                $ilDisiRows = $model->getIncomingIlDisiForBolge(null, true);
+            }
+        } else {
+            $kurumRows = $model->getIncomingForTargetKurum($kurumId, false);
+        }
+
+        $merged = array_merge($kurumRows, $ilDisiRows);
+        usort($merged, static function (object $a, object $b): int {
+            $ta = strtotime((string) ($a->talep_tarihi ?? '')) ?: 0;
+            $tb = strtotime((string) ($b->talep_tarihi ?? '')) ?: 0;
+
+            return $ta <=> $tb;
+        });
+
+        return $merged;
     }
 
-    public static function nakilStatusLabelForPatient(int $hastaId): ?string
+    public static function nakilStatusLabelForPatient(int|string $hastaId): ?string
     {
-        if ($hastaId <= 0) {
+        $hastaIdNorm = self::patientEntityId($hastaId);
+        if ($hastaIdNorm === null) {
             return null;
         }
 
         $patient = new Patient();
-        if (!$patient->load($hastaId)) {
+        if (!$patient->load($hastaIdNorm)) {
             return null;
         }
 
@@ -557,8 +821,8 @@ final class PatientNakilRequest
 
     public static function nakilViewSummaryForPatient(object $patient): ?string
     {
-        $hastaId = (int) ($patient->id ?? 0);
-        if ($hastaId <= 0) {
+        $hastaId = self::patientEntityId($patient);
+        if ($hastaId === null) {
             return null;
         }
 
@@ -593,6 +857,34 @@ final class PatientNakilRequest
         $durum = (string) ($log->durum ?? '');
 
         if ($tip === HastaNakil::TIP_IL_DISI) {
+            $bolgeAd = self::bolgeAdById((int) ($log->hedef_bolge_id ?? 0));
+            if ($bolgeAd === '' && !empty($log->hedef_bolge_ad)) {
+                $bolgeAd = trim((string) $log->hedef_bolge_ad);
+            }
+            if ($durum === HastaNakil::DURUM_BEKLEMEDE) {
+                return $bolgeAd !== ''
+                    ? 'Hedef bölge: ' . $bolgeAd . ' (onay bekleniyor)'
+                    : 'İl dışı nakil talebi bekliyor';
+            }
+            if ($durum === HastaNakil::DURUM_ONAYLANDI) {
+                $hedefAd = self::kurumAdById((int) ($log->hedef_kurum_id ?? 0));
+
+                return $bolgeAd !== ''
+                    ? 'İl dışı nakil: ' . $bolgeAd . ($hedefAd !== '' ? ' → ' . $hedefAd : '') . ' (onaylandı, bekleyen kayıt)'
+                    : 'İl dışı nakil onaylandı (bekleyen kayıt)';
+            }
+            if ($durum === HastaNakil::DURUM_REDDEDILDI) {
+                $base = $bolgeAd !== ''
+                    ? 'Hedef bölge: ' . $bolgeAd . ' (nakil reddedildi)'
+                    : 'İl dışı nakil reddedildi';
+                $red = trim((string) ($log->red_nedeni ?? ''));
+
+                return $red !== '' ? $base . ' — ' . $red : $base;
+            }
+            if ($durum === HastaNakil::DURUM_IPTAL) {
+                return 'İl dışı nakil talebi iptal edildi';
+            }
+
             return 'İl dışına nakil';
         }
 
@@ -643,6 +935,16 @@ final class PatientNakilRequest
         }
 
         return 'Başka kuruma nakil';
+    }
+
+    private static function bolgeAdById(int $bolgeId): string
+    {
+        if ($bolgeId <= 0 || !FederationRegion::tableExists()) {
+            return '';
+        }
+        $region = new FederationRegion();
+
+        return $region->load($bolgeId) ? trim((string) ($region->ad ?? '')) : '';
     }
 
     private static function kurumAdById(int $kurumId): string

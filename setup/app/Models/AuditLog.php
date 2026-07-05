@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\ValidationHelper;
 
@@ -106,8 +107,8 @@ class AuditLog extends BaseModel
             $params[] = $entityRef;
         }
 
-        $userId = (int) ($filters['user_id'] ?? 0);
-        if ($userId > 0) {
+        $userId = IdHelper::normalizeRequestId($filters['user_id'] ?? null);
+        if ($userId !== null) {
             $where[] = 'a.user_id = ?';
             $params[] = $userId;
         }

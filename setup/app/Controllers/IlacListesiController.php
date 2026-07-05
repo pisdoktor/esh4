@@ -10,7 +10,7 @@ use RuntimeException;
 use Throwable;
 
 /**
- * TİTCK E-Reçete İlaç Listesi (.xlsx) → ilac-listesi.json (yalnızca süper yönetici).
+ * TİTCK E-Reçete İlaç Listesi (.xlsx) → ilac-listesi.json (yalnızca platform sahibi).
  */
 class IlacListesiController
 {
@@ -18,7 +18,7 @@ class IlacListesiController
 
     public function __construct()
     {
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
     }
 
     public function index(): void

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** @var object|null $patient */
 use App\Helpers\FormHelper;
+use App\Helpers\CinsiyetHelper;
 
 $eshBekleyenMode = (string) ($eshBekleyenMode ?? 'bedit');
 $patient = $patient ?? (object) [];
@@ -10,8 +11,8 @@ $eshIsBedit = $eshBekleyenMode === 'bedit';
 $tckValue = $eshIsBedit ? (string) ($patient->tckimlik ?? '') : '';
 $isimValue = $eshIsBedit ? (string) ($patient->isim ?? '') : '';
 $soyisimValue = $eshIsBedit ? (string) ($patient->soyisim ?? '') : '';
-$cinsiyetE = $eshIsBedit && ((string) $patient->cinsiyet === '1' || (int) ($patient->cinsiyet ?? 0) === 1 || (string) $patient->cinsiyet === 'E');
-$cinsiyetK = $eshIsBedit && ((string) $patient->cinsiyet === '2' || (int) ($patient->cinsiyet ?? 0) === 2 || (string) $patient->cinsiyet === 'K');
+$cinsiyetE = $eshIsBedit && (CinsiyetHelper::isErkek($patient->cinsiyet ?? null) || empty($patient->cinsiyet ?? null));
+$cinsiyetK = $eshIsBedit && CinsiyetHelper::isKadin($patient->cinsiyet ?? null);
 $dogumValue = $eshIsBedit ? ($patient->dogumtarihi ?? '') : '';
 $dogumExtra = $eshIsBedit ? ['readonly' => 'readonly', 'style' => 'background-color: #fff;'] : ['style' => 'background-color: #fff;'];
 ?>
@@ -59,14 +60,14 @@ $dogumExtra = $eshIsBedit ? ['readonly' => 'readonly', 'style' => 'background-co
     <div class="col-md-6 mb-3 mb-md-0">
         <?= FormHelper::btnCheckRadioGroup('cinsiyet', [
             [
-                'value' => 'E',
+                'value' => CinsiyetHelper::ERKEK,
                 'id' => 'gender-m',
                 'labelHtml' => '<i class="fa-solid fa-mars me-1"></i> Erkek',
                 'btnClass' => 'btn btn-outline-primary shadow-sm py-2',
                 'checked' => $cinsiyetE,
             ],
             [
-                'value' => 'K',
+                'value' => CinsiyetHelper::KADIN,
                 'id' => 'gender-f',
                 'labelHtml' => '<i class="fa-solid fa-venus me-1"></i> Kadın',
                 'btnClass' => 'btn btn-outline-danger shadow-sm py-2',

@@ -3,6 +3,7 @@ namespace App\Models;
 
 use App\Helpers\VisitIslemHelper;
 use App\Helpers\ZamanDilimiHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 
 /**
@@ -10,7 +11,9 @@ use App\Helpers\TenantSqlHelper;
  * Gerçekleşen ziyaretlerin (#__izlemler) kaydı için kullanılır.
  */
 class Visit extends BaseModel {
-    
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
+
     // Veritabanı sütunları
     public $id = null;
     public $kurum_id = 1;
@@ -300,12 +303,12 @@ class Visit extends BaseModel {
         if (empty($this->izlemiyapan)) {
             return '';
         }
-        $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', str_replace(' ', '', (string) $this->izlemiyapan))))));
+        $ids = IdHelper::csvToEntityIds((string) $this->izlemiyapan);
         if ($ids === []) {
             return '';
         }
         [$inSql, $inParams] = $this->db->whereInClause($ids);
-        $fieldOrder = implode(',', $ids);
+        $fieldOrder = implode(',', array_map(fn ($id) => $this->db->quote($id), $ids));
         $sql = "SELECT GROUP_CONCAT(name ORDER BY FIELD(id, {$fieldOrder}) SEPARATOR ', ') AS n FROM #__users WHERE id IN ({$inSql})";
         return $this->db->loadResultPrepared($sql, $inParams) ?: '';
     }
@@ -313,7 +316,7 @@ class Visit extends BaseModel {
     /**
      * Belirtilen gün (Y-m-d) için hastanın mevcut izlem satırı sayısı.
      */
-    public function countForPatientOnDate(string $tc, string $ymd, int $excludeId = 0): int
+    public function countForPatientOnDate(string $tc, string $ymd, int|string $excludeId = ''): int
     {
         $tc = trim($tc);
         if ($tc === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $ymd)) {
@@ -321,7 +324,8 @@ class Visit extends BaseModel {
         }
         $params = [$tc, $ymd];
         $excludeSql = '';
-        if ($excludeId > 0) {
+        $excludeId = IdHelper::normalizeRequestId($excludeId) ?? '';
+        if ($excludeId !== '') {
             $excludeSql = ' AND id <> ?';
             $params[] = $excludeId;
         }
@@ -341,7 +345,7 @@ class Visit extends BaseModel {
         string $ymd,
         array $requestedIslemIds,
         int $requestedZaman,
-        int $excludeId = 0
+        int|string $excludeId = ''
     ): array {
         $requestedIslemIds = array_values(array_unique(array_filter(array_map('intval', $requestedIslemIds))));
         $tc = trim($tc);
@@ -358,7 +362,8 @@ class Visit extends BaseModel {
         $zExpr = ZamanDilimiHelper::sqlNormalizeCaseExpr('zaman');
         $params = [$tc, $ymd, $zNorm];
         $excludeSql = '';
-        if ($excludeId > 0) {
+        $excludeId = IdHelper::normalizeRequestId($excludeId) ?? '';
+        if ($excludeId !== '') {
             $excludeSql = ' AND id <> ?';
             $params[] = $excludeId;
         }

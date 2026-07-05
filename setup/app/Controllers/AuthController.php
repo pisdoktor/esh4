@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Helpers\AppSettings;
 use App\Helpers\AuditLogHelper;
 use App\Helpers\AuthHelper;
@@ -22,7 +23,7 @@ class AuthController {
      */
     public function login() {
         // Eğer zaten giriş yapılmışsa direkt dashboard'a gönder
-        if (isset($_SESSION['user_id'])) {
+        if (AuthHelper::sessionHasUser()) {
             header('Location: ' . esh_url('Dashboard', 'index'));
             exit;
         }
@@ -72,7 +73,7 @@ class AuthController {
                 $_SESSION['name'] = $userModel->name;
                 $_SESSION['username'] = $userModel->username;
                 AuthHelper::syncSessionFromLevel(AuthHelper::clampLevel((int) $userModel->isadmin));
-                PermissionService::syncSessionPermissions((int) $userModel->id, $adminLevel);
+                PermissionService::syncSessionPermissions((string) $userModel->id, $adminLevel);
                 TenantContext::syncSessionFromUser(
                     isset($userModel->kurum_id) ? (int) $userModel->kurum_id : null,
                     $adminLevel,
@@ -83,7 +84,7 @@ class AuthController {
                 ThemeViewHelper::syncSessionUserThemeFromDb(isset($userModel->ui_theme) ? (string) $userModel->ui_theme : null);
 
                 AuditLogHelper::authLogin(
-                    (int) $userModel->id,
+                    (string) $userModel->id,
                     isset($userModel->kurum_id) ? (int) $userModel->kurum_id : null
                 );
 
@@ -250,19 +251,19 @@ class AuthController {
             exit;
         }
         if (!(bool) ($userModel->eimza_enabled ?? 0)) {
-            $eimzaAuth->logAttempt((int) $userModel->id, $tc, false, 'eimza_disabled', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
+            $eimzaAuth->logAttempt((string) $userModel->id, $tc, false, 'eimza_disabled', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'Kullanici icin e-imza girisi aktif degil.'], JSON_UNESCAPED_UNICODE);
             exit;
         }
         if ($this->isUserCertificatePinningRequired($userModel) && !$this->isUserCertificateFingerprintMatched($userModel, $certificatePem)) {
-            $eimzaAuth->logAttempt((int) $userModel->id, $tc, false, 'cert_fingerprint_mismatch', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
+            $eimzaAuth->logAttempt((string) $userModel->id, $tc, false, 'cert_fingerprint_mismatch', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'Kullanici sertifika eslesmesi dogrulanamadi.'], JSON_UNESCAPED_UNICODE);
             exit;
         }
         if (!(bool) $userModel->activated) {
-            $eimzaAuth->logAttempt((int) $userModel->id, $tc, false, 'user_not_activated', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
+            $eimzaAuth->logAttempt((string) $userModel->id, $tc, false, 'user_not_activated', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'Hesabiniz aktive edilmemis.'], JSON_UNESCAPED_UNICODE);
             exit;
@@ -271,7 +272,7 @@ class AuthController {
         $adminLevel = AuthHelper::clampLevel((int) $userModel->isadmin);
         $maintenanceReject = MaintenanceHelper::rejectLoginIfBlocked($adminLevel);
         if ($maintenanceReject !== null) {
-            $eimzaAuth->logAttempt((int) $userModel->id, $tc, false, 'maintenance_mode', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
+            $eimzaAuth->logAttempt((string) $userModel->id, $tc, false, 'maintenance_mode', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
             http_response_code(503);
             echo json_encode(['ok' => false, 'error' => $maintenanceReject], JSON_UNESCAPED_UNICODE);
             exit;
@@ -285,7 +286,7 @@ class AuthController {
         $_SESSION['username'] = $userModel->username;
         AuthHelper::syncSessionFromLevel(AuthHelper::clampLevel((int) $userModel->isadmin));
         $eimzaAdminLevel = AuthHelper::clampLevel((int) $userModel->isadmin);
-        PermissionService::syncSessionPermissions((int) $userModel->id, $eimzaAdminLevel);
+        PermissionService::syncSessionPermissions((string) $userModel->id, $eimzaAdminLevel);
         TenantContext::syncSessionFromUser(
             isset($userModel->kurum_id) ? (int) $userModel->kurum_id : null,
             $eimzaAdminLevel,
@@ -299,10 +300,10 @@ class AuthController {
         $userModel->set('eimza_cert_subject', $this->certificateSubjectText($certInfo));
         $userModel->set('eimza_cert_fingerprint', $this->certificateFingerprint($certificatePem));
         $userModel->store();
-        $eimzaAuth->logAttempt((int) $userModel->id, $tc, true, 'ok', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
+        $eimzaAuth->logAttempt((string) $userModel->id, $tc, true, 'ok', $this->certificateSerial($certInfo), $this->certificateFingerprint($certificatePem));
 
         AuditLogHelper::authLogin(
-            (int) $userModel->id,
+            (string) $userModel->id,
             isset($userModel->kurum_id) ? (int) $userModel->kurum_id : null
         );
 

@@ -86,23 +86,19 @@ class BmiHelper {
     }
 
     public static function genderKey($cinsiyet): string {
-        $c = trim((string) $cinsiyet);
-        if ($c === '1' || strtoupper($c) === 'E') {
-            return 'E';
+        $n = CinsiyetHelper::normalize($cinsiyet);
+        if ($n === CinsiyetHelper::ERKEK) {
+            return CinsiyetHelper::ERKEK;
         }
-        if ($c === '2' || strtoupper($c) === 'K') {
-            return 'K';
+        if ($n === CinsiyetHelper::KADIN) {
+            return CinsiyetHelper::KADIN;
         }
 
         return '?';
     }
 
     public static function genderLabel(string $key): string {
-        return match ($key) {
-            'E' => 'Erkek',
-            'K' => 'Kadın',
-            default => 'Belirtilmemiş',
-        };
+        return CinsiyetHelper::label($key, 'Belirtilmemiş');
     }
 
     /** @return list<string> */

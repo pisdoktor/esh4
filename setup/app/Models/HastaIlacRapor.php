@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\CatalogStoreHelper;
+
 /**
  * Hasta tanı bazlı ilaç / sağlık raporu takibi (`#__hastailacrapor`).
  */
@@ -8,7 +10,7 @@ class HastaIlacRapor extends BaseModel {
 
     public $id = null;
     public $hastatckimlik = null;
-    public $hastalikid = null;
+    public $hastalikicd = null;
     public $rapor = 0;
     /** @var string|null YYYY-MM-DD */
     public $bitistarihi = null;
@@ -20,31 +22,35 @@ class HastaIlacRapor extends BaseModel {
     }
 
     /**
-     * @param list<int> $hastalikIds
-     * @return list<object> hastalik_id, hastalikadi, rapor_id, hastatckimlik, rapor, bitistarihi, brans, raporyeri
+     * @param list<string> $hastalikIcds
+     * @return list<object> hastalik_icd, hastalik_id, hastalikadi, rapor_id, hastatckimlik, rapor, bitistarihi, brans, raporyeri
      */
-    public function getReportRowsForPatient(string $tc, array $hastalikIds): array {
+    public function getReportRowsForPatient(string $tc, array $hastalikIcds): array {
         $tc = preg_replace('/\D+/', '', $tc);
         if ($tc === '' || strlen($tc) !== 11) {
             return [];
         }
-        $ids = array_values(array_unique(array_filter(array_map('intval', $hastalikIds), static fn ($v) => $v > 0)));
-        if ($ids === []) {
+        $icds = array_values(array_unique(array_filter(array_map(
+            static fn ($v) => Patient::normalizeHastalikIcd((string) $v),
+            $hastalikIcds
+        ), static fn ($v) => $v !== '')));
+        if ($icds === []) {
             return [];
         }
-        [$inSql, $inParams] = $this->db->whereInClause($ids);
-        $sql = "SELECT h.id AS hastalik_id, h.hastalikadi AS hastalikadi,
+        [$inSql, $inParams] = $this->db->whereInClause($icds);
+        $params = array_merge([$tc, CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+        $sql = "SELECT h.icd AS hastalik_icd, h.id AS hastalik_id, h.hastalikadi AS hastalikadi,
                 r.id AS rapor_id, r.hastatckimlik AS hastatckimlik,
                 CAST(COALESCE(r.rapor, 0) AS UNSIGNED) AS rapor,
                 r.bitistarihi AS bitistarihi,
                 r.brans AS brans,
                 CAST(COALESCE(r.raporyeri, 0) AS UNSIGNED) AS raporyeri
             FROM #__hastaliklar h
-            LEFT JOIN #__hastailacrapor r ON r.hastalikid = h.id AND r.hastatckimlik = ?
-            WHERE h.id IN ({$inSql})
+            LEFT JOIN #__hastailacrapor r ON r.hastalikicd = h.icd AND r.hastatckimlik = ?
+            WHERE h.kurum_id = ? AND h.icd IN ({$inSql})
             ORDER BY h.hastalikadi ASC";
 
-        return $this->db->fetchObjectListPrepared($sql, array_merge([$tc], $inParams));
+        return $this->db->fetchObjectListPrepared($sql, $params);
     }
 
     public function findByIdForTc(int $raporId, string $tc): bool {

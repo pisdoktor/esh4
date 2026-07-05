@@ -44,7 +44,8 @@ spl_autoload_register(function ($class) {
 
 if (isset($_SESSION['user_id'])) {
     $u = new \App\Models\User();
-    if ($u->load((int) $_SESSION['user_id'])) {
+    $sessionUid = \App\Helpers\IdHelper::normalizeRequestId($_SESSION['user_id'] ?? null);
+    if ($sessionUid !== null && $u->load($sessionUid)) {
         $eshAdminLevel = \App\Helpers\AuthHelper::clampLevel((int) ($u->isadmin ?? 0));
         \App\Helpers\AuthHelper::syncSessionFromLevel($eshAdminLevel);
         \App\Helpers\TenantContext::syncSessionFromUser(
@@ -52,7 +53,7 @@ if (isset($_SESSION['user_id'])) {
             $eshAdminLevel,
             isset($u->bolge_id) ? (int) $u->bolge_id : null
         );
-        \App\Services\PermissionService::syncSessionPermissions((int) $u->id, $eshAdminLevel);
+        \App\Services\PermissionService::syncSessionPermissions((string) $u->id, $eshAdminLevel);
     }
 }
 unset($u, $eshAdminLevel);

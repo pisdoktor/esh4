@@ -145,7 +145,7 @@ final class AuditLogHelper
     public static function log(
         string $action,
         string $entityType,
-        ?int $entityId = null,
+        int|string|null $entityId = null,
         ?string $entityRef = null,
         array $context = [],
         ?int $kurumId = null
@@ -155,7 +155,7 @@ final class AuditLogHelper
         }
 
         try {
-            $userId = (int) ($_SESSION['user_id'] ?? 0);
+            $userId = AuthHelper::sessionUserId();
             if ($kurumId === null || $kurumId <= 0) {
                 $kurumId = TenantContext::sessionKurumId();
             }
@@ -175,10 +175,10 @@ final class AuditLogHelper
 
             $row = [
                 'kurum_id' => ($kurumId !== null && $kurumId > 0) ? $kurumId : null,
-                'user_id' => $userId > 0 ? $userId : null,
+                'user_id' => $userId,
                 'action' => substr($action, 0, 64),
                 'entity_type' => substr($entityType, 0, 32),
-                'entity_id' => ($entityId !== null && $entityId > 0) ? $entityId : null,
+                'entity_id' => IdHelper::normalizeRequestId($entityId),
                 'entity_ref' => $ref !== null ? substr($ref, 0, 64) : null,
                 'ip_address' => self::clientIp(),
                 'user_agent' => self::userAgent(),
@@ -198,7 +198,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_PATIENT_VIEW,
             'patient',
-            (int) ($patient->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($patient->id ?? null),
             self::patientTcRef($patient),
             $context,
             (int) ($patient->kurum_id ?? 0) ?: null
@@ -210,7 +210,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_PATIENT_EDIT_VIEW,
             'patient',
-            (int) ($patient->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($patient->id ?? null),
             self::patientTcRef($patient),
             [],
             (int) ($patient->kurum_id ?? 0) ?: null
@@ -222,7 +222,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_PATIENT_CREATE,
             'patient',
-            (int) ($patient->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($patient->id ?? null),
             self::patientTcRef($patient),
             [],
             (int) ($patient->kurum_id ?? 0) ?: null
@@ -237,7 +237,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_PATIENT_UPDATE,
             'patient',
-            (int) ($patient->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($patient->id ?? null),
             self::patientTcRef($patient),
             $context,
             (int) ($patient->kurum_id ?? 0) ?: null
@@ -258,7 +258,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_VISIT_CREATE,
             'visit',
-            (int) ($visit->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($visit->id ?? null),
             (string) ($visit->hastatckimlik ?? ''),
             [],
             $kurumId > 0 ? $kurumId : null
@@ -270,7 +270,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_VISIT_UPDATE,
             'visit',
-            (int) ($visit->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($visit->id ?? null),
             (string) ($visit->hastatckimlik ?? ''),
             [],
             (int) ($visit->kurum_id ?? 0) ?: null
@@ -285,7 +285,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_VISIT_CHECKIN_GEOFENCE,
             'visit',
-            (int) ($visit->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($visit->id ?? null),
             (string) ($visit->hastatckimlik ?? ''),
             [
                 'distance_m' => $status['distance_m'] ?? null,
@@ -300,7 +300,7 @@ final class AuditLogHelper
         self::log(
             self::ACTION_VISIT_DELETE,
             'visit',
-            (int) ($visit->id ?? 0) ?: null,
+            IdHelper::normalizeRequestId($visit->id ?? null),
             (string) ($visit->hastatckimlik ?? ''),
             [],
             (int) ($visit->kurum_id ?? 0) ?: null
@@ -339,15 +339,14 @@ final class AuditLogHelper
         self::log(self::ACTION_ERAPOR_EXPORT, 'erapor', null, null, $context);
     }
 
-    public static function authLogin(int $userId, ?int $kurumId = null): void
+    public static function authLogin(int|string $userId, ?int $kurumId = null): void
     {
-        self::log(self::ACTION_AUTH_LOGIN, 'auth', $userId, null, [], $kurumId);
+        self::log(self::ACTION_AUTH_LOGIN, 'auth', IdHelper::normalizeRequestId($userId), null, [], $kurumId);
     }
 
     public static function authLogout(): void
     {
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        self::log(self::ACTION_AUTH_LOGOUT, 'auth', $userId > 0 ? $userId : null);
+        self::log(self::ACTION_AUTH_LOGOUT, 'auth', AuthHelper::sessionUserId());
     }
 
     public static function settingsUpdate(string $tab, array $context = []): void
@@ -371,17 +370,17 @@ final class AuditLogHelper
 
     public static function userCreate(object $user): void
     {
-        self::log(self::ACTION_USER_CREATE, 'user', (int) ($user->id ?? 0) ?: null, (string) ($user->username ?? ''));
+        self::log(self::ACTION_USER_CREATE, 'user', IdHelper::normalizeRequestId($user->id ?? null), (string) ($user->username ?? ''));
     }
 
     public static function userUpdate(object $user): void
     {
-        self::log(self::ACTION_USER_UPDATE, 'user', (int) ($user->id ?? 0) ?: null, (string) ($user->username ?? ''));
+        self::log(self::ACTION_USER_UPDATE, 'user', IdHelper::normalizeRequestId($user->id ?? null), (string) ($user->username ?? ''));
     }
 
     public static function userDelete(object $user): void
     {
-        self::log(self::ACTION_USER_DELETE, 'user', (int) ($user->id ?? 0) ?: null, (string) ($user->username ?? ''));
+        self::log(self::ACTION_USER_DELETE, 'user', IdHelper::normalizeRequestId($user->id ?? null), (string) ($user->username ?? ''));
     }
 
     public static function roleCreate(object $role): void

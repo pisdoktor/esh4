@@ -30,7 +30,7 @@ class PaginationHelper {
         $html .= '</select></div>';
         return $html;
     }
-    $html .= '<select class="form-select form-select-sm" style="width: auto;" onchange="location = this.value;">';
+    $html .= '<select class="form-select form-select-sm" style="width: auto;" data-esh-navigate>';
     
     foreach ($options as $opt) {
         $selected = ($current_limit == $opt) ? 'selected' : '';
@@ -164,10 +164,11 @@ class PaginationHelper {
             <button class="' . $jumpBtnClass . ' orphan-jump-page-btn" type="button" data-max="' . (int) $total_pages . '">Git</button>
         </div>';
         }
+        $urlEsc = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
         return '
         <div class="input-group input-group-sm ms-3" style="width: 130px;">
             <input type="number" id="jump_page" class="form-control" placeholder="Sfy No" min="1" max="'.$total_pages.'">
-            <button class="btn btn-outline-primary" type="button" onclick="const p = document.getElementById(\'jump_page\').value; if(p > 0 && p <= '.$total_pages.') location.href=\''.$url.'&page=\'+p;">Git</button>
+            <button class="btn btn-outline-primary" type="button" data-esh-pagination-jump data-esh-jump-input="#jump_page" data-esh-jump-url-base="' . $urlEsc . '" data-esh-jump-max="' . (int) $total_pages . '">Git</button>
         </div>';
     }
 }

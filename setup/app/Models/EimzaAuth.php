@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-
+use App\Helpers\IdHelper;
 
 class EimzaAuth extends BaseModel
 
@@ -18,7 +18,7 @@ class EimzaAuth extends BaseModel
 
 
 
-    public function createChallenge(string $nonce, int $expiresAt, ?int $userId = null): ?array
+    public function createChallenge(string $nonce, int $expiresAt, int|string|null $userId = null): ?array
 
     {
 
@@ -32,8 +32,10 @@ class EimzaAuth extends BaseModel
 
         $ua = isset($_SERVER['HTTP_USER_AGENT']) ? trim((string) $_SERVER['HTTP_USER_AGENT']) : '';
 
+        $uid = IdHelper::normalizeRequestId($userId);
+
         $id = $this->db->insertPrepared('#__eimza_challenges', [
-            'user_id' => $userId !== null && $userId > 0 ? $userId : null,
+            'user_id' => $uid,
             'nonce_hash' => $nonceHash,
             'issued_at' => $issuedAt,
             'expires_at' => $expiresAtSql,
@@ -135,7 +137,7 @@ class EimzaAuth extends BaseModel
 
 
 
-    public function logAttempt(int $userId, string $tc, bool $ok, string $reason, string $certSerial, string $certFingerprint): void
+    public function logAttempt(int|string|null $userId, string $tc, bool $ok, string $reason, string $certSerial, string $certFingerprint): void
 
     {
 
@@ -143,9 +145,11 @@ class EimzaAuth extends BaseModel
 
         $ua = isset($_SERVER['HTTP_USER_AGENT']) ? trim((string) $_SERVER['HTTP_USER_AGENT']) : '';
 
+        $uid = IdHelper::normalizeRequestId($userId);
+
         $this->db->insertPrepared('#__eimza_login_logs', [
 
-            'user_id' => $userId > 0 ? $userId : null,
+            'user_id' => $uid,
 
             'tc_kimlikno' => $tc,
 

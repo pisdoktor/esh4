@@ -18,7 +18,7 @@
                     </div>
                     <form method="post" action="<?= htmlspecialchars(esh_url('User', 'storeKurum'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3">
                         <?= esh_csrf_field() ?>
-                        <input type="hidden" name="id" value="<?= (int) ($user->id ?? 0) ?>">
+                        <input type="hidden" name="id" value="<?= (string) ($user->id ?? '') ?>">
                         <div class="col-12">
                             <label class="form-label fw-semibold" for="eshUserChangeKurumSelect">Hedef kurum</label>
                             <select name="kurum_id" id="eshUserChangeKurumSelect" class="form-select" required>
@@ -62,7 +62,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-floppy-disk me-1"></i>Nakil et
                             </button>
-                            <a href="<?= htmlspecialchars(esh_url('User', 'adminEdit', ['id' => (int) ($user->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Personel düzenleme</a>
+                            <a href="<?= htmlspecialchars(esh_url('User', 'adminEdit', ['id' => (string) ($user->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Personel düzenleme</a>
                             <a href="<?= htmlspecialchars(esh_url('User', 'list'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Listeye dön</a>
                         </div>
                     </form>

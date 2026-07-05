@@ -16,7 +16,7 @@ $historyUrl = htmlspecialchars(
 );
 ?>
 <?php if (!$ek3MultiTabs): ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 var dd = <?= $ek3PdfJson ?>;
 </script>
 <?php endif; ?>
@@ -87,10 +87,10 @@ var dd = <?= $ek3PdfJson ?>;
                 <iframe id="iframeEk3" title="EK-3 Önizleme" width="100%" height="600" class="rounded border bg-white"></iframe>
                 <hr>
                 <div class="btn-group flex-wrap gap-2">
-                    <button type="button" class="btn btn-warning" onclick="pdfMake.createPdf(dd).print();">
+                    <button type="button" class="btn btn-warning" data-esh-pdfmake="print">
                         <i class="fa-solid fa-print me-1"></i>Yazdır
                     </button>
-                    <button type="button" class="btn btn-info" onclick="pdfMake.createPdf(dd).download('<?= htmlspecialchars((string) (preg_replace('/\D/', '', (string) ($hasta->tckimlik ?? '')) ?: 'hasta'), ENT_QUOTES, 'UTF-8') ?>-EK3.pdf');">
+                    <button type="button" class="btn btn-info" data-esh-pdfmake="download" data-esh-pdfmake-filename="<?= htmlspecialchars((string) (preg_replace('/\D/', '', (string) ($hasta->tckimlik ?? '')) ?: 'hasta'), ENT_QUOTES, 'UTF-8') ?>-EK3.pdf">
                         <i class="fa-solid fa-download me-1"></i>İndir
                     </button>
                     <a href="<?= $historyUrl ?>" class="btn btn-outline-secondary">
@@ -102,7 +102,7 @@ var dd = <?= $ek3PdfJson ?>;
     </div>
 </div>
 <?php if ($ek3MultiTabs): ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var tabList = document.getElementById('ek3FullPageTabList');
     if (!tabList) {
@@ -135,7 +135,7 @@ var dd = <?= $ek3PdfJson ?>;
 })();
 </script>
 <?php else: ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof pdfMake === 'undefined' || !document.getElementById('iframeEk3')) return;
     pdfMake.createPdf(dd).getDataUrl().then(function (url) {

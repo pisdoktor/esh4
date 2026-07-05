@@ -5,6 +5,7 @@ use App\Helpers\BadgeHelper;
 use App\Helpers\AuditLogHelper;
 use App\Helpers\EraporIndexPdfHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\ThemeViewHelper;
 use App\Helpers\DateHelper;
 use App\Helpers\TenantStoreHelper;
@@ -239,18 +240,18 @@ class EraporController {
         }
 
         $tc = preg_replace('/\D+/', '', (string) ($_GET['tc'] ?? ''));
-        $excludeId = isset($_GET['exclude_id']) ? (int) $_GET['exclude_id'] : 0;
+        $excludeId = IdHelper::normalizeRequestId($_GET['exclude_id'] ?? null);
         $excludeIdsRaw = trim((string) ($_GET['exclude_ids'] ?? ''));
         $excludeIds = [];
         if ($excludeIdsRaw !== '') {
             foreach (explode(',', $excludeIdsRaw) as $part) {
-                $id = (int) trim($part);
-                if ($id > 0) {
+                $id = IdHelper::normalizeRequestId(trim($part));
+                if ($id !== null) {
                     $excludeIds[$id] = true;
                 }
             }
         }
-        if ($excludeId > 0) {
+        if ($excludeId !== null) {
             $excludeIds[$excludeId] = true;
         }
         if (!ValidationHelper::isTcLength11($tc)) {
@@ -263,7 +264,9 @@ class EraporController {
         $reports = $model->getReportsByTc($tc, $st['filters'], null);
         if ($excludeIds !== []) {
             $reports = array_values(array_filter($reports, static function ($row) use ($excludeIds) {
-                return !isset($excludeIds[(int) ($row->id ?? 0)]);
+                $rowId = IdHelper::normalizeRequestId($row->id ?? null);
+
+                return $rowId === null || !isset($excludeIds[$rowId]);
             }));
         }
 
@@ -326,7 +329,7 @@ class EraporController {
     public function tcLookupAjax() {
         header('Content-Type: application/json; charset=utf-8');
         $tc = preg_replace('/\D+/', '', (string) ($_GET['tc'] ?? ''));
-        $excludeId = isset($_GET['exclude_id']) ? (int) $_GET['exclude_id'] : 0;
+        $excludeId = IdHelper::normalizeRequestId($_GET['exclude_id'] ?? null);
         $out = [
             'ok' => true,
             'valid' => false,
@@ -343,7 +346,7 @@ class EraporController {
         $out['valid'] = (bool) $patientModel->validateTc($tc);
         if ($out['valid']) {
             $eraporModel = new Erapor();
-            $havuzCount = $eraporModel->countByTc($tc, $excludeId > 0 ? $excludeId : null);
+            $havuzCount = $eraporModel->countByTc($tc, $excludeId);
             $out['havuz_count'] = $havuzCount;
 
             $hasta = $patientModel->findByTc($tc);
@@ -379,10 +382,10 @@ class EraporController {
      * Mevcut havuz kaydını düzenle (aynı form: create.php)
      */
     public function edit() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $model = new Erapor();
 
-        if ($id > 0 && $model->load($id)) {
+        if ($id !== null && $model->load($id)) {
             TenantStoreHelper::assertModelKurum($model);
             $item = $model;
             $bransModel = new \App\Models\Brans();
@@ -407,10 +410,10 @@ class EraporController {
      * Görünüm: views/site/erapor/view.php
      */
     public function view() {
-        $id = $_GET['id'] ?? null;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $model = new Erapor();
         
-        if ($id && $model->loadWithBrans((int) $id)) {
+        if ($id !== null && $model->loadWithBrans($id)) {
             TenantStoreHelper::assertModelKurum($model);
             $item = $model;
             include ThemeViewHelper::resolvePartial('header');
@@ -429,10 +432,10 @@ class EraporController {
     public function delete() {
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('Erapor', 'index'));
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $model = new Erapor();
 
-        if ($id > 0 && $model->load($id)) {
+        if ($id !== null && $model->load($id)) {
             TenantStoreHelper::assertModelKurum($model);
             if ($model->delete()) {
                 $_SESSION['success'] = "Rapor kaydı havuzdan kaldırıldı.";
@@ -452,10 +455,10 @@ class EraporController {
     public function markAsProcessed() {
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('Erapor', 'index'));
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $model = new Erapor();
         
-        if ($id > 0 && $model->load($id)) {
+        if ($id !== null && $model->load($id)) {
             TenantStoreHelper::assertModelKurum($model);
             $model->kayitlimi = 1;
             $model->store();
@@ -469,9 +472,9 @@ class EraporController {
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $model = new Erapor();
-            $editId = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+            $editId = IdHelper::normalizeRequestId($_POST['id'] ?? null);
 
-            if ($editId > 0) {
+            if ($editId !== null) {
                 if (!$model->load($editId)) {
                     $_SESSION['error'] = 'Güncellenecek rapor kaydı bulunamadı.';
                     header('Location: ' . esh_url('Erapor', 'index'));
@@ -502,19 +505,19 @@ class EraporController {
             $phoneErr = \App\Helpers\ValidationHelper::applyPhoneFields($post, false);
             if ($phoneErr !== null) {
                 $_SESSION['error'] = $phoneErr;
-                header('Location: ' . ($editId > 0 ? esh_url('Erapor', 'edit', ['id' => $editId]) : esh_url('Erapor', 'create')));
+                header('Location: ' . (!IdHelper::isEmptyEntityId($editId) ? esh_url('Erapor', 'edit', ['id' => $editId]) : esh_url('Erapor', 'create')));
                 exit;
             }
 
             $model->bind($post);
 
-            if ($editId <= 0) {
+            if (IdHelper::isEmptyEntityId($editId)) {
                 TenantStoreHelper::applyKurumIdToModel($model);
             }
             
             // Veritabanına kaydet
             if ($model->store()) {
-                $_SESSION['success'] = $editId > 0
+                $_SESSION['success'] = !IdHelper::isEmptyEntityId($editId)
                     ? 'Rapor kaydı güncellendi.'
                     : 'Rapor verisi başarıyla havuzuna eklendi.';
             } else {

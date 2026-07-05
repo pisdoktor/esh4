@@ -59,7 +59,7 @@ $hastalikTreeConfig = is_array($hastalikTreeConfig ?? null) ? $hastalikTreeConfi
 </form>
 <?php endif; ?>
 
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.hastalikTree = <?= json_encode($hastalikTreeConfig, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>

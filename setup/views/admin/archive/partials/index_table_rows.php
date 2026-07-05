@@ -6,7 +6,7 @@
 if (!empty($rows)) {
     foreach ($rows as $row): ?>
         <tr>
-            <td class="text-muted small font-monospace"><?= (int) ($row->id ?? 0); ?></td>
+            <td class="text-muted small font-monospace"><?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
             <td class="ps-4">
                 <div class="fw-bold text-primary"><?= htmlspecialchars(trim($row->isim . ' ' . $row->soyisim), ENT_QUOTES, 'UTF-8') ?></div>
                 <div class="text-muted small"><i class="fa-solid fa-id-card me-1 opacity-50"></i><?= \App\Helpers\ValidationHelper::formatTc($row->tckimlik) ?></div>
@@ -30,10 +30,10 @@ if (!empty($rows)) {
             </td>
             <td class="text-end pe-4">
                 <div class="btn-group btn-group-sm">
-                    <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => (int) $row->id]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-outline-primary" title="Detaylar">
+                    <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (string) ($row->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary" title="Detaylar">
                         <i class="fa-solid fa-folder-open"></i>
                     </a>
-                    <a href="<?= htmlspecialchars(esh_url('Patient', 'edit', ["id" => (int) $row->id]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-outline-secondary" title="Düzenle">
+                    <a href="<?= htmlspecialchars(esh_url('Patient', 'edit', ['id' => (string) ($row->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary" title="Düzenle">
                         <i class="fa-solid fa-edit"></i>
                     </a>
                 </div>

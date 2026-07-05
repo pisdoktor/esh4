@@ -6,7 +6,7 @@
  * @var array $woundPhotos
  * @var bool $pasifDosyaKapali
  */
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $viewUrl = esh_url('Patient', 'view', ['id' => $hastaId]);
 $photoCount = (int) count($woundPhotos ?? []);
 ?>

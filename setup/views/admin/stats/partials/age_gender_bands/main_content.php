@@ -19,8 +19,8 @@
                         $keys = array_keys($template);
                         $tK = $tE = 0;
                         foreach ($keys as $idx => $key):
-                            $vK = $stats['K'][$key];
-                            $vE = $stats['E'][$key];
+                            $vK = $stats[\App\Helpers\CinsiyetHelper::KADIN][$key];
+                            $vE = $stats[\App\Helpers\CinsiyetHelper::ERKEK][$key];
                             $tK += $vK;
                             $tE += $vE;
                             $lab = $labels[$idx] ?? $key;

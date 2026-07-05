@@ -18,7 +18,7 @@ $isAdmin = \App\Helpers\AuthHelper::sessionIsAdmin();
 $curUnvan = (string) ($eshUser->unvan ?? '');
 ?>
 <form action="<?= htmlspecialchars(esh_url('User', 'update'), ENT_QUOTES, 'UTF-8') ?>" method="POST" class="esh-profile-edit-form" novalidate>
-    <input type="hidden" name="id" value="<?= (int) $eshUser->id ?>">
+    <input type="hidden" name="id" value="<?= htmlspecialchars((string) $eshUser->id, ENT_QUOTES, 'UTF-8') ?>">
 
     <section class="card border-0 shadow-sm rounded-4 mb-4 esh-profile-edit-section" aria-labelledby="esh-profile-edit-general-heading">
         <div class="card-header bg-white border-bottom py-3 px-4 esh-profile-edit-section__head">

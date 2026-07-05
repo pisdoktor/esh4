@@ -41,7 +41,7 @@ final class PwaHelper
             '<meta name="apple-mobile-web-app-status-bar-style" content="default">',
             '<meta name="apple-mobile-web-app-title" content="' . $appName . '">',
             '<link rel="apple-touch-icon" href="' . $icon192 . '">',
-            '<script>window.ESH_PWA=window.ESH_PWA||{};window.ESH_PWA.swUrl=' . json_encode(self::serviceWorkerUrl(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . ';</script>',
+            '<script' . esh_csp_nonce_attr() . '>window.ESH_PWA=window.ESH_PWA||{};window.ESH_PWA.swUrl=' . json_encode(self::serviceWorkerUrl(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . ';</script>',
         ]) . "\n";
     }
 

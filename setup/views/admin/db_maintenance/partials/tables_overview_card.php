@@ -1,15 +1,8 @@
 <?php
 /** @var array $tables */
 /** @var string $token */
-$groupOptions = [];
-foreach ($tables as $t) {
-    $g = (string) ($t['group_label'] ?? '');
-    if ($g !== '') {
-        $groupOptions[$g] = true;
-    }
-}
-$groupOptions = array_keys($groupOptions);
-sort($groupOptions);
+/** @var list<string> $groupFilterLabels */
+$groupOptions = $groupFilterLabels ?? [];
 $mysqldumpOk = !empty($tools['mysqldump']);
 ?>
 <div class="card shadow-sm border-0" id="tablolar">

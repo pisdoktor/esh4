@@ -113,30 +113,32 @@ class UserProfileStatsHelper
     }
 
     /**
-     * @param int|null $forUserId Başka kullanıcı (yönetici görünümü); oturum kullanıcısı için null
+     * @param int|string|null $forUserId Başka kullanıcı (yönetici görünümü); oturum kullanıcısı için null
      */
-    public static function statsHubUrl(?int $forUserId = null): string
+    public static function statsHubUrl(int|string|null $forUserId = null): string
     {
         $q = ['controller' => 'User', 'action' => 'stats'];
-        if ($forUserId !== null && $forUserId > 0) {
-            $q['user_id'] = $forUserId;
+        $uid = IdHelper::normalizeRequestId($forUserId);
+        if ($uid !== null) {
+            $q['user_id'] = $uid;
         }
 
         return \App\Helpers\UrlHelper::fromRequestParams($q);
     }
 
     /**
-     * @param int|null $forUserId Başka kullanıcı (yönetici görünümü); oturum kullanıcısı için null
+     * @param int|string|null $forUserId Başka kullanıcı (yönetici görünümü); oturum kullanıcısı için null
      */
-    public static function statsDetailUrl(string $metricKey, ?int $forUserId = null): string
+    public static function statsDetailUrl(string $metricKey, int|string|null $forUserId = null): string
     {
         $q = [
             'controller' => 'User',
             'action' => 'statsDetail',
             'metric' => $metricKey,
         ];
-        if ($forUserId !== null && $forUserId > 0) {
-            $q['user_id'] = $forUserId;
+        $uid = IdHelper::normalizeRequestId($forUserId);
+        if ($uid !== null) {
+            $q['user_id'] = $uid;
         }
 
         return \App\Helpers\UrlHelper::fromRequestParams($q);

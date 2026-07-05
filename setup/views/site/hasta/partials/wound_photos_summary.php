@@ -7,7 +7,7 @@
  * @var array $woundPhotosPreview İlk birkaç kayıt (en yeni)
  * @var bool $pasifDosyaKapali
  */
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $woundUrl = esh_url('Patient', 'wounds', ['id' => $hastaId]);
 $preview = isset($woundPhotosPreview) && is_array($woundPhotosPreview) ? $woundPhotosPreview : [];
 $count = (int) ($woundPhotoCount ?? count($preview));

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 /**
  * KPS sorgu günlüğü — maskeli TC, storage/logs/kps_queries.log
  */
@@ -21,7 +23,7 @@ final class KpsQueryLog
             return;
         }
 
-        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+        $userId = AuthHelper::sessionUserId();
         $line = sprintf(
             "[%s] user=%d type=%s tc=%s status=%s msg=%s\n",
             date('Y-m-d H:i:s'),

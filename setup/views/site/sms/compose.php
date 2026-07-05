@@ -31,7 +31,7 @@
                         <div class="sms-segment-params mt-3 border-top pt-3">
                             <div class="mb-2 sms-param sms-param-tek_hasta sms-param-coklu_hasta">
                                 <label class="form-label small">Hasta ID</label>
-                                <input type="number" class="form-control form-control-sm" name="hasta_id" value="<?= (int) ($hastaId ?? 0) ?>" min="1">
+                                <input type="number" class="form-control form-control-sm" name="hasta_id" value="<?= (string) ($hastaId ?? '') ?>" min="1">
                             </div>
                             <div class="mb-2 sms-param sms-param-gunun_plani sms-param-planli_izlem sms-param-ilk_ziyaret">
                                 <label class="form-label small">Tarih</label>
@@ -118,7 +118,7 @@
         </div>
     </form>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_SMS_COMPOSE = {
     previewUrl: <?= json_encode($previewUrl ?? '', JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
     sablonMap: <?= json_encode((object) ($smsSablonMap ?? []), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_HEX_TAG | JSON_HEX_AMP) ?>

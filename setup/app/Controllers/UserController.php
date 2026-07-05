@@ -2,10 +2,13 @@
 namespace App\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
+use App\Helpers\FederationHelper;
 use App\Helpers\PostAllowlistHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\ThemeViewHelper;
 use App\Helpers\UserProfileStatsHelper;
+use App\Models\FederationRegion;
 use App\Models\User;
 use App\Models\Kurum;
 use App\Models\UserProfileStats;
@@ -45,8 +48,8 @@ class UserController {
             exit;
         }
 
-        $userId = (int) $_SESSION['user_id'];
-        $profileStats = (new User())->getProfileStats($userId);
+        $userId = AuthHelper::sessionUserId();
+        $profileStats = (new User())->getProfileStats((string) $userId);
 
         ob_start();
         include ROOT_PATH . '/views/site/user/partials/profile_stats_cards.php';
@@ -134,16 +137,16 @@ class UserController {
     /**
      * İstatistik hedef kullanıcı: oturum kullanıcısı veya (yönetici) GET user_id.
      *
-     * @return array{0: int, 1: bool, 2: ?User}
+     * @return array{0: string, 1: bool, 2: ?User}
      */
     private function resolveStatsTargetUserId(): array
     {
         $sessionId = $this->requireSessionUserId();
-        $requested = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
-        if ($requested <= 0) {
+        $requested = IdHelper::normalizeRequestId($_GET['user_id'] ?? null);
+        if ($requested === null) {
             return [$sessionId, false, null];
         }
-        if ($requested === $sessionId) {
+        if (IdHelper::idsMatch($requested, $sessionId)) {
             return [$sessionId, false, null];
         }
         if (!AuthHelper::sessionIsAdmin()) {
@@ -161,15 +164,16 @@ class UserController {
         return [$requested, true, $subject];
     }
 
-    private function requireSessionUserId(): int
+    private function requireSessionUserId(): string
     {
-        if (empty($_SESSION['user_id'])) {
+        $uid = AuthHelper::sessionUserId();
+        if ($uid === null) {
             $_SESSION['error'] = 'Oturum gerekli.';
             header('Location: ' . esh_url('Auth', 'login'));
             exit;
         }
 
-        return (int) $_SESSION['user_id'];
+        return $uid;
     }
 
     /**
@@ -229,7 +233,7 @@ class UserController {
 
             if ($userModel->updateProfile($userId, $data)) {
                 if ($syncUiTheme) {
-                    ThemeViewHelper::syncSessionUserThemeAfterProfileSave((int) $userId, $normalizedUiTheme);
+                    ThemeViewHelper::syncSessionUserThemeAfterProfileSave($userId, $normalizedUiTheme);
                 }
                 $_SESSION['success'] = "Profil bilgileriniz güncellendi.";
             } else {
@@ -481,8 +485,8 @@ class UserController {
      */
     public function adminEdit() {
         AuthHelper::requireAdmin();
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             header('Location: ' . esh_url('User', 'list'));
             exit;
         }
@@ -507,8 +511,8 @@ class UserController {
     public function changeKurum(): void
     {
         AuthHelper::requireSuperAdmin();
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz kullanıcı.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
@@ -576,9 +580,9 @@ class UserController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $newKid = isset($_POST['kurum_id']) ? (int) $_POST['kurum_id'] : 0;
-        if ($id < 1) {
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz kullanıcı.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
@@ -618,7 +622,7 @@ class UserController {
             exit;
         }
 
-        $newUserId = is_int($transferResult) ? $transferResult : $id;
+        $newUserId = is_string($transferResult) ? $transferResult : $id;
         $_SESSION['success'] = 'Personel hedef kurumda açıldı; kaynak kurumdaki hesap pasifleştirildi (Başka Kuruma Nakil).';
         header('Location: ' . esh_url('User', 'adminEdit', ['id' => $newUserId]));
         exit;
@@ -634,13 +638,16 @@ class UserController {
             exit;
         }
 
-        $targetId = !empty($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($targetId === 0 && !AuthHelper::sessionIsSuperAdmin()) {
-            $_SESSION['error'] = 'Yeni kullanıcı oluşturma yetkisi yalnızca süper yöneticidedir.';
+        $targetId = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $isUpdate = $targetId !== null;
+        if (!$isUpdate && !AuthHelper::sessionIsSuperAdmin()) {
+            $_SESSION['error'] = 'Yeni kullanıcı oluşturma yetkisi yalnızca '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN)
+                . ' rolüne aittir.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
         }
-        if ($targetId > 0 && !AuthHelper::canManageUser($targetId)) {
+        if ($isUpdate && !AuthHelper::canManageUser($targetId)) {
             $_SESSION['error'] = 'Bu kullanıcıyı kaydetme yetkiniz yok.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
@@ -649,7 +656,7 @@ class UserController {
         $model = new User();
         $existingTarget = null;
         $previousLevel = AuthHelper::ROLE_STAFF;
-        if ($targetId > 0) {
+        if ($isUpdate) {
             $model->load($targetId);
             $existingTarget = $model;
             $previousLevel = AuthHelper::clampLevel((int) $model->isadmin);
@@ -657,7 +664,7 @@ class UserController {
 
         if (!empty($_POST['password'])) {
             $_POST['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        } elseif ($targetId > 0) {
+        } elseif ($isUpdate) {
             unset($_POST['password']);
         }
 
@@ -665,32 +672,59 @@ class UserController {
         $requestedLevel = isset($_POST['isadmin_level']) ? (int) $_POST['isadmin_level'] : AuthHelper::ROLE_STAFF;
         $newLevel = AuthHelper::normalizeIsadminForStore($requestedLevel, $existingTarget);
         if ($requestedLevel >= AuthHelper::ROLE_SUPERADMIN && $newLevel < AuthHelper::ROLE_SUPERADMIN) {
-            $_SESSION['error'] = 'Platform hesabı oluşturmak veya atamak için sistem sahibi olarak oturum açmalısınız.';
-            header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+            $_SESSION['error'] = 'Platform hesabı oluşturmak veya atamak için '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER)
+                . ' olarak oturum açmalısınız.';
+            header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
             exit;
         }
         if ($newLevel === AuthHelper::ROLE_PLATFORM_OWNER && !AuthHelper::canAssignPlatformOwnerRole()) {
-            $_SESSION['error'] = 'Sistem sahibi hesabı oluşturma yetkiniz bulunmamaktadır.';
-            header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+            $_SESSION['error'] = AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER)
+                . ' hesabı oluşturma yetkiniz bulunmamaktadır.';
+            header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
             exit;
         }
         if ($newLevel === AuthHelper::ROLE_SUPERADMIN && !AuthHelper::canAssignSuperAdminRole()) {
-            $_SESSION['error'] = 'Süper yönetici hesabı oluşturma yetkiniz bulunmamaktadır.';
-            header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+            $_SESSION['error'] = AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN)
+                . ' hesabı oluşturma yetkiniz bulunmamaktadır.';
+            header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
             exit;
+        }
+        if ($newLevel === AuthHelper::ROLE_SUPERADMIN
+            && AuthHelper::sessionIsPlatformOwner()
+            && FederationHelper::columnsReady()
+            && FederationHelper::enabled()) {
+            $bolgeRaw = $_POST['bolge_id'] ?? '';
+            $bid = is_string($bolgeRaw) || is_numeric($bolgeRaw) ? (int) $bolgeRaw : 0;
+            if ($bid <= 0) {
+                $_SESSION['error'] = AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN)
+                    . ' için bir bölge seçmelisiniz.';
+                header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+                exit;
+            }
+            $region = new FederationRegion();
+            if (!$region->load($bid) || (int) ($region->aktif ?? 0) !== 1) {
+                $_SESSION['error'] = 'Geçerli bir aktif bölge seçmelisiniz.';
+                header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+                exit;
+            }
         }
         if ($previousLevel === AuthHelper::ROLE_PLATFORM_OWNER
             && $newLevel < AuthHelper::ROLE_PLATFORM_OWNER
             && AuthHelper::countPlatformOwners() <= 1) {
-            $_SESSION['error'] = 'Sistemdeki son sistem sahibi rolü düşürülemez.';
-            header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+            $_SESSION['error'] = 'Sistemdeki son '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER)
+                . ' rolü düşürülemez.';
+            header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
             exit;
         }
         if ($previousLevel === AuthHelper::ROLE_SUPERADMIN
             && $newLevel < AuthHelper::ROLE_SUPERADMIN
             && AuthHelper::countSuperadmins() <= 1) {
-            $_SESSION['error'] = 'Sistemdeki son süper yönetici rolü düşürülemez.';
-            header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+            $_SESSION['error'] = 'Sistemdeki son '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN)
+                . ' rolü düşürülemez.';
+            header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
             exit;
         }
 
@@ -716,40 +750,44 @@ class UserController {
 
         $model->bind($_POST);
 
-        if (AuthHelper::isPlatformLevel($newLevel)) {
+        if ($newLevel >= AuthHelper::ROLE_PLATFORM_OWNER) {
             $model->set('kurum_id', null);
             $model->set('bolge_id', null);
-        } elseif ($newLevel === AuthHelper::ROLE_SUPERADMIN && AuthHelper::sessionIsPlatformOwner()) {
-            $bolgeRaw = $_POST['bolge_id'] ?? '';
-            $bid = is_string($bolgeRaw) || is_numeric($bolgeRaw) ? (int) $bolgeRaw : 0;
-            $model->set('bolge_id', $bid > 0 ? $bid : null);
-        } elseif ($newLevel !== AuthHelper::ROLE_SUPERADMIN) {
-            $model->set('bolge_id', null);
-        } elseif (AuthHelper::sessionIsSuperAdmin()) {
-            $reqKid = isset($_POST['kurum_id']) ? (int) $_POST['kurum_id'] : 0;
-            if ($reqKid <= 0 || !TenantContext::isKurumInScope($reqKid)) {
-                $_SESSION['error'] = 'Personel ve yönetici için geçerli bir kurum seçmelisiniz.';
-                header('Location: ' . ($targetId > 0 ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
-                exit;
+        } elseif ($newLevel === AuthHelper::ROLE_SUPERADMIN) {
+            $model->set('kurum_id', null);
+            if (AuthHelper::sessionIsPlatformOwner()) {
+                $bolgeRaw = $_POST['bolge_id'] ?? '';
+                $bid = is_string($bolgeRaw) || is_numeric($bolgeRaw) ? (int) $bolgeRaw : 0;
+                $model->set('bolge_id', $bid > 0 ? $bid : null);
             }
-            $model->set('kurum_id', $reqKid);
         } else {
-            $model->set('kurum_id', TenantContext::requireKurumScope());
+            $model->set('bolge_id', null);
+            if (AuthHelper::sessionIsSuperAdmin()) {
+                $reqKid = isset($_POST['kurum_id']) ? (int) $_POST['kurum_id'] : 0;
+                if ($reqKid <= 0 || !TenantContext::isKurumInScope($reqKid)) {
+                    $_SESSION['error'] = 'Personel ve kurum yöneticisi için geçerli bir kurum seçmelisiniz.';
+                    header('Location: ' . ($isUpdate ? esh_url('User', 'adminEdit', ['id' => $targetId]) : esh_url('User', 'create')));
+                    exit;
+                }
+                $model->set('kurum_id', $reqKid);
+            } else {
+                $model->set('kurum_id', TenantContext::requireKurumScope());
+            }
         }
 
         if ($model->store()) {
-            $savedId = $targetId > 0 ? $targetId : (int) ($model->id ?? 0);
-            if ($savedId > 0 && $newLevel === AuthHelper::ROLE_STAFF && PermissionService::tablesReady()) {
+            $savedId = $isUpdate ? $targetId : IdHelper::normalizeRequestId($model->id ?? null);
+            if ($savedId !== null && $newLevel === AuthHelper::ROLE_STAFF && PermissionService::tablesReady()) {
                 if ($roleOverrideId > 0 && AuthHelper::sessionIsSuperAdmin()) {
                     PermissionService::assignRoleToUser($savedId, $roleOverrideId);
                 } else {
                     PermissionService::syncUserRoleFromUnvan($savedId, isset($model->unvan) ? (string) $model->unvan : null);
                 }
-                if ($savedId === (int) ($_SESSION['user_id'] ?? 0)) {
+                if (IdHelper::idsMatch($savedId, AuthHelper::sessionUserId())) {
                     PermissionService::syncSessionPermissions($savedId, $newLevel);
                 }
             }
-            if ($savedId > 0 && $savedId === (int) ($_SESSION['user_id'] ?? 0)) {
+            if ($savedId !== null && IdHelper::idsMatch($savedId, AuthHelper::sessionUserId())) {
                 $savedLevel = AuthHelper::clampLevel((int) $model->isadmin);
                 AuthHelper::syncSessionFromLevel($savedLevel);
                 PermissionService::syncSessionPermissions($savedId, $savedLevel);
@@ -761,7 +799,7 @@ class UserController {
                 ThemeViewHelper::syncSessionUserThemeAfterProfileSave($savedId, $model->ui_theme ?? null);
             }
             $_SESSION['success'] = 'Kullanıcı başarıyla kaydedildi.';
-            if ($targetId > 0) {
+            if ($isUpdate) {
                 \App\Helpers\AuditLogHelper::userUpdate($model);
             } else {
                 \App\Helpers\AuditLogHelper::userCreate($model);
@@ -782,8 +820,8 @@ class UserController {
     public function delete() {
         AuthHelper::requireAdmin();
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('User', 'list'));
-        $id = (int) ($_POST['id'] ?? 0);
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             header('Location: ' . esh_url('User', 'list'));
             exit;
         }
@@ -802,12 +840,16 @@ class UserController {
 
         $level = AuthHelper::clampLevel((int) $model->isadmin);
         if ($level === AuthHelper::ROLE_PLATFORM_OWNER && AuthHelper::countPlatformOwners() <= 1) {
-            $_SESSION['error'] = 'Sistemdeki son sistem sahibi silinemez.';
+            $_SESSION['error'] = 'Sistemdeki son '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER)
+                . ' silinemez.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
         }
         if ($level === AuthHelper::ROLE_SUPERADMIN && AuthHelper::countSuperadmins() <= 1) {
-            $_SESSION['error'] = 'Sistemdeki son süper yönetici silinemez.';
+            $_SESSION['error'] = 'Sistemdeki son '
+                . AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN)
+                . ' silinemez.';
             header('Location: ' . esh_url('User', 'list'));
             exit;
         }
@@ -966,7 +1008,7 @@ public function cropsave() {
         
         $user->set('image', $finalName);
         if ($user->store()) {
-            User::syncSessionAvatar((int) $_SESSION['user_id']);
+            User::syncSessionAvatar((string) AuthHelper::sessionUserId());
             $isDefault = in_array(strtolower($oldFileName), ['default.jpg', 'default.jpeg', 'default.png'], true);
             if ($oldFileName !== '' && !$isDefault && $oldFileName !== $finalName) {
                 $oldFullPath = $profileFolder . DIRECTORY_SEPARATOR . $oldFileName;
@@ -1012,9 +1054,9 @@ public function cropsave() {
             exit;
         }
 
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userId = AuthHelper::sessionUserId();
         $user = new User();
-        if ($userId < 1 || !$user->load($userId)) {
+        if ($userId === null || !$user->load($userId)) {
             $_SESSION['error'] = 'Kullanıcı bulunamadı.';
             header('Location: ' . esh_url('User', 'index'));
             exit;

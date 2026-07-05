@@ -38,7 +38,7 @@ $__eimzaCfg = [
         </button>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_EIMZA = <?= json_encode($__eimzaCfg, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 </script>
-<script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/pages/js/auth-login-eimza.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+<?= esh_csp_script_src_tag(SITEURL . '/public/assets/pages/js/auth-login-eimza.js', 'defer') ?>

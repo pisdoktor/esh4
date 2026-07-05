@@ -2,13 +2,17 @@
 <?php
 /** @var array $raw */
 use App\Helpers\AgeBandHelper;
+use App\Helpers\CinsiyetHelper;
 
 $template = AgeBandHelper::emptyCounts();
-$stats = ['E' => $template, 'K' => $template];
+$stats = [
+    CinsiyetHelper::ERKEK => AgeBandHelper::emptyCounts(),
+    CinsiyetHelper::KADIN => AgeBandHelper::emptyCounts(),
+];
 foreach ($raw as $r) {
-    $c = ($r->cinsiyet == '1' || $r->cinsiyet === 'E' || $r->cinsiyet === 1) ? 'E' : 'K';
+    $c = CinsiyetHelper::normalize($r->cinsiyet ?? null) ?? CinsiyetHelper::KADIN;
     if (!isset($stats[$c])) {
-        $c = 'K';
+        $c = CinsiyetHelper::KADIN;
     }
     foreach ($template as $key => $_) {
         $stats[$c][$key] = (int) ($r->$key ?? 0);

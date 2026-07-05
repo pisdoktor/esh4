@@ -3,7 +3,7 @@ declare(strict_types=1);
 /**
  * UHDS personel görüntülü görüşme odası.
  *
- * @var int $uhdsAppointmentId
+ * @var string $uhdsAppointmentId
  * @var string $uhdsRoomId
  * @var string $uhdsStaffDisplayName
  * @var string $uhdsHastaLabel
@@ -85,7 +85,7 @@ declare(strict_types=1);
                 <div class="card-body">
                     <form id="esh-uhds-complete-form" method="post" action="<?= htmlspecialchars($uhdsCompleteUrl ?? '', ENT_QUOTES, 'UTF-8') ?>"
                           data-index-url="<?= htmlspecialchars(esh_url('Uhds', 'index'), ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="id" value="<?= (int) ($uhdsAppointmentId ?? 0) ?>">
+                        <input type="hidden" name="id" value="<?= htmlspecialchars((string) ($uhdsAppointmentId ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                         <input type="hidden" name="hasta_geldi" value="1">
                         <?= \App\Helpers\FormHelper::fieldTextarea('telehealth_summary', 'Görüşme notu', '', [
                             'col' => '',
@@ -109,12 +109,12 @@ declare(strict_types=1);
         </div>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.__eshUhdsVideo = {
     configUrl: <?= json_encode($uhdsVideoConfigUrl ?? '', JSON_UNESCAPED_UNICODE) ?>,
     jitsiScriptUrl: <?= json_encode($uhdsJitsiScriptUrl ?? '', JSON_UNESCAPED_UNICODE) ?>,
     completeUrl: <?= json_encode($uhdsCompleteUrl ?? '', JSON_UNESCAPED_UNICODE) ?>,
-    appointmentId: <?= (int) ($uhdsAppointmentId ?? 0) ?>,
+    appointmentId: <?= json_encode((string) ($uhdsAppointmentId ?? ''), JSON_UNESCAPED_UNICODE) ?>,
     autoPromptVisit: <?= !empty($uhdsAutoPromptVisit) ? 'true' : 'false' ?>
 };
 </script>

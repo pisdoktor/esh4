@@ -12,7 +12,7 @@
 <?php include __DIR__ . '/ekip_member_row.php'; ?>
                                         <?php endfor; ?>
                                     </div>
-                                    <button type="button" class="btn btn-secondary btn-sm w-100 mt-2" onclick="ekipEkle(<?= (int) $vKey; ?>)">Ekip ekle</button>
+                                    <button type="button" class="btn btn-secondary btn-sm w-100 mt-2" data-esh-call="ekipEkle" data-esh-call-arg="<?= (int) $vKey; ?>">Ekip ekle</button>
                                 </div>
                             </div>
                         </div>

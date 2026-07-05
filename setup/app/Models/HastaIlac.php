@@ -4,6 +4,7 @@
 
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 
 
 
@@ -32,7 +33,7 @@ class HastaIlac extends BaseModel
 
     public $not = null;
 
-    public $hastalikid = null;
+    public $hastalikicd = null;
 
     public $sira = 0;
 
@@ -94,6 +95,21 @@ class HastaIlac extends BaseModel
 
         }
 
+        if ($this->columnExists('hastalikid') && !$this->columnExists('hastalikicd')) {
+
+            $this->db->execLogged('ALTER TABLE #__hasta_ilaclar ADD COLUMN hastalikicd VARCHAR(32) NULL AFTER `not`');
+
+            $this->db->execLogged(
+                'UPDATE #__hasta_ilaclar i
+                 INNER JOIN #__hastaliklar h ON h.id = i.hastalikid
+                 SET i.hastalikicd = TRIM(h.icd)
+                 WHERE i.hastalikid IS NOT NULL AND i.hastalikid > 0 AND TRIM(COALESCE(h.icd, \'\')) <> \'\''
+            );
+
+            $this->db->execLogged('ALTER TABLE #__hasta_ilaclar DROP COLUMN hastalikid');
+
+        }
+
     }
 
 
@@ -104,7 +120,7 @@ class HastaIlac extends BaseModel
 
      */
 
-    public function getByHastaId(int $hastaId): array
+    public function getByHastaId(string $hastaId): array
 
     {
 
@@ -120,22 +136,16 @@ class HastaIlac extends BaseModel
 
 
 
-    public function findByIdForHasta(int $id, int $hastaId): bool
-
+    public function findByIdForHasta(int|string|null $id, int|string|null $hastaId): bool
     {
-
-        if ($id < 1 || $hastaId < 1) {
-
+        $iid = IdHelper::normalizeRequestId($id);
+        $hid = IdHelper::normalizeRequestId($hastaId);
+        if ($iid === null || $hid === null) {
             return false;
-
         }
-
         $row = $this->db->fetchObjectPrepared(
-
             'SELECT * FROM #__hasta_ilaclar WHERE id = :id AND hasta_id = :hasta LIMIT 1',
-
-            [':id' => $id, ':hasta' => $hastaId]
-
+            [':id' => $iid, ':hasta' => $hid]
         );
 
         if (!$row) {
@@ -156,7 +166,7 @@ class HastaIlac extends BaseModel
 
 
 
-    public function nextSiraForHasta(int $hastaId): int
+    public function nextSiraForHasta(string $hastaId): int
 
     {
 

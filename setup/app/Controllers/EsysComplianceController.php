@@ -11,13 +11,13 @@ use App\Helpers\ThemeViewHelper;
 use App\Models\EsysSyncLog;
 
 /**
- * ESYS uyum hazırlığı — alan eşlemesi referansı (yönetici).
+ * ESYS uyum hazırlığı — alan eşlemesi referansı (sistem sahibi).
  */
 class EsysComplianceController
 {
     public function __construct()
     {
-        AuthHelper::requireAdmin();
+        AuthHelper::requirePlatformOwner();
     }
 
     public function index(): void

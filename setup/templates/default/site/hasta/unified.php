@@ -58,7 +58,7 @@ $unifiedPasifTarihiColumnTitle = match ($curStatus) {
                 <?= esh_form_route_hiddens('Patient', 'unified') ?>
                 <div class="col-12 col-md-6 col-xl-<?= $isAdminUnified ? '2' : '3' ?>">
                     <label class="form-label small text-muted mb-1">Kayıt durumu</label>
-                    <select name="status" class="form-select form-select-sm shadow-sm esh-filter-control" onchange="this.form.submit()">
+                    <select name="status" class="form-select form-select-sm shadow-sm esh-filter-control" data-esh-auto-submit>
                         <?php foreach ($statusLabels as $k => $label): ?>
                             <option value="<?= htmlspecialchars($k) ?>" <?= ($curStatus === $k) ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
                         <?php endforeach; ?>

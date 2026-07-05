@@ -1,6 +1,8 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 use App\Helpers\ThemeViewHelper;
 use App\Helpers\TenantStoreHelper;
 use App\Helpers\ValidationHelper;
@@ -249,7 +251,7 @@ class RandevuController
             exit;
         }
 
-        $uid = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+        $uid = AuthHelper::sessionUserId();
         $rec = new KonsRandevu();
         $rec->bind([
             'randevu_tarihi' => $ymd,
@@ -259,7 +261,7 @@ class RandevuController
             'hastatckimlik' => $tc,
             'notlar' => $notlar !== '' ? $notlar : null,
             'hasta_geldi' => $hastaGeldi,
-            'olusturan_id' => $uid > 0 ? $uid : null,
+            'olusturan_id' => IdHelper::isEmptyEntityId((string) $uid) ? null : (string) $uid,
         ], true);
         TenantStoreHelper::applyKurumIdToModel($rec);
 
@@ -279,7 +281,7 @@ class RandevuController
             header('Location: ' . esh_url('Randevu', 'index'));
             exit;
         }
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $y = (int) ($_POST['y'] ?? 0);
         $m = (int) ($_POST['m'] ?? 0);
         $date = trim((string) ($_POST['date'] ?? ''));
@@ -287,7 +289,7 @@ class RandevuController
         if (!ValidationHelper::isTcLength11($retc)) {
             $retc = '';
         }
-        if ($id <= 0) {
+        if ($id === null) {
             header('Location: ' . $this->indexUrl($y, $m, $date, $retc));
             exit;
         }
@@ -308,7 +310,7 @@ class RandevuController
             exit;
         }
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $y = (int) ($_POST['y'] ?? 0);
         $m = (int) ($_POST['m'] ?? 0);
         $date = trim((string) ($_POST['date'] ?? ''));
@@ -317,7 +319,7 @@ class RandevuController
             $retc = '';
         }
 
-        if ($id <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        if ($id === null || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . $this->indexUrl($y, $m, $date, $retc));
             exit;
@@ -431,7 +433,7 @@ class RandevuController
         }
         $valid = [];
         foreach ((new Istek())->getList() as $row) {
-            $id = (int) ($row->id ?? 0);
+            $id = (string) ($row->id ?? '');
             if ($id > 0 && in_array($id, $ids, true)) {
                 $valid[] = $id;
             }

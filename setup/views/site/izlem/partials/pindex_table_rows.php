@@ -31,7 +31,7 @@ if (!empty($plans)) {
                 <?php
                 $eshPvIsAdmin = AuthHelper::sessionIsAdmin();
                 $eshMenuRows = \App\Helpers\BadgeHelper::plannedVisitIndexMenuEntries($p, $eshPvIsAdmin, $planDeleteRetq);
-                $eshPvErkek = ($p->cinsiyet ?? '') === 'E' || ($p->cinsiyet ?? '') === '1';
+                $eshPvErkek = \App\Helpers\CinsiyetHelper::isErkek($p->cinsiyet ?? null);
                 ?>
                 <div class="dropdown">
                     <a class="patient-link dropdown-toggle d-inline-block text-decoration-none fw-semibold"

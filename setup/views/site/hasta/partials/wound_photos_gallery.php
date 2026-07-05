@@ -5,7 +5,7 @@
  * @var object $hasta
  * @var array $woundPhotos
  */
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $woundPhotos = isset($woundPhotos) && is_array($woundPhotos) ? $woundPhotos : [];
 $visibleChunkSize = 12;
 ?>
@@ -35,7 +35,7 @@ $visibleChunkSize = 12;
                             class="wound-photo-trigger"
                             data-bs-toggle="modal"
                             data-bs-target="#woundPhotoModal"
-                            data-photo-index="<?= (int) $photo->id ?>"
+                            data-photo-index="<?= htmlspecialchars((string) ($photo->id ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                             data-full-url="<?= htmlspecialchars(esh_upload_url('wounds', (string) $photo->dosya_adi), ENT_QUOTES, 'UTF-8') ?>"
                             data-caption="<?= htmlspecialchars((string) ($photo->aciklama ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                             data-meta="<?= htmlspecialchars(trim('Bölge: ' . (string) ($photo->yara_bolgesi ?? '') . ' | Evre: ' . (string) ($photo->yara_evresi ?? '')), ENT_QUOTES, 'UTF-8') ?>"
@@ -77,9 +77,9 @@ $visibleChunkSize = 12;
                                     <i class="fa-solid fa-arrow-right me-1"></i> Sonra
                                 </button>
                             </div>
-                            <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteWoundPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" onsubmit="return confirm('Bu fotoğrafı silmek istediğinize emin misiniz?');">
+                            <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteWoundPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" data-esh-confirm="Bu fotoğrafı silmek istediğinize emin misiniz?">
                                 <input type="hidden" name="id" value="<?= $hastaId ?>">
-                                <input type="hidden" name="photo_id" value="<?= (int) $photo->id ?>">
+                                <input type="hidden" name="photo_id" value="<?= htmlspecialchars((string) ($photo->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                 <button type="submit" class="btn btn-outline-danger btn-sm w-100">
                                     <i class="fa-solid fa-trash me-1"></i> Sil
                                 </button>

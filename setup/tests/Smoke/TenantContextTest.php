@@ -119,10 +119,10 @@ final class TenantContextTest extends SessionTestCase
 
     public function test_kurum_list_for_scope_staff(): void
     {
-        $this->actAsStaff(1, 4);
+        $this->actAsStaff(1, 1);
         $list = TenantContext::kurumListForScope(true);
         self::assertCount(1, $list);
-        self::assertSame(4, (int) ($list[0]->id ?? 0));
+        self::assertSame(1, (int) ($list[0]->id ?? 0));
     }
 
     public function test_kurum_filter_does_not_clear_bolge_filter(): void

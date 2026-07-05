@@ -15,7 +15,7 @@
                 </div>
                 <?php if (\App\Helpers\AuthHelper::sessionIsAdmin()): ?>
                 <div class="d-flex gap-1 flex-shrink-0">
-                <?php if (\App\Services\Sms\SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))): ?>
+                <?php if (\App\Services\Sms\SmsService::canUseSms(\App\Helpers\AuthHelper::sessionUserId())): ?>
                 <a href="#"
                     class="btn btn-outline-primary btn-sm rounded-pill disabled"
                     title="Günün planı yükleniyor…"

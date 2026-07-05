@@ -28,15 +28,16 @@ foreach ($eshKurumList as $k) {
 $eshKurumHelpHtml = (($eshKurumFieldContext ?? 'edit') === 'bedit')
     ? 'Bekleyen hasta kaydının kurumu. Kayıt sırasında güncellenir.'
     : 'Kaynak kurumda pasif (Başka Kuruma Nakil); hedef kurumda bekleyen nakil kaydı açılır. İzlem geçmişi kaynak kurumda kalır. '
-        . '<a href="' . htmlspecialchars(esh_url('Patient', 'changeKurum', ['id' => (int) ($patient->id ?? 0)]), ENT_QUOTES, 'UTF-8') . '">Kurum değiştirme sayfası</a>';
+        . '<a href="' . htmlspecialchars(esh_url('Patient', 'changeKurum', ['id' => (string) ($patient->id ?? '')]), ENT_QUOTES, 'UTF-8') . '">Kurum değiştirme sayfası</a>';
 ?>
 <div class="col-12" id="eshPatientKurumFieldWrap">
     <?php
-    echo FormHelper::fieldSelect('kurum_id', 'Kurum (süper yönetici)', $eshKurumOptions, (string) $eshPatientKurumId, [
+    $eshKurumFieldLabel = AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN);
+    echo FormHelper::fieldSelect('kurum_id', 'Kurum (' . $eshKurumFieldLabel . ')', $eshKurumOptions, (string) $eshPatientKurumId, [
         'col' => '',
         'id' => 'eshPatientKurumSelect',
         'labelClass' => 'form-label small fw-bold text-muted',
-        'labelHtml' => '<i class="fa-solid fa-building me-1"></i>Kurum (süper yönetici)',
+        'labelHtml' => '<i class="fa-solid fa-building me-1"></i>Kurum (' . htmlspecialchars($eshKurumFieldLabel, ENT_QUOTES, 'UTF-8') . ')',
         'tomSelect' => false,
         'required' => true,
         'afterInput' => '<div class="form-text">' . $eshKurumHelpHtml . '</div>',

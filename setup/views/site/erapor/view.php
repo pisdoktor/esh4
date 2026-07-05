@@ -16,14 +16,15 @@ $tcFmt = \App\Helpers\ValidationHelper::formatTc((string) ($item->hastatckimlik 
 $adSoyad = trim((string) ($item->isim ?? '') . ' ' . (string) ($item->soyisim ?? ''));
 $bransLabel = trim((string) ($item->bransadi ?? $item->brans ?? ''));
 $isAdmin = AuthHelper::sessionIsAdmin();
-$eraporId = (int) ($item->id ?? 0);
+$eraporId = \App\Helpers\IdHelper::normalizeRequestId($item->id ?? null) ?? '';
+$eraporIdLabel = $eraporId !== '' ? strtoupper(substr($eraporId, 0, 8)) : '—';
 ?>
 <div class="esh-page esh-page--detail esh-page-erapor container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div class="min-w-0">
             <p class="text-muted small text-uppercase mb-1">e-Rapor havuzu</p>
             <h1 class="h4 fw-bold mb-1">
-                <i class="fas fa-file-medical text-primary me-2"></i>Rapor kaydı #<?= $eraporId ?>
+                <i class="fas fa-file-medical text-primary me-2"></i>Rapor kaydı #<?= htmlspecialchars($eraporIdLabel, ENT_QUOTES, 'UTF-8') ?>
             </h1>
             <p class="text-muted small mb-0 font-monospace">
                 <?= htmlspecialchars($tcFmt, ENT_QUOTES, 'UTF-8') ?>
@@ -94,7 +95,7 @@ $eraporId = (int) ($item->id ?? 0);
                     </button>
                 </form>
                 <form action="<?= htmlspecialchars(esh_form_action('Erapor', 'delete'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="m-0"
-                      onsubmit="return confirm('Bu kaydı havuzdan silmek istediğinize emin misiniz?');">
+                      data-esh-confirm="Bu kaydı havuzdan silmek istediğinize emin misiniz?">
                     <?= esh_form_route_hiddens('Erapor', 'delete') ?>
                     <input type="hidden" name="id" value="<?= $eraporId ?>">
                     <button type="submit" class="btn btn-outline-danger btn-sm">

@@ -8,15 +8,12 @@ declare(strict_types=1);
 
 $smsFields = $smsFields ?? [];
 $smsCredentialStatus = $smsCredentialStatus ?? ['configured' => false, 'provider' => 'mock', 'api_user' => '', 'masked_password' => '', 'masked_api_key' => '', 'sender_id' => '', 'test_phone' => '', 'updated_at' => ''];
-$smsModuleEnabled = $smsModuleEnabled ?? false;
 $smsIsSuperAdmin = $smsIsSuperAdmin ?? false;
 ?>
             <div class="alert alert-info border-0 small mb-4" role="alert">
                 <i class="fa-solid fa-circle-info me-1"></i>
-                <strong>SMS & Bildirimler</strong> — Türkiye'de SMS, BTK lisanslı aracılar (Netgsm, İletiMerkezi, TurkeySMS vb.) üzerinden
-                tüm operatör ağlarına iletilir. Bilgilendirme SMS'leri İYS kapsamı dışındadır; BTK onaylı gönderici başlığı gereklidir.
-                Modül: <strong><?= $smsModuleEnabled ? 'Açık' : 'Kapalı' ?></strong>
-                (<a href="<?= htmlspecialchars(esh_url('Settings', 'index') . '?tab=modules', ENT_QUOTES, 'UTF-8') ?>">Uygulama modülleri</a>).
+                Türkiye'de SMS, BTK lisanslı aracılar (Netgsm, İletiMerkezi, TurkeySMS vb.) üzerinden iletilir.
+                Bilgilendirme SMS'leri İYS kapsamı dışındadır; BTK onaylı gönderici başlığı gereklidir.
             </div>
 
             <div class="card shadow-sm border-0 mb-4">
@@ -94,7 +91,7 @@ $smsIsSuperAdmin = $smsIsSuperAdmin ?? false;
                     <pre id="smsTestConnectionResult" class="small bg-light border rounded p-3 mb-0 text-muted">Henüz test yapılmadı. Önce ayarları kaydedin.</pre>
                 </div>
             </div>
-            <script>
+            <script<?= esh_csp_nonce_attr() ?>>
             (function () {
                 var btn = document.getElementById('smsTestConnectionBtn');
                 var out = document.getElementById('smsTestConnectionResult');

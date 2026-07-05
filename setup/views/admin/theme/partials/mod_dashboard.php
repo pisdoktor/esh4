@@ -408,7 +408,7 @@
 
                         <div class="card-footer bg-white border-top-0 p-3 mr-dash-plan__foot">
 
-                            <a href="#" class="btn btn-primary w-100 py-2 fw-bold shadow-sm rounded-3" tabindex="-1" onclick="return false;">
+                            <a href="#" class="btn btn-primary w-100 py-2 fw-bold shadow-sm rounded-3" tabindex="-1" data-esh-action="prevent-default">
 
                                 <i class="fa fa-map-marked-alt me-2"></i>GÜNÜN ROTASINI ÇİZ
 

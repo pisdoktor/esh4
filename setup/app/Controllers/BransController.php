@@ -9,7 +9,7 @@ use App\Models\Brans;
 use App\Models\KurumBrans;
 
 /**
- * Branş kataloğu (süper yönetici) ve kurum seçimi (kurum yöneticisi).
+ * Branş kataloğu (platform sahibi) ve kurum seçimi (kurum yöneticisi).
  */
 class BransController {
 
@@ -18,8 +18,10 @@ class BransController {
     }
 
     private function requireCatalogAdmin(): void {
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            $_SESSION['error'] = 'Platform kataloğunu yalnızca süper yönetici düzenleyebilir.';
+        if (!AuthHelper::sessionIsPlatformOwner()) {
+            $_SESSION['error'] = 'Platform kataloğunu yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' düzenleyebilir.';
             header('Location: ' . esh_url('Brans', 'index'));
             exit;
         }

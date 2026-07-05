@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sms;
 
+use App\Helpers\IdHelper;
 use App\Helpers\OperationalSettings;
 use App\Helpers\SmsSettings;
 use App\Helpers\ZamanDilimiHelper;
@@ -22,11 +23,11 @@ final class SmsRecipientResolver
      * @param object $hasta esh_hastalar row
      * @param list<string> $roles
      * @param array<string, string> $extraVars segment context
-     * @return list<array{hasta_id:int,hasta_ad:string,rol:string,rol_label:string,telefon_norm:string,telefon_mask:string,govde:string,skip_reason:string}>
+     * @return list<array{hasta_id:string,hasta_ad:string,rol:string,rol_label:string,telefon_norm:string,telefon_mask:string,govde:string,skip_reason:string}>
      */
     public function resolveForPatient(object $hasta, array $roles, string $bodyTemplate, array $extraVars = []): array
     {
-        $hastaId = (int) ($hasta->id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($hasta->id ?? null) ?? '';
         $kurumId = (int) ($hasta->kurum_id ?? 0);
         $hastaAd = trim((string) ($hasta->isim ?? '') . ' ' . (string) ($hasta->soyisim ?? ''));
         $vars = array_merge($this->baseVars($hasta, $extraVars), $extraVars);

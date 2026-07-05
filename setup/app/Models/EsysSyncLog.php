@@ -30,7 +30,7 @@ class EsysSyncLog extends BaseModel
         string $direction,
         string $status,
         ?int $kurumId,
-        ?int $userId,
+        ?string $userId,
         ?string $fileName,
         array $stats = [],
         ?string $errorMessage = null

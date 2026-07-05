@@ -49,6 +49,11 @@ final class UsbsBridgeHelper
                 $payload[$usbsKey] = null;
                 continue;
             }
+            $lookup = (string) ($field['lookup'] ?? '');
+            if ($lookup !== '' || $eshKey === 'cinsiyet') {
+                $payload[$usbsKey] = BridgeLookupResolver::resolve($raw, $lookup, $eshKey);
+                continue;
+            }
             $format = (string) ($field['format'] ?? '');
             if ($format === 'date' && is_string($raw)) {
                 $payload[$usbsKey] = self::formatDateForUsbs($raw);

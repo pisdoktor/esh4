@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Helpers\AuthHelper;
 use App\Helpers\CsrfHelper;
 use App\Helpers\FormHelper;
 use App\Helpers\PageShellHelper;
@@ -22,7 +23,7 @@ $crudLabels = [
     'delete' => 'Silme',
     'export' => 'Dışa aktarma',
     'admin' => 'Yönetici',
-    'superadmin' => 'Süper yönetici',
+    'superadmin' => AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN),
 ];
 
 PageShellHelper::pageOpen(['kind' => 'form', 'module' => 'role']);
@@ -163,14 +164,14 @@ PageShellHelper::pageOpen(['kind' => 'form', 'module' => 'role']);
 
 <?php if ($roleId > 0 && !$isSystem): ?>
 <form method="post" action="<?= htmlspecialchars(esh_url('Role', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="mt-3"
-      onsubmit="return confirm('Bu rol silinsin mi?');">
+      data-esh-confirm="Bu rol silinsin mi?">
     <?= CsrfHelper::hiddenField() ?>
     <input type="hidden" name="id" value="<?= $roleId ?>">
     <button type="submit" class="btn btn-outline-danger btn-sm">Rolü sil</button>
 </form>
 <?php endif; ?>
 
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 document.addEventListener('DOMContentLoaded', function () {
     var table = document.querySelector('.esh-role-perm-table');
     if (!table) {
@@ -183,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    table.querySelectorAll('[data-esh-role-perm-action]').forEach(function (btn) {
+    document.querySelectorAll('[data-esh-role-perm-action]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             setChecked('.esh-role-perm-cb', btn.getAttribute('data-esh-role-perm-action') === 'all-on');
         });

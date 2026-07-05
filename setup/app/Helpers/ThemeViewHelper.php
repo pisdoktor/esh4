@@ -1,6 +1,8 @@
 <?php
 namespace App\Helpers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 class ThemeViewHelper
 {
     /** @var array<string, array<string, mixed>>|null */
@@ -132,12 +134,12 @@ class ThemeViewHelper
     /**
      * Profil kaydı sonrası — yalnızca kendi hesabı için session güncellenir.
      */
-    public static function syncSessionUserThemeAfterProfileSave(int $userId, ?string $savedUiTheme): void
+    public static function syncSessionUserThemeAfterProfileSave(int|string $userId, ?string $savedUiTheme): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE || empty($_SESSION['user_id'])) {
             return;
         }
-        if ((int) $_SESSION['user_id'] !== $userId) {
+        if (!IdHelper::idsMatch($_SESSION['user_id'] ?? null, $userId)) {
             return;
         }
         if ($savedUiTheme === null || trim($savedUiTheme) === '') {
@@ -597,13 +599,14 @@ class ThemeViewHelper
             return;
         }
 
-        echo '<script>window.ESH_SEF_ENABLED=' . (defined('ESH_SEF_URLS_ENABLED') && ESH_SEF_URLS_ENABLED ? 'true' : 'false')
+        echo '<script' . esh_csp_nonce_attr() . ">window.ESH_SEF_ENABLED=" . (defined('ESH_SEF_URLS_ENABLED') && ESH_SEF_URLS_ENABLED ? 'true' : 'false')
             . ';window.ESH_PUBLIC_WEB=' . json_encode(\App\Helpers\UrlHelper::publicWebPath(), JSON_UNESCAPED_SLASHES) . ';</script>' . "\n";
-        echo '<script src="' . htmlspecialchars($base . '/public/assets/global.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
-        echo '<script src="' . htmlspecialchars($base . '/public/assets/esh-fetch-json.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
-        echo '<script defer src="' . htmlspecialchars($base . '/public/assets/esh-phone-mask.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
-        echo '<script defer src="' . htmlspecialchars($base . '/public/assets/form-input-uppercase.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
-        echo '<script defer src="' . htmlspecialchars($base . '/public/assets/form-submit-guard.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+        echo esh_csp_script_src_tag($base . '/public/assets/csp-delegated-events.js');
+        echo esh_csp_script_src_tag($base . '/public/assets/global.js');
+        echo esh_csp_script_src_tag($base . '/public/assets/esh-fetch-json.js');
+        echo esh_csp_script_src_tag($base . '/public/assets/esh-phone-mask.js', 'defer');
+        echo esh_csp_script_src_tag($base . '/public/assets/form-input-uppercase.js', 'defer');
+        echo esh_csp_script_src_tag($base . '/public/assets/form-submit-guard.js', 'defer');
     }
 
     /** `templates/<slug>/theme.css` mutlak yolu */

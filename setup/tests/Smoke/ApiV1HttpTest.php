@@ -10,12 +10,12 @@ use ReflectionMethod;
 final class ApiV1HttpTest extends TestCase
 {
     /**
-     * @return array{resource: string, id: ?int, sub: ?string}|null
+     * @return array{resource: string, id: ?string, sub: ?string}|null
      */
     private static function parseRouteViaReflection(): ?array
     {
         $_GET = [];
-        $_SERVER['REQUEST_URI'] = '/public/api/v1/patients/42';
+        $_SERVER['REQUEST_URI'] = '/public/api/v1/patients/a0000001-0001-4001-8001-000000000001';
         $m = new ReflectionMethod(ApiRouter::class, 'parseRoute');
         $m->setAccessible(true);
 
@@ -27,7 +27,7 @@ final class ApiV1HttpTest extends TestCase
         $parsed = self::parseRouteViaReflection();
         self::assertNotNull($parsed);
         self::assertSame('patients', $parsed['resource']);
-        self::assertSame(42, $parsed['id']);
+        self::assertSame('a0000001-0001-4001-8001-000000000001', $parsed['id']);
     }
 
     public function testParseRouteVisitsCheckin(): void

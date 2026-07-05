@@ -32,8 +32,10 @@ final class CatalogStoreHelper
             }
             exit;
         }
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            $_SESSION['error'] = 'Platform kataloğunu yalnızca süper yönetici düzenleyebilir.';
+        if (!AuthHelper::sessionIsPlatformOwner()) {
+            $_SESSION['error'] = 'Platform kataloğunu yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' düzenleyebilir.';
             if (!headers_sent()) {
                 header('Location: ' . esh_url('Dashboard', 'index'));
             }
@@ -41,10 +43,10 @@ final class CatalogStoreHelper
         }
     }
 
-    /** Kurum seçim ekranı: kurum yöneticisi veya süper yönetici (kurum filtresi seçili). */
+    /** Kurum seçim ekranı: platform sahibi (kurum filtresi yok) dışındaki yöneticiler ve PS kurum filtresinde. */
     public static function isCatalogPickerMode(): bool
     {
-        if (!AuthHelper::sessionIsSuperAdmin()) {
+        if (!AuthHelper::sessionIsPlatformOwner()) {
             return true;
         }
 

@@ -53,7 +53,7 @@ $rows = $rows ?? [];
                                 ?>
                                 <tr>
                                     <td>
-                                        <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (int) $row->id]), ENT_QUOTES, 'UTF-8') ?>" class="fw-semibold text-decoration-none">
+                                        <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (string) ($row->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="fw-semibold text-decoration-none">
                                             <?= htmlspecialchars(trim((string) ($row->isim ?? '') . ' ' . (string) ($row->soyisim ?? '')), ENT_QUOTES, 'UTF-8') ?>
                                         </a>
                                         <div class="small text-muted font-monospace"><?= htmlspecialchars((string) ($row->tckimlik ?? ''), ENT_QUOTES, 'UTF-8') ?></div>

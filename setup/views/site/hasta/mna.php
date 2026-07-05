@@ -13,7 +13,7 @@
  */
 use App\Helpers\MnaScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $viewUrl = esh_url('Patient', 'view', ['id' => $hastaId]);
 $latestTotal = (int) ($mnaLatest->toplam_skor ?? 0);
 $latestStatus = (string) ($mnaLatest->durum_duzeyi ?? '—');

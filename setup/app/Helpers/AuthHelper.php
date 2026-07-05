@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Services\PermissionService;
 
 /**
- * Oturum yetki seviyesi: #__users.isadmin → 0 personel, 1 admin, 2 süper yönetici, 3 sistem sahibi.
+ * Oturum yetki seviyesi: #__users.isadmin → 0 personel, 1 kurum yöneticisi, 2 bölge yöneticisi, 3 sistem yöneticisi.
  */
 final class AuthHelper
 {
@@ -70,7 +70,7 @@ final class AuthHelper
         return self::sessionAdminLevel() >= self::ROLE_SUPERADMIN;
     }
 
-    /** Süper yönetici (2) — sistem sahibi (3) hariç. */
+    /** Bölge yöneticisi (2) — sistem yöneticisi (3) hariç. */
     public static function sessionIsSuperAdminOnly(): bool
     {
         $level = self::sessionAdminLevel();
@@ -83,7 +83,18 @@ final class AuthHelper
         return self::sessionAdminLevel() >= self::ROLE_PLATFORM_OWNER;
     }
 
-    /** Platform geneli (süper yönetici veya sistem sahibi). */
+    /** Oturumdaki kullanıcı PK (UUID string); yoksa null. */
+    public static function sessionUserId(): ?string
+    {
+        return IdHelper::normalizeRequestId($_SESSION['user_id'] ?? null);
+    }
+
+    public static function sessionHasUser(): bool
+    {
+        return self::sessionUserId() !== null;
+    }
+
+    /** Platform geneli (bölge yöneticisi veya sistem yöneticisi). */
     public static function isPlatformLevel(int $level): bool
     {
         return self::clampLevel($level) >= self::ROLE_SUPERADMIN;
@@ -150,13 +161,16 @@ final class AuthHelper
         exit;
     }
 
-    public static function canManageUser(int $targetUserId): bool
+    public static function canManageUser(int|string $targetUserId): bool
     {
+        if (!IdHelper::isValidEntityId($targetUserId)) {
+            return false;
+        }
         if (self::sessionIsPlatformOwner()) {
             return true;
         }
         $user = new User();
-        if (!$user->load($targetUserId)) {
+        if (!$user->load((string) $targetUserId)) {
             return false;
         }
         $targetLevel = self::clampLevel((int) ($user->isadmin ?? 0));
@@ -264,7 +278,7 @@ final class AuthHelper
         return $requestedLevel;
     }
 
-    /** Süper yönetici ataması yalnızca sistem sahibi oturumunda mümkün mü? */
+    /** Bölge yöneticisi ataması yalnızca sistem yöneticisi oturumunda mümkün mü? */
     public static function canAssignSuperAdminRole(): bool
     {
         return self::sessionIsPlatformOwner();
@@ -298,9 +312,9 @@ final class AuthHelper
     public static function adminLevelLabel(int $level): string
     {
         return match (self::clampLevel($level)) {
-            self::ROLE_PLATFORM_OWNER => 'Sistem Sahibi',
-            self::ROLE_SUPERADMIN => 'Süper Yönetici',
-            self::ROLE_ADMIN => 'Yönetici',
+            self::ROLE_PLATFORM_OWNER => 'Sistem Yöneticisi',
+            self::ROLE_SUPERADMIN => 'Bölge Yöneticisi',
+            self::ROLE_ADMIN => 'Kurum Yöneticisi',
             default => 'Personel',
         };
     }

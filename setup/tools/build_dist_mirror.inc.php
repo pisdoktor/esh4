@@ -169,7 +169,7 @@ function buildDistPatchDatabaseSql(string $ver, string $releaseDate): string
     }
 
     $lines[] = '-- Tam şema referansı: database/schemas/schema.sql';
-    $lines[] = '-- Sıfır kurulum: schema.sql + süper yönetici Denizli adres senkronu (AdresFetch)';
+    $lines[] = '-- Sıfır kurulum: schema.sql + bölge yöneticisi Denizli adres senkronu (AdresFetch)';
     $lines[] = '';
     $lines[] = "SELECT '{$bilgi}' AS bilgi;";
     $lines[] = '';
@@ -227,7 +227,7 @@ TXT;
 -------------------
 • Veritabanı: database/patch_4.0.0.sql (esh_kurumlar + kurum_id sütunları)
 • Çoklu kurum: TenantContext, kurum bazlı hasta/kullanıcı/izlem izolasyonu
-• Süper yönetici: KurumController CRUD, kurum filtresi, kurumsal ayarlar DB
+• Bölge yöneticisi: KurumController CRUD, kurum filtresi, kurumsal ayarlar DB
 • Kamu TC sorgusu: kurum_kod parametresi zorunlu (kurum bazlı arama)
 TXT;
     }

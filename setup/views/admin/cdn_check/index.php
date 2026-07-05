@@ -16,6 +16,8 @@ $probeUrl = $baseUrl . '&amp;probe=1&amp;timeout=' . (int) $timeout;
             <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-cloud-arrow-down text-primary me-2"></i>CDN sürüm kontrolü</h3>
             <p class="text-muted small mb-0">
                 Kaynak: <code>CdnAssetHelper</code> sabitleri · npm / cdnjs son sürüm ile karşılaştırma (timeout <?= (int) $timeout ?> sn).
+                Harita SDK satırları tüm sağlayıcılar içindir; kurulumda aktif olan
+                <strong><?= htmlspecialchars((string) ($activeMapProvider['label'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></strong>.
             </p>
         </div>
         <div class="col-lg-4 text-lg-end mt-2 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end align-items-center">
@@ -36,10 +38,34 @@ $probeUrl = $baseUrl . '&amp;probe=1&amp;timeout=' . (int) $timeout;
 
     <div class="card shadow-sm border-0 mb-3">
         <div class="card-header bg-white py-3 border-bottom">
-            <h6 class="mb-0 fw-bold">Kayıt defteri karşılaştırması</h6>
+            <h6 class="mb-0 fw-bold">Harita sağlayıcıları</h6>
         </div>
         <div class="card-body p-0">
-            <?php include __DIR__ . '/compare_table.php'; ?>
+            <?php include __DIR__ . '/map_providers.php'; ?>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="mb-0 fw-bold">Harita SDK sürümleri</h6>
+        </div>
+        <div class="card-body p-0">
+            <?php
+            $compareRows = $mapSdkCompareRows ?? [];
+            include __DIR__ . '/compare_table.php';
+            ?>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="mb-0 fw-bold">Genel kütüphaneler</h6>
+        </div>
+        <div class="card-body p-0">
+            <?php
+            $compareRows = $generalCompareRows ?? [];
+            include __DIR__ . '/compare_table.php';
+            ?>
         </div>
     </div>
 

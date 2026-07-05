@@ -30,7 +30,7 @@
         </div>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.mesajCompose = {
     usersUrl: <?= json_encode($usersForDmUrl ?? esh_url('Mesaj', 'usersForDm'), JSON_UNESCAPED_UNICODE) ?>

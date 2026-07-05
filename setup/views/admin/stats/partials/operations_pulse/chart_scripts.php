@@ -6,7 +6,7 @@ foreach ($visitMonths as $vm) {
     $vmData[] = (int) ($vm->n ?? 0);
 }
 ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     var ctx = document.getElementById('pulseVisitMonths');

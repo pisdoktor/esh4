@@ -43,7 +43,7 @@ $items = $items ?? [];
                         <td class="text-end">
                             <a href="<?= htmlspecialchars(esh_url('FederationRegion', 'edit', ['id' => (int) $row->id]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen"></i></a>
                             <?php if ((int) ($row->id ?? 0) > 1): ?>
-                            <form method="post" action="<?= htmlspecialchars(esh_url('FederationRegion', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" onsubmit="return confirm('Silinsin mi?');">
+                            <form method="post" action="<?= htmlspecialchars(esh_url('FederationRegion', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" data-esh-confirm="Silinsin mi?">
                                 <?= esh_csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= (int) $row->id ?>">
                                 <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash"></i></button>

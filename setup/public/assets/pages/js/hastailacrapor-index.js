@@ -421,7 +421,7 @@ jQuery(function ($) {
 
         $('#hastailacRaporModalTitle').text(hastalikAdi || 'Tanı raporu');
         updateRaporStatusBadge($btn);
-        $('#hastailacRaporHastalikId').val($btn.attr('data-hastalik-id') || '');
+        $('#hastailacRaporHastalikIcd').val($btn.attr('data-hastalik-icd') || '');
         $('#hastailacRaporRowId').val($btn.attr('data-rapor-id') || '');
         $('#hastailacRaporBitis').val($btn.attr('data-bitis') || '');
 
@@ -449,8 +449,8 @@ jQuery(function ($) {
         $('#hastailacIlacAdi').val($btn.data('ilac-adi') || '');
         $('#hastailacIlacNot').val($btn.data('not') || '');
         $('#hastailacIlacRecete').val($btn.attr('data-recete-turu') || '');
-        var hid = $btn.data('hastalikid');
-        $('#hastailacIlacTani').val(hid !== undefined && hid !== '' ? String(hid) : '');
+        var icd = $btn.attr('data-hastalik-icd');
+        $('#hastailacIlacTani').val(icd !== undefined && icd !== '' ? String(icd) : '');
     }
 
     /** HTML data-* values; avoid jQuery .data() (coerces "0"/"1" to numbers and breaks ===). */

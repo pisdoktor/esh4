@@ -19,7 +19,7 @@ $mysqlOk = !empty($summary['mysql_available']);
         </ol>
 
         <h6 class="fw-bold mb-2">Tam veritabanı geri yükleme</h6>
-        <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'restoreBackup'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3 align-items-end mb-4" id="restore-full-form" onsubmit="return confirm('Mevcut veritabanı bu yedekle değiştirilecek. Emin misiniz?');">
+        <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'restoreBackup'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3 align-items-end mb-4" id="restore-full-form" data-esh-confirm="Mevcut veritabanı bu yedekle değiştirilecek. Emin misiniz?">
             <input type="hidden" name="maint_token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
             <div class="col-md-4">
                 <label class="form-label small fw-semibold">Yedek dosyası</label>
@@ -49,7 +49,7 @@ $mysqlOk = !empty($summary['mysql_available']);
         <hr class="my-4">
         <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-table me-1"></i>Tek tablo geri yükle</h6>
         <p class="small text-muted">Yalnızca tablo yedeği dosyalarını kullanın. Seçili tablo yedekteki hâle getirilir (DROP + CREATE + veri).</p>
-        <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'restoreTableBackup'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3 align-items-end" id="restore-table-form" onsubmit="return confirm('Yalnızca seçili tablo yedekteki hâle getirilecek. Emin misiniz?');">
+        <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'restoreTableBackup'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3 align-items-end" id="restore-table-form" data-esh-confirm="Yalnızca seçili tablo yedekteki hâle getirilecek. Emin misiniz?">
             <input type="hidden" name="maint_token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
             <div class="col-md-3">
                 <label class="form-label small fw-semibold">Tablo</label>

@@ -488,11 +488,11 @@ class Database {
     }
 
     /**
-     * Güvenli INSERT; başarıda lastInsertId döner.
+     * Güvenli INSERT; başarıda PK döner (UUID string veya AUTO_INCREMENT int).
      *
      * @param array<string, mixed> $data
      */
-    public function insertPrepared(string $table, array $data): int|false
+    public function insertPrepared(string $table, array $data): int|string|false
     {
         $tableName = $this->resolveTableName($table);
         if ($tableName === null) {
@@ -508,7 +508,16 @@ class Database {
             return false;
         }
 
-        return (int) $this->pdo->lastInsertId();
+        if (array_key_exists('id', $data) && $data['id'] !== null && $data['id'] !== '') {
+            return (string) $data['id'];
+        }
+
+        $lastId = $this->pdo->lastInsertId();
+        if ($lastId === false || $lastId === '' || $lastId === '0') {
+            return false;
+        }
+
+        return (int) $lastId;
     }
 
     /**
@@ -718,6 +727,9 @@ class Database {
         $sql = file_get_contents($path);
         if ($sql === false || trim($sql) === '') {
             throw new \RuntimeException($label . ' okunamadı: ' . $path);
+        }
+        if (str_starts_with($sql, "\xEF\xBB\xBF")) {
+            $sql = substr($sql, 3);
         }
         $driver = $this->installConfig['driver'] ?? 'mysql';
         $sql = $this->prepareInstallSql($sql, $fromMysqlSeed);

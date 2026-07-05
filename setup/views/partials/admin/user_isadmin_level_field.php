@@ -17,7 +17,7 @@ $eshCurrentRoleId = 0;
 $eshCurrentUnvan = isset($user) ? (string) ($user->unvan ?? '') : '';
 $eshExpectedRoleId = PermissionService::roleIdForUnvanCode($eshCurrentUnvan !== '' ? $eshCurrentUnvan : null);
 if (isset($user) && !empty($user->id) && PermissionService::tablesReady()) {
-    $eshCurrentRoleId = PermissionService::roleIdForUser((int) $user->id);
+    $eshCurrentRoleId = PermissionService::roleIdForUser((string) $user->id);
 }
 $eshRoleOverrideId = 0;
 if ($eshCurrentRoleId > 0 && $eshExpectedRoleId > 0 && $eshCurrentRoleId !== $eshExpectedRoleId) {
@@ -52,7 +52,7 @@ if ($eshCurrentRoleId > 0 && $eshExpectedRoleId > 0 && $eshCurrentRoleId !== $es
     </select>
     <div class="form-text">Boş bırakılırsa ünvan alanındaki seçime göre rol atanır (doktor, hemşire vb.).</div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var levelSelect = document.getElementById('eshIsadminLevelSelect');
     var overrideField = document.getElementById('eshRoleOverrideField');

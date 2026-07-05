@@ -34,7 +34,7 @@ foreach (array_reverse($allNotes, true) as $index => $noteRaw) {
                 <i class="fa-solid fa-calendar-day me-1 text-warning" aria-hidden="true"></i> <?= $noteDateEsc ?>
             </span>
             <button type="button" class="btn btn-link text-danger p-0 m-0"
-                    onclick="deleteNote(this, <?= (int) $eshPatient->id ?>, <?= (int) $index ?>)"
+                    data-esh-call="deleteNote" data-esh-call-self="1" data-esh-call-args="<?= htmlspecialchars(json_encode([(string) $eshPatient->id, (int) $index], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>"
                     aria-label="Notu sil">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>

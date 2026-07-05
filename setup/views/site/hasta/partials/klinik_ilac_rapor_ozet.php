@@ -11,7 +11,7 @@ if (!AppSettings::isModuleEnabled('hasta_ilac_rapor')) {
     return;
 }
 
-$patientId = (int) ($hasta->id ?? 0);
+$patientId = (string) ($hasta->id ?? '');
 $ilaclar = is_array($hastaIlaclar ?? null) ? $hastaIlaclar : [];
 $raporOzet = is_array($ilacRaporOzet ?? null) ? $ilacRaporOzet : [];
 $hasIlac = $ilaclar !== [];

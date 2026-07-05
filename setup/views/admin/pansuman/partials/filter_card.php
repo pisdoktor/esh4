@@ -22,7 +22,7 @@
             >
                 <i class="fa-solid fa-sliders me-1"></i><span class="js-filter-toggle-text"><?= $filterExpanded ? 'Filtreleri Gizle' : 'Filtreleri Göster' ?></span>
             </button>
-            <?php if (\App\Services\Sms\SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))): ?>
+            <?php if (\App\Services\Sms\SmsService::canUseSms(\App\Helpers\AuthHelper::sessionUserId())): ?>
             <a href="<?= htmlspecialchars(esh_url('Sms', 'compose', ['segment' => 'pansuman_liste']), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                 <i class="fa-solid fa-comment-sms me-1"></i>Listeye SMS
             </a>

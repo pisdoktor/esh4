@@ -57,7 +57,7 @@
     </div>
 </div>
 
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.adresFetchTree = {
     treeChildrenUrl: <?= json_encode(esh_url('AdresFetch', 'ajaxTreeChildren'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>

@@ -26,9 +26,9 @@ final class PlanResource
         ];
     }
 
-    public function show(int $id): ?object
+    public function show(string $id): ?object
     {
-        if ($id <= 0) {
+        if ($id === null) {
             return null;
         }
         $plan = new PlannedVisit();
@@ -40,7 +40,7 @@ final class PlanResource
             return null;
         }
         $patient = (new Patient())->findByTc($tc);
-        if (!$patient || !PatientAccessHelper::canAccessPatient((int) $patient->id, $patient)) {
+        if (!$patient || !PatientAccessHelper::canAccessPatient((string) $patient->id, $patient)) {
             return null;
         }
 
@@ -53,7 +53,7 @@ final class PlanResource
     public function serialize(object $row): array
     {
         return [
-            'id' => (int) ($row->id ?? 0),
+            'id' => (string) ($row->id ?? ''),
             'kurum_id' => (int) ($row->kurum_id ?? 0),
             'hastatckimlik' => (string) ($row->hastatckimlik ?? ''),
             'planlanantarih' => (string) ($row->planlanantarih ?? ''),

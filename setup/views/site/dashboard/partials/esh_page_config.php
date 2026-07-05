@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.initialDate = <?= json_encode(date('Y-m-d'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 window.ESH_PAGE.tcLookupUrl = <?= json_encode(esh_url('Dashboard', 'tcLookupAjax'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
@@ -9,7 +9,7 @@ window.ESH_PAGE.dashboardPlanMernisScanUrl = <?= json_encode(esh_url('Dashboard'
 <?php endif; ?>
 window.ESH_PAGE.canMernisScan = <?= json_encode(\App\Helpers\AuthHelper::sessionIsAdmin(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 window.ESH_PAGE.canDrawRoute = <?= json_encode(\App\Helpers\AuthHelper::sessionIsAdmin(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
-<?php if (\App\Services\Sms\SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))): ?>
+<?php if (\App\Services\Sms\SmsService::canUseSms(\App\Helpers\AuthHelper::sessionUserId())): ?>
 window.ESH_PAGE.canUseDailyPlanSms = true;
 window.ESH_PAGE.smsSendConfigured = <?= json_encode(\App\Services\Sms\SmsService::isSendConfigured(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 window.ESH_PAGE.dashboardPlanSmsComposeUrl = <?= json_encode(esh_url('Sms', 'compose', ['segment' => 'gunun_plani']), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;

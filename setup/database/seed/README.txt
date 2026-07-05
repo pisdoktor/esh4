@@ -55,10 +55,12 @@ Tablo öneki: kurulumda sihirbazdaki `db_prefix` değerine göre dönüştürül
   8. seed_esh_istekler.sql
 
   9. seed_esh_adrestablosu.sql
+ 10. seed_esh_adrestablosu_bolge_tier.sql  (ilçeleri varsayılan bölge altına taşır)
 
 
 
 Yenileme: php tools/export_install_seed_sql.php
+         (adres seed: önce migrate_esh_adrestablosu_bolge_tier.sql uygulanmış canlı DB'den export önerilir)
 
 
 

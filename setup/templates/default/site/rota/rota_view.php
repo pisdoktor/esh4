@@ -26,7 +26,7 @@
             <div class="d-flex justify-content-md-end align-items-center gap-2">
     <label for="dateSelect" class="small fw-bold text-muted mb-0">Tarih:</label>
     <div class="input-group input-group-sm shadow-sm" style="width: 160px;">
-        <span class="input-group-text bg-white border-end-0 text-muted" style="cursor: pointer;" onclick="$('#routeDatePicker').focus();">
+        <span class="input-group-text bg-white border-end-0 text-muted" style="cursor: pointer;" data-esh-action="focus" data-esh-focus="#routeDatePicker">
             <i class="fa fa-calendar-day"></i>
         </span>
         <input type="text" 

@@ -1106,8 +1106,8 @@ $pageTitle = 'Değişiklik günlüğü · ' . esh_version_short_label();
         Sürüm politikası için <code>docs/VERSIONING.md</code> dosyasına bakın. Teknik sabitler: <code>config/version.php</code>.
     </p>
 </div>
-<script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::bootstrapBundleJsHref(), ENT_QUOTES, 'UTF-8'); ?>"></script>
-<script>
+<?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::bootstrapBundleJsHref()) ?>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     function rootEl(id) {
         return document.getElementById(id);

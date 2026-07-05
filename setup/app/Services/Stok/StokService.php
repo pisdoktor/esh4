@@ -5,6 +5,7 @@ namespace App\Services\Stok;
 
 use App\Core\Database;
 use App\Helpers\AppSettings;
+use App\Helpers\IdHelper;
 use App\Helpers\StokHelper;
 use App\Models\Kurum;
 use App\Models\StokMalzeme;
@@ -100,11 +101,11 @@ class StokService
             return ['ok' => false, 'error' => 'Stok hareketi kaydedilemedi.'];
         }
 
-        if ($hareketId === false || (int) $hareketId < 1) {
+        if ($hareketId === false || IdHelper::isEmptyEntityId($hareketId)) {
             return ['ok' => false, 'error' => 'Stok hareketi kaydedilemedi.'];
         }
 
-        return ['ok' => true, 'hareket_id' => (int) $hareketId];
+        return ['ok' => true, 'hareket_id' => (string) $hareketId];
     }
 
     /**
@@ -122,13 +123,13 @@ class StokService
 
         $kurumId = (int) ($common['kurum_id'] ?? 0);
         $tarih = trim((string) ($common['hareket_tarihi'] ?? ''));
-        $kullaniciId = (int) ($common['kullanici_id'] ?? 0);
+        $kullaniciId = IdHelper::normalizeRequestId($common['kullanici_id'] ?? null);
         $aciklama = isset($common['aciklama']) ? trim((string) $common['aciklama']) : null;
         if ($aciklama === '') {
             $aciklama = null;
         }
 
-        if ($kurumId < 1 || $kullaniciId < 1) {
+        if ($kurumId < 1 || $kullaniciId === null) {
             return ['ok' => false, 'error' => 'Geçersiz kurum veya kullanıcı.'];
         }
         if ($tarih === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tarih)) {
@@ -173,7 +174,7 @@ class StokService
                         throw new \RuntimeException('Malzeme bulunamadı (#' . $row['malzeme_id'] . ').');
                     }
                     $hid = $this->applyMovementInTransaction($db, $validated['data'], $malzemeModel);
-                    if ($hid === false || (int) $hid < 1) {
+                    if ($hid === false || IdHelper::isEmptyEntityId($hid)) {
                         throw new \RuntimeException('Stok girişi kaydedilemedi.');
                     }
                     ++$n;
@@ -222,7 +223,7 @@ class StokService
             'hareket_tipi' => $tip,
             'miktar' => abs($diff),
             'hareket_tarihi' => trim((string) ($data['hareket_tarihi'] ?? date('Y-m-d'))),
-            'kullanici_id' => (int) ($data['kullanici_id'] ?? 0),
+            'kullanici_id' => $data['kullanici_id'] ?? null,
             'aciklama' => 'Sayım düzeltmesi',
         ]);
     }
@@ -332,9 +333,9 @@ class StokService
         $tip = trim((string) ($data['hareket_tipi'] ?? ''));
         $miktar = (float) ($data['miktar'] ?? 0);
         $tarih = trim((string) ($data['hareket_tarihi'] ?? ''));
-        $kullaniciId = (int) ($data['kullanici_id'] ?? 0);
+        $kullaniciId = IdHelper::normalizeRequestId($data['kullanici_id'] ?? null);
 
-        if ($kurumId < 1 || $malzemeId < 1 || $kullaniciId < 1) {
+        if ($kurumId < 1 || $malzemeId < 1 || $kullaniciId === null) {
             return ['ok' => false, 'error' => 'Geçersiz kurum, malzeme veya kullanıcı.'];
         }
         if (!array_key_exists($tip, StokHelper::hareketTipiOptions())) {
@@ -355,7 +356,8 @@ class StokService
             return ['ok' => false, 'error' => 'Pasif malzeme için bu işlem yapılamaz.'];
         }
 
-        $hastaId = isset($data['hasta_id']) && (int) $data['hasta_id'] > 0 ? (int) $data['hasta_id'] : null;
+        $hastaId = IdHelper::entityIdOrFalse($data['hasta_id'] ?? null);
+        $hastaId = $hastaId === false ? null : $hastaId;
         $ekipId = isset($data['ekip_id']) && (int) $data['ekip_id'] > 0 ? (int) $data['ekip_id'] : null;
         $aciklama = isset($data['aciklama']) ? trim((string) $data['aciklama']) : null;
         if ($aciklama === '') {
@@ -411,7 +413,7 @@ class StokService
     /**
      * @param array<string, mixed> $v
      */
-    private function applyMovementInTransaction(Database $db, array $v, StokMalzeme $malzemeModel): int|false
+    private function applyMovementInTransaction(Database $db, array $v, StokMalzeme $malzemeModel): string|false
     {
         $kurumId = (int) $v['kurum_id'];
         $malzemeId = (int) $v['malzeme_id'];
@@ -437,7 +439,9 @@ class StokService
             );
         }
 
+        $hareketId = IdHelper::generateUuidV4();
         $insertId = $db->insertPrepared('#__stok_hareket', [
+            'id' => $hareketId,
             'kurum_id' => $kurumId,
             'malzeme_id' => $malzemeId,
             'hareket_tipi' => $tip,
@@ -470,7 +474,7 @@ class StokService
             $this->upsertPartiRow($db, $kurumId, $malzemeId, $miktar, $v['lot_no'] ?? null, $v['skt'] ?? null);
         }
 
-        return (int) $insertId;
+        return $hareketId;
     }
 
     private function upsertPartiRow(

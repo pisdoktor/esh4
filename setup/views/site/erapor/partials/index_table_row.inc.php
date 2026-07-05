@@ -45,9 +45,7 @@ $renderEraporRow = static function (
 
     $__erActs = [
         [
-            'href' => esh_url('Erapor', 'edit', array (
-  'id' => '',
-)) . (int) ($row->id ?? 0),
+            'href' => esh_url('Erapor', 'edit', ['id' => (string) ($row->id ?? '')]),
             'title' => 'Düzenle',
             'icon' => 'fa-solid fa-pen',
             'variant' => 'primary',
@@ -56,7 +54,7 @@ $renderEraporRow = static function (
     if (AuthHelper::sessionIsAdmin()) {
         $__erActs[] = [
             'action' => esh_url('Erapor', 'delete'),
-            'hidden' => ['id' => (int) ($row->id ?? 0)],
+            'hidden' => ['id' => (string) ($row->id ?? '')],
             'title' => 'Sil',
             'icon' => 'fa-solid fa-trash',
             'variant' => 'danger',
@@ -86,9 +84,9 @@ $renderEraporRow = static function (
         $trAttr .= ' data-esh-tc-child="1"';
     }
     if ($isExpandable) {
-        $trAttr .= ' data-esh-tc-primary-id="' . (int) ($row->id ?? 0) . '"';
+        $trAttr .= ' data-esh-tc-primary-id="' . htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') . '"';
     }
-    $trAttr .= ' data-esh-row-id="' . (int) ($row->id ?? 0) . '"';
+    $trAttr .= ' data-esh-row-id="' . htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') . '"';
     ?>
     <tr<?= $trClasses !== [] ? ' class="' . htmlspecialchars(implode(' ', $trClasses), ENT_QUOTES, 'UTF-8') . '"' : '' ?><?= $trAttr ?>>
         <td>

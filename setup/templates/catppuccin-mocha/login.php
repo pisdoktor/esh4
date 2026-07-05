@@ -17,8 +17,8 @@ $__lt = 'catppuccin-mocha';
     <?= \App\Helpers\CdnAssetHelper::minimalAuthLayoutStylesHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderLoginStylesheetsHtml($__lt); ?>
 
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-input-uppercase.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-submit-guard.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-input-uppercase.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-submit-guard.js', 'defer') ?>
 </head>
 <body class="page-login page-login-theme-catppuccin-mocha theme-meridian theme-catppuccin-mocha mr-login-page min-vh-100">
     <div class="mr-login-backdrop" aria-hidden="true"></div>

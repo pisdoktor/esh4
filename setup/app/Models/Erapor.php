@@ -3,12 +3,15 @@ namespace App\Models;
 
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
+use App\Helpers\IdHelper;
 
 /**
  * Elektronik Rapor (e-Rapor) Modeli
  */
 class Erapor extends BaseModel {
-    
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
+
     // Veritabanı sütunları
     public $id = null;
     public $kurum_id = 1;
@@ -175,8 +178,8 @@ class Erapor extends BaseModel {
      * Tek kayıt; branş adı JOIN ile (id veya bransadi eşleşmesi).
      */
     public function loadWithBrans($id): bool {
-        $id = (int) $id;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($id);
+        if ($id === null) {
             return false;
         }
         $sql = "SELECT e.*, b.bransadi
@@ -220,7 +223,7 @@ class Erapor extends BaseModel {
      * @param array<string, mixed> $filters
      * @return list<object>
      */
-    public function getReportsByTc(string $tc, array $filters = [], ?int $excludeId = null): array {
+    public function getReportsByTc(string $tc, array $filters = [], int|string|null $excludeId = null): array {
         $tc = self::normalizeHastatckimlik($tc) ?? '';
         if ($tc === '') {
             return [];
@@ -231,7 +234,10 @@ class Erapor extends BaseModel {
         [$where, $params] = $this->buildFiltersWherePrepared($filters);
         $where .= ' AND e.hastatckimlik = ?';
         $params[] = $tc;
-        if ($excludeId !== null && $excludeId > 0) {
+        if ($excludeId !== null) {
+            $excludeId = \App\Helpers\IdHelper::normalizeRequestId($excludeId);
+        }
+        if ($excludeId !== null) {
             $where .= ' AND e.id <> ?';
             $params[] = $excludeId;
         }
@@ -247,14 +253,15 @@ class Erapor extends BaseModel {
     /**
      * e-Rapor havuzunda aynı TC ile kayıt sayısı (düzenlemede mevcut kayıt hariç tutulabilir).
      */
-    public function countByTc(string $tc, ?int $excludeId = null): int {
+    public function countByTc(string $tc, int|string|null $excludeId = null): int {
         $tc = self::normalizeHastatckimlik($tc) ?? '';
         if ($tc === '') {
             return 0;
         }
         $params = [$tc];
         $where = 'hastatckimlik = ?';
-        if ($excludeId !== null && $excludeId > 0) {
+        $excludeId = \App\Helpers\IdHelper::normalizeRequestId($excludeId);
+        if ($excludeId !== null) {
             $where .= ' AND id <> ?';
             $params[] = $excludeId;
         }

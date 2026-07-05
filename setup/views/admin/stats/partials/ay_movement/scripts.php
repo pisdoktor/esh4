@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     new Chart(document.getElementById('ayCinsChart'), {
@@ -19,7 +19,7 @@
     });
 })();
 </script>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
     document.addEventListener('DOMContentLoaded', function () {
         var $collapse = $('#stats-ay-movement-filter-collapse');
         var $toggleText = $('#stats-ay-movement-filter-toggle .js-filter-toggle-text');

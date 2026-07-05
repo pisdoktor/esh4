@@ -3,6 +3,7 @@ declare(strict_types=1);
 /** @var object $patient */
 /** @var list<object> $guvenceList */
 use App\Helpers\FormHelper;
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\PatientCareHelper;
 
 $eshFormIdPrefix = (string) ($eshFormIdPrefix ?? '');
@@ -88,18 +89,18 @@ if (empty($eshInPartialModal)) {
     <?php include ROOT_PATH . '/views/partials/admin/patient_kurum_field.php'; ?>
     <?= FormHelper::btnCheckRadioGroup('cinsiyet', [
         [
-            'value' => 'E',
+            'value' => CinsiyetHelper::ERKEK,
             'id' => $eshFormIdPrefix . 'genderMale',
             'labelHtml' => '<i class="fa-solid fa-mars me-1"></i> Erkek',
             'btnClass' => 'btn btn-outline-primary shadow-sm py-2',
-            'checked' => ($patient->cinsiyet == '1' || $patient->cinsiyet === 'E' || empty($patient->cinsiyet)),
+            'checked' => CinsiyetHelper::isErkek($patient->cinsiyet ?? null) || empty($patient->cinsiyet ?? null),
         ],
         [
-            'value' => 'K',
+            'value' => CinsiyetHelper::KADIN,
             'id' => $eshFormIdPrefix . 'genderFemale',
             'labelHtml' => '<i class="fa-solid fa-venus me-1"></i> Kadın',
             'btnClass' => 'btn btn-outline-danger shadow-sm py-2',
-            'checked' => ($patient->cinsiyet == '2' || $patient->cinsiyet === 'K'),
+            'checked' => CinsiyetHelper::isKadin($patient->cinsiyet ?? null),
         ],
     ], [
         'label' => 'Cinsiyet',

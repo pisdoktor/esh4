@@ -58,6 +58,15 @@ final class CdnAssetHelper
         'CHART_JS' => ['npm', 'chart.js'],
         'CROPPER' => ['npm', 'cropperjs'],
         'TOMTOM_MAPS_WEB' => ['manual', null],
+        'MAPLIBRE_GL' => ['npm', 'maplibre-gl'],
+        'MAPBOX_GL_JS' => ['npm', 'mapbox-gl'],
+    ];
+
+    /** Harita sağlayıcısı → tarayıcı SDK const adı (OpenRouteService = MapLibre). */
+    private const MAP_PROVIDER_SDK_CONST = [
+        'tomtom' => 'TOMTOM_MAPS_WEB',
+        'openrouteservice' => 'MAPLIBRE_GL',
+        'mapbox' => 'MAPBOX_GL_JS',
     ];
 
     private static function h(string $url): string
@@ -70,9 +79,16 @@ final class CdnAssetHelper
         return '<link rel="stylesheet" href="' . self::h($href) . '"' . $extraAttrs . '>' . "\n";
     }
 
-    private static function scriptSrc(string $src): string
+    private static function scriptSrc(string $src, string $attrs = ''): string
     {
-        return '<script src="' . self::h($src) . '"></script>' . "\n";
+        if (function_exists('esh_csp_script_src_tag')) {
+            return esh_csp_script_src_tag($src, $attrs);
+        }
+
+        $extra = trim($attrs);
+        $attr = $extra !== '' ? ' ' . $extra : '';
+
+        return '<script' . $attr . ' src="' . self::h($src) . '"></script>' . "\n";
     }
 
     /** SITEURL + public/assets/... (Tom Select vb. yerel vendor). */
@@ -402,6 +418,92 @@ final class CdnAssetHelper
     }
 
     /**
+     * Harita SDK sürüm const adları (CDN sürüm kontrolü — tüm sağlayıcılar; aktif seçime bağlı değil).
+     *
+     * @return list<string>
+     */
+    public static function mapSdkVersionConstNames(): array
+    {
+        return ['TOMTOM_MAPS_WEB', 'MAPLIBRE_GL', 'MAPBOX_GL_JS'];
+    }
+
+    /**
+     * @return array<string, string> sağlayıcı kodu → SDK const
+     */
+    public static function mapProviderSdkConstMap(): array
+    {
+        return self::MAP_PROVIDER_SDK_CONST;
+    }
+
+    /**
+     * Karşılaştırma satırlarını genel kütüphaneler / harita SDK olarak ayırır.
+     *
+     * @param list<array<string, mixed>> $rows {@see self::comparePinnedToRegistryLatest()}
+     * @return array{map: list<array<string, mixed>>, general: list<array<string, mixed>>}
+     */
+    public static function partitionCompareRowsByMapSdk(array $rows): array
+    {
+        $mapConsts = array_flip(self::mapSdkVersionConstNames());
+        $map = [];
+        $general = [];
+        foreach ($rows as $row) {
+            $c = (string) ($row['const'] ?? '');
+            if (isset($mapConsts[$c])) {
+                $map[] = $row;
+            } else {
+                $general[] = $row;
+            }
+        }
+        $order = array_flip(self::mapSdkVersionConstNames());
+        usort($map, static function (array $a, array $b) use ($order): int {
+            return ($order[$a['const'] ?? ''] ?? 99) <=> ($order[$b['const'] ?? ''] ?? 99);
+        });
+
+        return ['map' => $map, 'general' => $general];
+    }
+
+    /**
+     * Tüm harita sağlayıcıları için HEAD sondası URL’leri (PS CDN kontrolü).
+     *
+     * @return list<array{key: string, url: string, provider: string}>
+     */
+    public static function mapSdkProbeUrls(): array
+    {
+        $tomtomBase = self::tomtomCdnBase();
+
+        return [
+            ['key' => 'tomtom_maps_css', 'url' => $tomtomBase . 'maps/maps.css', 'provider' => 'tomtom'],
+            ['key' => 'tomtom_maps_web_js', 'url' => $tomtomBase . 'maps/maps-web.min.js', 'provider' => 'tomtom'],
+            ['key' => 'tomtom_services_web_js', 'url' => $tomtomBase . 'services/services-web.min.js', 'provider' => 'tomtom'],
+            [
+                'key' => 'maplibre_gl_css',
+                'url' => 'https://cdn.jsdelivr.net/npm/maplibre-gl@' . self::MAPLIBRE_GL . '/dist/maplibre-gl.css',
+                'provider' => 'openrouteservice',
+            ],
+            [
+                'key' => 'maplibre_gl_js',
+                'url' => 'https://cdn.jsdelivr.net/npm/maplibre-gl@' . self::MAPLIBRE_GL . '/dist/maplibre-gl.js',
+                'provider' => 'openrouteservice',
+            ],
+            [
+                'key' => 'mapbox_gl_css',
+                'url' => 'https://api.mapbox.com/mapbox-gl-js/v' . self::MAPBOX_GL_JS . '/mapbox-gl.css',
+                'provider' => 'mapbox',
+            ],
+            [
+                'key' => 'mapbox_gl_js',
+                'url' => 'https://api.mapbox.com/mapbox-gl-js/v' . self::MAPBOX_GL_JS . '/mapbox-gl.js',
+                'provider' => 'mapbox',
+            ],
+            [
+                'key' => 'google_maps_api_js',
+                'url' => 'https://maps.googleapis.com/maps/api/js',
+                'provider' => 'google',
+            ],
+        ];
+    }
+
+    /**
      * Üretilen CDN URL’leri (HEAD/GET sondası için).
      *
      * @return list<array{key: string, url: string}>
@@ -418,19 +520,18 @@ final class CdnAssetHelper
         $add('jquery_ui_css', 'https://code.jquery.com/ui/' . self::JQUERY_UI . '/themes/base/jquery-ui.css');
         $add('toastr_css', 'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/' . self::TOASTR . '/toastr.min.css');
         $add('tom_select_css', self::tomSelectCssHref());
-        $add('tomtom_maps_css', self::tomtomCdnBase() . 'maps/maps.css');
         $add(
             'bootstrap_datepicker_css',
             'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/' . self::BOOTSTRAP_DATEPICKER . '/css/bootstrap-datepicker.min.css'
         );
+        foreach (self::mapSdkProbeUrls() as $probeRow) {
+            $add($probeRow['key'], $probeRow['url']);
+        }
         $add('jquery_js', self::jqueryJsHref());
         $add('jquery_ui_js', 'https://code.jquery.com/ui/' . self::JQUERY_UI . '/jquery-ui.min.js');
         $add('bootstrap_bundle_js', 'https://cdn.jsdelivr.net/npm/bootstrap@' . self::BOOTSTRAP . '/dist/js/bootstrap.bundle.min.js');
         $add('toastr_js', 'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/' . self::TOASTR . '/toastr.min.js');
         $add('tom_select_js', self::tomSelectJsHref());
-        $base = self::tomtomCdnBase();
-        $add('tomtom_maps_web_js', $base . 'maps/maps-web.min.js');
-        $add('tomtom_services_web_js', $base . 'services/services-web.min.js');
         $add('pdfmake_js', self::pdfmakeJsHref());
         $add('pdfmake_vfs_js', self::pdfmakeVfsJsHref());
         $add(

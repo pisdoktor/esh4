@@ -205,7 +205,9 @@ final class IslemIdSettings
             return 'Kayıt kapsamı belirlenemedi.';
         }
         if (!SettingsWriteScope::canWritePlatformDefaults()) {
-            return 'Platform varsayılanları yalnızca sistem sahibi tarafından değiştirilebilir.';
+            return 'Platform varsayılanları yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' tarafından değiştirilebilir.';
         }
 
         $current = self::readRuntimeFile();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Core\Database;
 use App\Helpers\AuthHelper;
 use App\Helpers\PatientAccessHelper;
@@ -29,7 +30,7 @@ class UploadController
 
     public function serve(): void
     {
-        if ((int) ($_SESSION['user_id'] ?? 0) <= 0) {
+        if (IdHelper::isEmptyEntityId(AuthHelper::sessionUserId())) {
             http_response_code(403);
             exit;
         }
@@ -88,11 +89,11 @@ class UploadController
             'SELECT id FROM #__hastalar WHERE profil_foto = :f LIMIT 1',
             [':f' => $file]
         );
-        if (!$row || (int) ($row->id ?? 0) < 1) {
+        if (!$row || IdHelper::isEmptyEntityId($row->id ?? null)) {
             return false;
         }
 
-        return PatientAccessHelper::canAccessPatient((int) $row->id);
+        return PatientAccessHelper::canAccessPatient((string) $row->id);
     }
 
     private function authorizeWoundPhoto(string $file): bool
@@ -106,14 +107,14 @@ class UploadController
              LIMIT 1',
             [':f' => $file]
         );
-        if (!$row || (int) ($row->hasta_id ?? 0) < 1) {
+        if (!$row || IdHelper::isEmptyEntityId($row->hasta_id ?? null)) {
             return false;
         }
         if ((int) ($row->basiyarasi ?? 0) !== 1) {
             return false;
         }
 
-        return PatientAccessHelper::canAccessPatient((int) $row->hasta_id);
+        return PatientAccessHelper::canAccessPatient((string) $row->hasta_id);
     }
 
     private function authorizeProfilePhoto(string $file): bool
@@ -133,12 +134,12 @@ class UploadController
                 ':suffix2' => '%\\' . $file,
             ]
         );
-        if (!$row || (int) ($row->id ?? 0) < 1) {
+        if (!$row || IdHelper::isEmptyEntityId($row->id ?? null)) {
             return false;
         }
 
-        $viewerId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($viewerId === (int) $row->id) {
+        $viewerId = AuthHelper::sessionUserId();
+        if (IdHelper::idsMatch($viewerId, $row->id)) {
             return true;
         }
         if (AuthHelper::sessionIsSuperAdmin()) {

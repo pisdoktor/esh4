@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 $(function () {
     $('.datepicker').datepicker({
         format: 'dd-mm-yyyy',

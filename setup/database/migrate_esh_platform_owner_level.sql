@@ -1,4 +1,4 @@
--- Platform sahibi (isadmin=3) katmanı — mevcut kurulumlarda en eski süper yönetici hesabını yükseltir.
+﻿-- Sistem yöneticisi (isadmin=3) katmanı — mevcut kurulumlarda en eski bölge yöneticisi hesabını yükseltir.
 -- Yeni kurulumlar Installer ile doğrudan isadmin=3 ile başlar.
 
 UPDATE `#__users`

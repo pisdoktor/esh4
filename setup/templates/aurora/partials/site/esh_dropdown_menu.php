@@ -39,7 +39,7 @@ $eshRenderMegaItem = static function (array $mrow): void {
     ?>
     <a class="dropdown-item d-flex align-items-center py-2<?= !empty($mrow['danger']) ? ' text-danger' : '' ?>"
        href="<?= htmlspecialchars((string) ($mrow['href'] ?? '#'), ENT_QUOTES, 'UTF-8') ?>"
-       <?php if (!empty($mrow['confirm'])): ?>onclick='return confirm(<?= json_encode((string) $mrow['confirm'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>);'<?php endif; ?>>
+       <?php if (!empty($mrow['confirm'])): ?>data-esh-confirm="<?= htmlspecialchars((string) $mrow['confirm'], ENT_QUOTES, 'UTF-8') ?>" <?php endif; ?>>
         <i class="<?= htmlspecialchars((string) ($mrow['icon'] ?? 'fa-solid fa-link'), ENT_QUOTES, 'UTF-8') ?> me-2"></i>
         <?= htmlspecialchars((string) ($mrow['label'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
     </a>

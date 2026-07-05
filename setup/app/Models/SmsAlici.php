@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 
 class SmsAlici extends BaseModel
 {
@@ -26,31 +27,36 @@ class SmsAlici extends BaseModel
         }
     }
 
-    public function insertRow(array $data): int
+    public function insertRow(array $data): string|false
     {
         if (!self::tableReady()) {
-            return 0;
+            return false;
+        }
+        if (!isset($data['id']) || IdHelper::isEmptyEntityId($data['id'] ?? null)) {
+            $data['id'] = IdHelper::generateUuidV4();
         }
         $id = $this->db->insertPrepared('#__sms_alici', $data);
 
-        return $id !== false ? (int) $id : 0;
+        return $id !== false ? (string) $id : false;
     }
 
-    public function updateRow(int $id, array $data): bool
+    public function updateRow(int|string $id, array $data): bool
     {
-        if ($id <= 0) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
             return false;
         }
 
-        return (bool) $this->db->updatePrepared('#__sms_alici', $data, 'id = ?', [$id]);
+        return (bool) $this->db->updatePrepared('#__sms_alici', $data, 'id = ?', [$rid]);
     }
 
     /**
      * @return list<object>
      */
-    public function listByGonderim(int $gonderimId): array
+    public function listByGonderim(int|string $gonderimId): array
     {
-        if ($gonderimId <= 0 || !self::tableReady()) {
+        $gid = IdHelper::normalizeRequestId($gonderimId);
+        if ($gid === null || !self::tableReady()) {
             return [];
         }
         $list = $this->db->fetchObjectListPrepared(
@@ -59,7 +65,7 @@ class SmsAlici extends BaseModel
              LEFT JOIN #__hastalar h ON h.id = a.hasta_id
              WHERE a.gonderim_id = ?
              ORDER BY a.id ASC',
-            [$gonderimId]
+            [$gid]
         );
 
         return is_array($list) ? $list : [];

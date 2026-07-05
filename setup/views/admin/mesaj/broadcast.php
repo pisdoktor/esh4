@@ -29,8 +29,8 @@
                         <select name="user_ids[]" id="mesaj-alicilar" class="form-select esh-tomselect" multiple
                                 data-placeholder="Alıcı kullanıcıları seçin…">
                         <?php foreach (($users ?? []) as $u):
-                            $uid = (int) ($u->id ?? 0);
-                            if ($uid <= 0 || $uid === (int) ($_SESSION['user_id'] ?? 0)) {
+                            $uid = \App\Helpers\IdHelper::normalizeRequestId($u->id ?? null);
+                            if ($uid === null || \App\Helpers\IdHelper::idsMatch($uid, $_SESSION['user_id'] ?? null)) {
                                 continue;
                             }
                             $unvan = \App\Models\User::unvanLabel((string) ($u->unvan ?? ''));
@@ -46,7 +46,7 @@
                                 $label .= ' (' . $unvan . ')';
                             }
                         ?>
-                        <option value="<?= $uid ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="<?= htmlspecialchars($uid, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                         </select>
                     </div>

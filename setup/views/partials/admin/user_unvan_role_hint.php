@@ -22,7 +22,7 @@ if (!$eshShowUnvanRoleHint) {
         <strong id="eshUnvanRoleHintLabel">—</strong>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var map = <?= json_encode($eshUnvanRoleMap, JSON_UNESCAPED_UNICODE) ?>;
     var select = document.getElementById(<?= json_encode($eshUnvanSelectId) ?>);

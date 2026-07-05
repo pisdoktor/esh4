@@ -23,7 +23,7 @@
                 </form>
             </div>
         </div>
-        <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::cropperJsHref(), ENT_QUOTES, 'UTF-8') ?>"></script>
+        <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::cropperJsHref()) ?>
 
     <?php else: ?>
         <div class="au-panel mx-auto text-center esh-cropper-page__upload-card" style="max-width: 480px;">

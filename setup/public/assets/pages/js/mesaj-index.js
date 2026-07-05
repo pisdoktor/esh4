@@ -22,8 +22,11 @@
 
 
 
-    function postAction(url, konusmaId) {
+    function konusmaIdFrom(el) {
+        return String(el.getAttribute('data-konusma-id') || '').trim();
+    }
 
+    function postAction(url, konusmaId) {
         var fd = new FormData();
 
         fd.set('konusma_id', String(konusmaId));
@@ -172,7 +175,7 @@
 
                 ev.preventDefault();
 
-                var kid = parseInt(trashBtn.getAttribute('data-konusma-id'), 10);
+                var kid = konusmaIdFrom(trashBtn);
 
                 if (!kid) {
 
@@ -230,7 +233,7 @@
 
                 ev.preventDefault();
 
-                var restoreId = parseInt(restoreBtn.getAttribute('data-konusma-id'), 10);
+                var restoreId = konusmaIdFrom(restoreBtn);
 
                 if (!restoreId) {
 
@@ -276,7 +279,7 @@
 
                 ev.preventDefault();
 
-                var purgeId = parseInt(purgeBtn.getAttribute('data-konusma-id'), 10);
+                var purgeId = konusmaIdFrom(purgeBtn);
 
                 if (!purgeId) {
 

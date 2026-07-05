@@ -52,9 +52,12 @@ class KurumHastalik extends BaseModel
             return true;
         }
 
+        $icd = $this->lookupIcdForHastalikId($hastalikId);
+
         return $this->db->insertPrepared('#__kurum_hastalik', [
             'kurum_id' => $kurumId,
             'hastalik_id' => $hastalikId,
+            'icd' => $icd !== '' ? $icd : null,
         ]) !== false;
     }
 
@@ -135,6 +138,56 @@ class KurumHastalik extends BaseModel
             'SELECT COUNT(*) FROM #__kurum_hastalik WHERE kurum_id = ?',
             [$kurumId]
         );
+    }
+
+    /** @return list<string> */
+    public function getAssignedIcds(int $kurumId): array
+    {
+        if ($kurumId <= 0 || !self::tableExists()) {
+            return [];
+        }
+
+        $rows = $this->db->fetchColumnListPrepared(
+            'SELECT icd FROM #__kurum_hastalik WHERE kurum_id = ? AND TRIM(COALESCE(icd, \'\')) <> \'\' ORDER BY icd ASC',
+            [$kurumId],
+            0
+        );
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $icd) {
+            $norm = \App\Models\Patient::normalizeHastalikIcd((string) $icd);
+            if ($norm !== '') {
+                $out[$norm] = $norm;
+            }
+        }
+
+        return array_values($out);
+    }
+
+    public function isAssignedByIcd(int $kurumId, string $icd): bool
+    {
+        $icd = \App\Models\Patient::normalizeHastalikIcd($icd);
+        if ($kurumId <= 0 || $icd === '' || !self::tableExists()) {
+            return false;
+        }
+
+        return (int) $this->db->loadResultPrepared(
+            'SELECT COUNT(*) FROM #__kurum_hastalik WHERE kurum_id = ? AND icd = ?',
+            [$kurumId, $icd]
+        ) > 0;
+    }
+
+    private function lookupIcdForHastalikId(int $hastalikId): string
+    {
+        $icd = (string) $this->db->loadResultPrepared(
+            'SELECT icd FROM #__hastaliklar WHERE id = ? AND kurum_id = ? LIMIT 1',
+            [$hastalikId, CatalogStoreHelper::PLATFORM_KURUM_ID]
+        );
+
+        return \App\Models\Patient::normalizeHastalikIcd($icd);
     }
 
     private function isPlatformHastalik(int $hastalikId): bool

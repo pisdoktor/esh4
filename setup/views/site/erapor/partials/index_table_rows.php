@@ -16,7 +16,7 @@ if (empty($reports)): ?>
     $groupOrder = [];
     foreach ($reports as $row) {
         $tc = trim((string) ($row->hastatckimlik ?? ''));
-        $key = $tc !== '' ? $tc : '__id_' . (int) ($row->id ?? 0);
+        $key = $tc !== '' ? $tc : '__id_' . (string) ($row->id ?? '');
         if (!isset($groups[$key])) {
             $groups[$key] = [];
             $groupOrder[] = $key;

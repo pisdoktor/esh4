@@ -34,12 +34,15 @@ $apiMode = (string) ($apiMode ?? OperationalSettings::esysBridgeApiMode());
                 </div>
                 <div class="card-body">
                     <p class="small text-muted">
-                        Aktif hastalar, son <?= (int) OperationalSettings::esysBridgeExportVisitDays() ?> günün izlemleri ve bekleyen planlar
+                        Aktif hastalar (başvuru bilgisi dahil), son <?= (int) OperationalSettings::esysBridgeExportVisitDays() ?> günün izlemleri,
+                        bekleyen planlar ve e-rapor kayıtları
                         <code>config/esys-field-mapping.json</code> alan adlarıyla JSON paketine dönüştürülür.
                     </p>
                     <ul class="small mb-3">
                         <li>Hasta üst sınırı: <?= (int) OperationalSettings::esysBridgeExportPatientLimit() ?></li>
-                        <li>Yalnızca eksik ref: <?= OperationalSettings::esysBridgeExportOnlyMissingRefs() ? 'Evet' : 'Hayır' ?></li>
+                        <li>Yalnızca eksik ref (hasta): <?= OperationalSettings::esysBridgeExportOnlyMissingRefs() ? 'Evet' : 'Hayır' ?></li>
+                        <li>Yalnızca eksik izlem ref: <?= OperationalSettings::esysBridgeExportOnlyMissingVisitRefs() ? 'Evet' : 'Hayır' ?></li>
+                        <li>e-Rapor üst sınırı: <?= (int) OperationalSettings::esysBridgeExportEraporLimit() ?></li>
                     </ul>
                     <a href="<?= htmlspecialchars(esh_url('EsysBridge', 'export'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-primary rounded-pill">
                         <i class="fa-solid fa-download me-1"></i>JSON indir
@@ -80,6 +83,9 @@ $apiMode = (string) ($apiMode ?? OperationalSettings::esysBridgeApiMode());
   ],
   "plans": [
     {"esh_id": 88, "esys_plan_ref": "ESYS-P-7"}
+  ],
+  "eraporlar": [
+    {"esh_id": 15, "tckimlik": "12345678901", "esys_erapor_ref": "ESYS-ER-3"}
   ]
 }</pre>
                     </details>

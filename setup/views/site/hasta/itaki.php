@@ -12,7 +12,7 @@
  */
 use App\Helpers\ItakiScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $viewUrl = esh_url('Patient', 'view', ['id' => $hastaId]);
 $latestTotal = (int) ($itakiLatest->toplam_skor ?? 0);
 $latestRisk = (string) ($itakiLatest->risk_duzeyi ?? '—');

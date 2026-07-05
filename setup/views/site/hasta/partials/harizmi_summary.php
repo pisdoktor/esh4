@@ -8,7 +8,7 @@
  */
 use App\Helpers\HarizmiScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $harizmiUrl = esh_url('Patient', 'harizmi', ['id' => $hastaId]);
 $count = (int) ($harizmiCount ?? 0);
 $latest = $harizmiLatest ?? null;

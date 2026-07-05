@@ -147,7 +147,7 @@ $eshStatsPdfBlock = trim((string) ($eshStatsPdfBlock ?? 'main'));
 </div>
 
 <?php if ($ok && $toplam > 0 && $chartLabels !== []): ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     var el = document.getElementById(<?= json_encode($chartId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);

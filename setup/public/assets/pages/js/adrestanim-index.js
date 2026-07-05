@@ -11,6 +11,87 @@
     var tipIsimleri = { bolge: 'Bölge', ilce: 'İlçe', mahalle: 'Mahalle', sokak: 'Sokak / Cadde', kapino: 'Kapı no' };
     var modalBs = null;
     var kapinoGeocodeBusy = false;
+    var miniPinPicker = null;
+    var miniMapApi = null;
+    var miniMapBootPromise = null;
+
+    function destroyMiniMap() {
+        if (miniPinPicker && typeof miniPinPicker.destroy === 'function') {
+            miniPinPicker.destroy();
+        }
+        miniPinPicker = null;
+        miniMapApi = null;
+        miniMapBootPromise = null;
+    }
+
+    function syncMiniMapCoords(coords) {
+        if (!miniPinPicker) {
+            return;
+        }
+        if (coords) {
+            miniPinPicker.setPrimaryFromCoords(coords, { flyTo: true, zoom: 16 });
+        }
+    }
+
+    function bootMiniMap(done) {
+        var mapCfg = window.ESH_ADRESTANIM_MAP;
+        if (!mapCfg || !mapCfg.providerConfigured || !window.EshMapRuntime || !window.EshMapPinPicker) {
+            return;
+        }
+        if (miniMapBootPromise) {
+            miniMapBootPromise.then(function () {
+                if (typeof done === 'function') {
+                    done();
+                }
+            });
+            return;
+        }
+        miniMapBootPromise = window.EshMapRuntime.create({
+            mapConfigUrl: mapCfg.mapConfigUrl,
+            container: 'esh-adres-mini-map',
+            center: mapCfg.center,
+            zoom: 14
+        }).then(function (api) {
+            miniMapApi = api;
+            miniPinPicker = window.EshMapPinPicker.create(api, {
+                onChange: function (coordsStr) {
+                    $('#f-adres-coords').val(coordsStr);
+                }
+            });
+            miniPinPicker.bindClick();
+            if (typeof done === 'function') {
+                done();
+            }
+        }).catch(function () {
+            miniMapBootPromise = null;
+        });
+    }
+
+    function updateFullMapLink(kapinoId) {
+        var $link = $('#btn-adres-full-map');
+        if (!$link.length) {
+            return;
+        }
+        var mapCfg = window.ESH_ADRESTANIM_MAP || {};
+        if (kapinoId && mapCfg.manuelKoordinatUrl) {
+            var sep = mapCfg.manuelKoordinatUrl.indexOf('?') >= 0 ? '&' : '?';
+            $link.attr('href', mapCfg.manuelKoordinatUrl + sep + 'kapino_id=' + encodeURIComponent(kapinoId));
+            $link.removeClass('d-none');
+        } else {
+            $link.addClass('d-none');
+        }
+    }
+
+    function mapProviderLabel() {
+        var el = document.getElementById('adrestanim-map-provider-label');
+        var label = el ? String(el.value || '').trim() : '';
+        return label || 'Harita';
+    }
+
+    function canViewBolge() {
+        var el = document.getElementById('adrestanim-can-view-bolge');
+        return el && String(el.value) === '1';
+    }
 
     function canManageBolge() {
         var el = document.getElementById('adrestanim-can-manage-bolge');
@@ -63,10 +144,10 @@
         var bulunan = typeof res.bulunan === 'number' ? res.bulunan : 0;
         var guncellenen = typeof res.guncellenen === 'number' ? res.guncellenen : 0;
         if (bulunan > 0) {
-            toastr.info(bulunan + ' kapı için yeni koordinat kaydedildi.', 'TomTom', { timeOut: 4500 });
+            toastr.info(bulunan + ' kapı için yeni koordinat kaydedildi.', mapProviderLabel(), { timeOut: 4500 });
         }
         if (guncellenen > 0) {
-            toastr.warning(guncellenen + ' kapının koordinatı güncellendi (adres değişmiş).', 'TomTom', { timeOut: 5500 });
+            toastr.warning(guncellenen + ' kapının koordinatı güncellendi (adres değişmiş).', mapProviderLabel(), { timeOut: 5500 });
         }
     }
 
@@ -76,7 +157,7 @@
             return;
         }
         kapinoGeocodeBusy = true;
-        kapinoGeocodeDurum('Kapı koordinatları TomTom ile kontrol ediliyor…');
+        kapinoGeocodeDurum('Kapı koordinatları ' + mapProviderLabel() + ' ile kontrol ediliyor…');
         $.post(adrestanimUrl('ajaxGeocodeKapinoBulk'), { sokak_id: sokakId, limit: 35, after_id: afterId || '' }, function (res) {
             if (res.durum === 'tamam') {
                 kapinoSyncToast(res);
@@ -94,7 +175,7 @@
         }, 'json').fail(function () {
             kapinoGeocodeDurum('');
             kapinoGeocodeBusy = false;
-            if (typeof toastr !== 'undefined') toastr.error('Koordinat kontrolü başarısız.', 'TomTom');
+            if (typeof toastr !== 'undefined') toastr.error('Koordinat kontrolü başarısız.', mapProviderLabel());
             if (done) done();
         });
     }
@@ -124,6 +205,9 @@
 
     function yukle(tip, ustId, skipGeocode, done) {
         var u = tip === 'bolge' ? '0' : ustId;
+        if (tip === 'ilce' && !canViewBolge() && (u === '' || u === '0')) {
+            u = '*';
+        }
         $.getJSON(adrestanimUrl('ajaxList', 'tip=' + encodeURIComponent(tip) + '&ust_id=' + encodeURIComponent(u)))
             .done(function (data) {
                 var h = '';
@@ -208,9 +292,25 @@
         if (tip === 'kapino') {
             $('#wrap-kapino-coords').removeClass('d-none');
             $('#f-adres-coords').val(coords || '');
+            var mapCfg = window.ESH_ADRESTANIM_MAP;
+            if (mapCfg && mapCfg.providerConfigured) {
+                $('#wrap-adres-mini-map').removeClass('d-none');
+                updateFullMapLink(id || '');
+                bootMiniMap(function () {
+                    syncMiniMapCoords(coords || '');
+                    if (miniMapApi && typeof miniMapApi.resize === 'function') {
+                        setTimeout(function () { miniMapApi.resize(); }, 200);
+                    }
+                });
+            } else {
+                $('#wrap-adres-mini-map').addClass('d-none');
+                updateFullMapLink(id || '');
+            }
         } else {
             $('#wrap-kapino-coords').addClass('d-none');
             $('#f-adres-coords').val('');
+            $('#wrap-adres-mini-map').addClass('d-none');
+            destroyMiniMap();
         }
         if (id) {
             $('#modal-adres-baslik').html('<i class="fa-solid fa-pen me-1"></i>' + turAdi + ' düzenle'); $('#f-adres-bilgi').text('Düzenlenen: ' + turAdi);
@@ -241,11 +341,15 @@
 
     $(document).ready(function () {
         var preselectBolge = String($('#adrestanim-preselect-bolge-id').val() || '').trim();
-        yukle('bolge', '0', false, function () {
-            if (preselectBolge) {
-                sec('bolge', preselectBolge);
-            }
-        });
+        if (canViewBolge()) {
+            yukle('bolge', '0', false, function () {
+                if (preselectBolge) {
+                    sec('bolge', preselectBolge);
+                }
+            });
+        } else {
+            yukle('ilce', '*');
+        }
         $('#adres-hierarchy').on('click', '.hier-item', function (e) {
             if ($(e.target).closest('.hier-actions').length) return;
             sec($(this).data('tip'), $(this).data('id'));
@@ -313,17 +417,27 @@
             $.post(adrestanimUrl('ajaxGeocodeKapino'), { id: id }, function (res) {
                 if (res.durum === 'tamam' && res.coords) {
                     $('#f-adres-coords').val(res.coords);
+                    syncMiniMapCoords(res.coords);
                     if (typeof toastr !== 'undefined') {
                         if (res.changed) {
-                            toastr.warning('Koordinat güncellendi.', 'TomTom');
+                            toastr.warning('Koordinat güncellendi.', mapProviderLabel());
                         } else {
-                            toastr.success('Koordinat doğrulandı (değişiklik yok).', 'TomTom');
+                            toastr.success('Koordinat doğrulandı (değişiklik yok).', mapProviderLabel());
                         }
                     }
                 } else {
                     alert(res.mesaj || 'Koordinat bulunamadı.');
                 }
             }, 'json').fail(function () { alert('Sunucu hatası.'); }).always(function () { $btn.prop('disabled', false); });
+        });
+        $('#modalAdresEditor').on('hidden.bs.modal', function () {
+            destroyMiniMap();
+            $('#wrap-adres-mini-map').addClass('d-none');
+        });
+        $('#modalAdresEditor').on('shown.bs.modal', function () {
+            if (miniMapApi && typeof miniMapApi.resize === 'function') {
+                setTimeout(function () { miniMapApi.resize(); }, 150);
+            }
         });
         $('#btn-adres-kaydet').on('click', function () {
             var d = { id: $('#f-adres-id').val(), adi: $('#f-adres-adi').val(), tip: $('#f-adres-tip').val(), ust_id: $('#f-adres-ustid').val() };
@@ -335,7 +449,7 @@
                 if (res.durum === 'tamam') {
                     if (d.tip === 'kapino' && res.coords) {
                         $('#f-adres-coords').val(res.coords);
-                        if (typeof toastr !== 'undefined') toastr.success('Kapı kaydedildi, koordinat bulundu.', 'TomTom', { timeOut: 4500 });
+                        if (typeof toastr !== 'undefined') toastr.success('Kapı kaydedildi, koordinat bulundu.', mapProviderLabel(), { timeOut: 4500 });
                     }
                     var m = getModal(); if (m) m.hide();
                     yukle(d.tip, d.tip === 'bolge' ? '0' : d.ust_id);

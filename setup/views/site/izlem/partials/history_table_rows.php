@@ -14,7 +14,7 @@ if (!empty($visits)) {
             : \App\Helpers\ZamanDilimiHelper::badgeFor($v->zaman);
         $__histActs = [
             [
-                'href' => esh_url('Visit', 'edit', ['id' => (int) ($v->id ?? 0)]),
+                'href' => esh_url('Visit', 'edit', ['id' => (string) ($v->id ?? '')]),
                 'title' => 'Düzenle',
                 'icon' => 'fa-solid fa-pen text-primary',
             ],
@@ -27,14 +27,14 @@ if (!empty($visits)) {
                 'href' => '#',
                 'title' => 'EK-3 çıkart',
                 'icon' => 'fa-solid fa-file-lines text-info',
-                'onclick' => 'if(window.eshOpenEk3FromHistory){window.eshOpenEk3FromHistory(' . (int) ($v->id ?? 0) . ');} return false;',
+                'onclick' => 'if(window.eshOpenEk3FromHistory){window.eshOpenEk3FromHistory(' . json_encode((string) ($v->id ?? ''), JSON_UNESCAPED_UNICODE) . ');} return false;',
             ];
         }
         if (AuthHelper::sessionIsAdmin()) {
             $__histActs[] = [
                 'action' => esh_url('Visit', 'delete'),
                 'hidden' => [
-                    'id' => (int) ($v->id ?? 0),
+                    'id' => (string) ($v->id ?? ''),
                     'tc' => $tc,
                 ],
                 'title' => 'Sil',

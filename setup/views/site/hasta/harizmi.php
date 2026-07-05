@@ -12,7 +12,7 @@
  */
 use App\Helpers\HarizmiScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $viewUrl = esh_url('Patient', 'view', ['id' => $hastaId]);
 $latestTotal = (int) ($harizmiLatest->toplam_skor ?? 0);
 $latestRisk = (string) ($harizmiLatest->risk_duzeyi ?? '—');

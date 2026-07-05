@@ -24,8 +24,8 @@
 
     function genderNameClass(genderRaw) {
         const g = String(genderRaw || '').trim().toUpperCase();
-        if (g === '1' || g === 'E' || g === 'ERKEK' || g === 'M') return 'text-primary';
-        if (g === '2' || g === 'K' || g === 'KADIN' || g === 'F') return 'text-danger';
+        if (g === '1') return 'text-primary';
+        if (g === '2') return 'text-danger';
         return 'text-dark';
     }
 

@@ -48,3 +48,17 @@ Yedekleme veya lint imkânsızsa kısaca bildir.
 ### Migrasyon notu
 
 Karmaşık formların dışarıda kalması **çalışma zamanı hatası** üretmez; risk bakım ve tutarlılıktır. Basit alanları taşırken yukarıdaki istisna listesine dokunma.
+
+---
+
+## Modül registry
+
+Tek kaynak: `config/app-modules.registry.php` (`php tools/build_app_modules_registry.php` ile üretilir).
+
+1. **Yeni controller** → `tools/build_app_modules_registry.php` içindeki `$moduleDefs` güncelle, ardından `php tools/build_app_modules_registry.php` çalıştır; `php tools/build_app_modules_registry.php --check` ile drift doğrula.
+2. **Personel erişimi (RBAC)** → `config/permission-crud-map.php` içine `{module}.{crud}` eşlemesi ekle.
+3. **Yalnız yönetici / süper yönetici** → `config/permission-level-only-modules.php` listesine modül anahtarı ekle; controller içi `requireAdmin` / `requireSuperAdmin` korunur.
+4. **Kapatılabilir özellik** → registry’de `toggleable: true` + `controllers` + `config/app-settings.defaults.json` `modules` altına varsayılan.
+5. **Dahili yardımcı** (ör. `Upload`) → registry’ye alma; `tools/verify_module_crud.php` orphan allowlist’inde kalır.
+
+Doğrulama: `php tools/verify_module_crud.php --check-registry` (registry drift, orphan controller, modül sınıflandırması).

@@ -19,7 +19,7 @@ if (!empty($items)) {
             <td class="text-center">
                 <div class="btn-group btn-group-sm">
                     <a href="<?= htmlspecialchars(esh_url('Ekip', 'edit', ['tarih' => $tarihUrl]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-primary" title="Düzenle"><i class="fa fa-edit"></i></a>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Ekip', 'deleteDay'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu tarihteki TÜM ekipler silinsin mi?')">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Ekip', 'deleteDay'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu tarihteki TÜM ekipler silinsin mi?">
                         <input type="hidden" name="tarih" value="<?= htmlspecialchars($tarihUrl, ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit" class="btn btn-danger" title="Sil"><i class="fa fa-trash"></i></button>
                     </form>

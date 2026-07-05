@@ -9,7 +9,7 @@
 use App\Helpers\DateHelper;
 use App\Helpers\BarthelScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $rows = isset($barthelAssessments) && is_array($barthelAssessments) ? $barthelAssessments : [];
 $fieldLabels = [];
 foreach (BarthelScaleHelper::getFieldDefinitions() as $key => $def) {
@@ -61,9 +61,9 @@ foreach (BarthelScaleHelper::getFieldDefinitions() as $key => $def) {
                         </td>
                         <td class="text-end">
                             <?php if (empty($pasifDosyaKapali)): ?>
-                                <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteBarthel'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" onsubmit="return confirm('Bu Barthel değerlendirmesini silmek istediğinize emin misiniz?');">
+                                <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteBarthel'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" data-esh-confirm="Bu Barthel değerlendirmesini silmek istediğinize emin misiniz?">
                                     <input type="hidden" name="id" value="<?= $hastaId ?>">
-                                    <input type="hidden" name="assessment_id" value="<?= (int) ($row->id ?? 0) ?>">
+                                    <input type="hidden" name="assessment_id" value="<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Sil">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>

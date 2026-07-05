@@ -98,9 +98,17 @@ final class OperationalSettings
 
     private const NOBET_SLOT_MAX = 20;
 
-    public const DEFAULT_EK3_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nBAŞVURU FORMU / EK-3";
+    public const CORPORATE_FORM_BASLIK_KURUM_PLACEHOLDER = '{KURUMADI}';
 
-    public const DEFAULT_HEKIM_DEGERLENDIRME_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nHEKİM DEĞERLENDİRME FORMU";
+    public const DEFAULT_EK3_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\n{KURUMADI}\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nBAŞVURU FORMU / EK-3";
+
+    public const DEFAULT_HEKIM_DEGERLENDIRME_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\n{KURUMADI}\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nHEKİM DEĞERLENDİRME FORMU";
+
+    /** @deprecated Eski sabit metin — okuma sırasında yeni şablona yükseltilir. */
+    private const LEGACY_EK3_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nBAŞVURU FORMU / EK-3";
+
+    /** @deprecated Eski sabit metin — okuma sırasında yeni şablona yükseltilir. */
+    private const LEGACY_HEKIM_DEGERLENDIRME_FORM_BASLIK = "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nHEKİM DEĞERLENDİRME FORMU";
 
     /**
      * Nöbet modülünde personel havuzu, otomatik dağıtım ve İzin/Mazeret için geçerli ünvan kodları.
@@ -348,7 +356,7 @@ final class OperationalSettings
 
     public static function isPublicHastaaramaEnabled(): bool
     {
-        return self::bool('public_hastaarama', 'enabled', true);
+        return self::bool('public_hastaarama', 'enabled', false);
     }
 
     public static function publicHastaaramaBilgilendirmeMetni(): string
@@ -358,7 +366,7 @@ final class OperationalSettings
 
     public static function isPatientPortalEnabled(): bool
     {
-        return self::bool('patient_portal', 'enabled', true);
+        return AppSettings::isModuleEnabled('patient_portal');
     }
 
     public static function patientPortalBilgilendirmeMetni(): string
@@ -444,6 +452,23 @@ final class OperationalSettings
     public static function esysBridgeExportOnlyMissingRefs(): bool
     {
         return self::bool('esys_bridge', 'export_only_missing_refs', false);
+    }
+
+    public static function esysBridgeExportOnlyMissingVisitRefs(): bool
+    {
+        return self::bool('esys_bridge', 'export_only_missing_visit_refs', true);
+    }
+
+    public static function esysBridgeExportEraporLimit(): int
+    {
+        $n = self::int('esys_bridge', 'export_erapor_limit', 500);
+
+        return max(10, min(5000, $n));
+    }
+
+    public static function esysAutoQueueOnVisitSave(): bool
+    {
+        return self::bool('esys_bridge', 'auto_queue_on_visit_save', true);
     }
 
     public static function esysBridgeApiEnabled(): bool
@@ -816,10 +841,7 @@ final class OperationalSettings
      */
     public static function ek3FormBaslik(): string
     {
-        $text = self::string('corporate', 'ek3_form_baslik', self::DEFAULT_EK3_FORM_BASLIK);
-        if ($text === '') {
-            $text = self::DEFAULT_EK3_FORM_BASLIK;
-        }
+        $text = self::resolveCorporateFormBaslik('ek3_form_baslik', self::DEFAULT_EK3_FORM_BASLIK, self::LEGACY_EK3_FORM_BASLIK);
 
         return rtrim($text) . "\n\n";
     }
@@ -829,12 +851,51 @@ final class OperationalSettings
      */
     public static function hekimDegerlendirmeFormBaslik(): string
     {
-        $text = self::string('corporate', 'hekim_degerlendirme_form_baslik', self::DEFAULT_HEKIM_DEGERLENDIRME_FORM_BASLIK);
-        if ($text === '') {
-            $text = self::DEFAULT_HEKIM_DEGERLENDIRME_FORM_BASLIK;
+        return rtrim(self::resolveCorporateFormBaslik(
+            'hekim_degerlendirme_form_baslik',
+            self::DEFAULT_HEKIM_DEGERLENDIRME_FORM_BASLIK,
+            self::LEGACY_HEKIM_DEGERLENDIRME_FORM_BASLIK
+        ));
+    }
+
+    /**
+     * Form üst başlık şablonunda {KURUMADI} yer tutucusunu çözümler.
+     */
+    public static function resolveCorporateFormBaslikTemplate(string $template): string
+    {
+        $template = str_replace(["\r\n", "\r"], "\n", $template);
+        $kurumAdi = self::corporateFormBaslikKurumAdi();
+        $replacements = [
+            self::CORPORATE_FORM_BASLIK_KURUM_PLACEHOLDER => $kurumAdi,
+            '{kurumadi}' => $kurumAdi,
+        ];
+
+        return strtr($template, $replacements);
+    }
+
+    private static function resolveCorporateFormBaslik(string $key, string $defaultTemplate, string $legacyTemplate): string
+    {
+        $text = trim(self::string('corporate', $key, $defaultTemplate));
+        if ($text === '' || $text === $legacyTemplate) {
+            $text = $defaultTemplate;
         }
 
-        return rtrim($text);
+        return self::resolveCorporateFormBaslikTemplate($text);
+    }
+
+    private static function corporateFormBaslikKurumAdi(): string
+    {
+        $kurumId = KurumCorporateSettings::readKurumId();
+        if ($kurumId !== null && $kurumId > 0) {
+            $name = KurumCorporateSettings::displayName($kurumId);
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        $fallback = trim(self::string('corporate', 'esh_app_name', 'SONEV'));
+
+        return $fallback !== '' ? $fallback : 'KURUM ADI';
     }
 
     /**
@@ -1084,7 +1145,9 @@ final class OperationalSettings
             return 'Kayıt kapsamı belirlenemedi.';
         }
         if (!SettingsWriteScope::canWritePlatformDefaults()) {
-            return 'Platform varsayılanları yalnızca sistem sahibi tarafından değiştirilebilir.';
+            return 'Platform varsayılanları yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' tarafından değiştirilebilir.';
         }
 
         return self::writePlatformSection($section, $payload);
@@ -1158,7 +1221,9 @@ final class OperationalSettings
         }
 
         if (!SettingsWriteScope::canWritePlatformDefaults()) {
-            return 'Platform varsayılanları yalnızca sistem sahibi tarafından değiştirilebilir.';
+            return 'Platform varsayılanları yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' tarafından değiştirilebilir.';
         }
 
         $current = AppSettingsStore::read();
@@ -1322,6 +1387,18 @@ final class OperationalSettings
         if ($type === 'int') {
             if ($raw === '' && !empty($field['allow_empty'])) {
                 return 0;
+            }
+            if ($raw === '') {
+                $defs = self::sectionDefaults($section);
+                if (array_key_exists($key, $defs) && is_numeric($defs[$key])) {
+                    return (int) $defs[$key];
+                }
+                $existing = self::raw($section, $key);
+                if ($existing !== null && is_numeric($existing)) {
+                    return (int) $existing;
+                }
+
+                return '«' . $label . '» için geçerli bir tam sayı girin.';
             }
             if (!is_numeric($raw)) {
                 return '«' . $label . '» için geçerli bir tam sayı girin.';
@@ -1515,26 +1592,24 @@ final class OperationalSettings
                 ],
             ],
             'corporate' => [
-                ['key' => 'esh_app_name', 'label' => 'Kurumsal görünen ad', 'description' => 'Giriş, başlık ve misafir sayfalarında (ESH_APP_NAME).', 'type' => 'text', 'required' => true],
                 [
                     'key' => 'ek3_form_baslik',
                     'label' => 'EK-3 form üst başlığı',
-                    'description' => 'Konsültasyon EK-3 PDF ve yazdırma çıktısının ortalanmış üst metni. Her satır ayrı satırda yazılır; boş bırakılırsa varsayılan kurum başlığı kullanılır.',
+                    'description' => 'Konsültasyon EK-3 PDF ve yazdırma çıktısının ortalanmış üst metni. Her satır ayrı satırda yazılır; {KURUMADI} kurum adı ile değiştirilir. Boş bırakılırsa varsayılan şablon kullanılır.',
                     'type' => 'textarea',
                 ],
                 [
                     'key' => 'hekim_degerlendirme_form_baslik',
                     'label' => 'Hekim değerlendirme formu üst başlığı',
-                    'description' => 'Bekleyen hasta başvuru formu (Patient/waitingForm) pdfMake çıktısının ortalanmış üst metni. Her satır ayrı satırda yazılır; boş bırakılırsa varsayılan kurum başlığı kullanılır.',
+                    'description' => 'Bekleyen hasta başvuru formu (Patient/waitingForm) pdfMake çıktısının ortalanmış üst metni. Her satır ayrı satırda yazılır; {KURUMADI} kurum adı ile değiştirilir. Boş bırakılırsa varsayılan şablon kullanılır.',
                     'type' => 'textarea',
                 ],
             ],
             'public_hastaarama' => [
-                ['key' => 'enabled', 'label' => 'Kamu TC sorgusu', 'description' => 'Kapalıyken misafir sorgu sayfası erişilemez; giriş bağlantısı gizlenir.', 'type' => 'bool'],
+                ['key' => 'enabled', 'label' => 'Kamu TC sorgusu', 'description' => 'Kapalıyken misafir sorgu sayfası erişilemez; giriş bağlantısı gizlenir. Üretimde yalnızca gerçekten gerekliyse açın: captcha ve IP rate limit vardır ancak TC enumeration riski sürer.', 'type' => 'bool'],
                 ['key' => 'bilgilendirme_metni', 'label' => 'Bilgilendirme / KVKK metni', 'description' => 'Sorgu formunun üstünde gösterilir.', 'type' => 'textarea'],
             ],
             'patient_portal' => [
-                ['key' => 'enabled', 'label' => 'Hasta / bakım veren portalı', 'description' => 'TC + kayıtlı telefon ile oturum; plan, ziyaret özeti ve SMS onayı.', 'type' => 'bool'],
                 ['key' => 'bilgilendirme_metni', 'label' => 'Giriş bilgilendirme metni', 'description' => 'Portal giriş formunun üstünde gösterilir (KVKK).', 'type' => 'textarea'],
                 ['key' => 'session_hours', 'label' => 'Oturum süresi (saat)', 'description' => 'Başarılı girişten sonra portal oturumunun geçerlilik süresi.', 'type' => 'int', 'min' => 1, 'max' => 24],
                 ['key' => 'show_planned_visits', 'label' => 'Planlı ziyaretler', 'description' => 'Yaklaşan planlı izlemleri göster.', 'type' => 'bool'],
@@ -1558,6 +1633,9 @@ final class OperationalSettings
                 ['key' => 'export_patient_limit', 'label' => 'Dışa aktarma hasta üst sınırı', 'description' => 'Tek pakette en fazla hasta kaydı.', 'type' => 'int', 'min' => 10, 'max' => 5000],
                 ['key' => 'export_visit_days', 'label' => 'İzlem dışa aktarma günü', 'description' => 'Son kaç günün izlemleri pakete dahil edilir.', 'type' => 'int', 'min' => 7, 'max' => 365],
                 ['key' => 'export_only_missing_refs', 'label' => 'Yalnızca eksik ESYS ref', 'description' => 'Hasta dışa aktarmada esys_hasta_ref veya esys_basvuru_ref boş olanlar.', 'type' => 'bool'],
+                ['key' => 'export_only_missing_visit_refs', 'label' => 'Yalnızca eksik izlem ref', 'description' => 'İzlem dışa aktarmada esys_izlem_ref boş olanlar.', 'type' => 'bool'],
+                ['key' => 'export_erapor_limit', 'label' => 'e-Rapor dışa aktarma üst sınırı', 'description' => 'Tek pakette en fazla e-rapor kaydı.', 'type' => 'int', 'min' => 10, 'max' => 5000],
+                ['key' => 'auto_queue_on_visit_save', 'label' => 'İzlem kaydında ESYS kuyruğu', 'description' => 'Yapılmış izlem + boş esys_izlem_ref için denetim günlüğü kaydı.', 'type' => 'bool'],
                 ['key' => 'api_enabled', 'label' => 'API köprüsü (deneysel)', 'description' => 'Kapalıyken HTTP gönderimi yapılmaz; yalnızca dosya modu kullanılır.', 'type' => 'bool'],
                 ['key' => 'api_base_url', 'label' => 'API taban URL', 'description' => 'Örn. https://hsys.saglik.gov.tr/api — resmi uç yayınlandığında.', 'type' => 'text'],
             ],
@@ -1613,7 +1691,9 @@ final class OperationalSettings
                 [
                     'key' => 'enabled',
                     'label' => 'Bakım modu',
-                    'description' => 'Açıkken yalnızca süper yönetici erişebilir; personel, admin ve misafir sayfaları kapanır.',
+                    'description' => 'Açıkken yalnızca '
+                        . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                        . ' erişebilir; bölge yöneticisi, kurum yöneticisi, personel ve misafir sayfaları kapanır.',
                     'type' => 'bool',
                 ],
                 [

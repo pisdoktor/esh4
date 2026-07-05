@@ -238,7 +238,7 @@ $hasChartData = $ok && $toplam > 0 && ($histLabels !== [] || $monthLabels !== []
 </div>
 
 <?php if ($hasChartData): ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var histId = <?= json_encode($chartHistId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     var monthId = <?= json_encode($chartMonthId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;

@@ -22,7 +22,7 @@ if (!empty($visits)) {
                 <?php
                 $eshViIsAdmin = AuthHelper::sessionIsAdmin();
                 $eshMenuRows = \App\Helpers\BadgeHelper::visitIndexMenuEntries($row, $eshViIsAdmin);
-                $eshViErkek = ($row->cinsiyet ?? '') === 'E' || ($row->cinsiyet ?? '') === '1';
+                $eshViErkek = \App\Helpers\CinsiyetHelper::isErkek($row->cinsiyet ?? null);
                 ?>
                 <div class="dropdown">
                     <a class="patient-link dropdown-toggle d-inline-block text-decoration-none fw-semibold"

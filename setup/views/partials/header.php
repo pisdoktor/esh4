@@ -18,13 +18,16 @@
 echo \App\Helpers\PageAssetHelper::renderRegisteredStylesheetsHtml();
 $__eshMapCtrl = strtolower((string) ($GLOBALS['controllerName'] ?? ''));
 $__eshMapAct = strtolower((string) ($GLOBALS['actionName'] ?? ''));
-if (($__eshMapCtrl === 'harita' && $__eshMapAct === 'index') || ($__eshMapCtrl === 'dashboard' && $__eshMapAct === 'showroute')) {
+if (($__eshMapCtrl === 'harita' && $__eshMapAct === 'index')
+    || ($__eshMapCtrl === 'manuelkoordinat' && $__eshMapAct === 'index')
+    || ($__eshMapCtrl === 'adrestanim' && $__eshMapAct === 'index')
+    || ($__eshMapCtrl === 'dashboard' && $__eshMapAct === 'showroute')) {
     echo \App\Helpers\CdnAssetHelper::mapRoutingPageStylesHtml();
 }
 ?>
 <?= \App\Helpers\CdnAssetHelper::vendorCdnScriptsHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderHeadScriptsHtml(); ?>
-<script defer src="<?= htmlspecialchars(ASSETS_URL . '/csrf-guard.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/csrf-guard.js', 'defer') ?>
 </head>
 <?php
 $__eshMainWrapper = \App\Helpers\ThemeViewHelper::themeMainWrapperKind();

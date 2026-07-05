@@ -6,6 +6,7 @@
  */
 use App\Helpers\BadgeHelper;
 use App\Helpers\DateHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\UIHelper;
 use App\Helpers\ValidationHelper;
 
@@ -19,7 +20,7 @@ if (empty($rows)) { ?>
 foreach ($rows as $row):
     if ($patientPrimary):
         $tc = (string) ($row->tckimlik ?? '');
-        $pid = (int) ($row->id ?? 0);
+        $pid = (string) ($row->id ?? '');
         $eraporAdet = (int) ($row->erapor_adet ?? 0);
         $kartErapor = (trim((string) ($row->erapor ?? '')) === '1' || (int) ($row->erapor ?? 0) === 1);
         ?>
@@ -47,18 +48,18 @@ foreach ($rows as $row):
                 <?php endif; ?>
             </td>
             <td class="text-nowrap">
-                <?php if ($pid > 0): ?>
-                    <a class="btn btn-sm btn-outline-primary py-0" href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $pid]), ENT_QUOTES, "UTF-8") ?>">Kart</a>
+                <?php if (!IdHelper::isEmptyEntityId($pid)): ?>
+                    <a class="btn btn-sm btn-outline-primary py-0" href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $pid]), ENT_QUOTES, 'UTF-8') ?>">Kart</a>
                 <?php endif; ?>
-                <?php if (!empty($row->erapor_id)): ?>
-                    <a class="btn btn-sm btn-outline-info py-0" href="<?= htmlspecialchars(esh_url('Erapor', 'view', ["id" => (int) $row->erapor_id]), ENT_QUOTES, "UTF-8") ?>">Havuz</a>
+                <?php if (!IdHelper::isEmptyEntityId($row->erapor_id ?? null)): ?>
+                    <a class="btn btn-sm btn-outline-info py-0" href="<?= htmlspecialchars(esh_url('Erapor', 'view', ['id' => (string) ($row->erapor_id ?? '')]), ENT_QUOTES, 'UTF-8') ?>">Havuz</a>
                 <?php endif; ?>
             </td>
         </tr>
     <?php
     else:
         $tc = (string) ($row->hastatckimlik ?? '');
-        $pid = (int) ($row->hastaid ?? 0);
+        $pid = (string) ($row->hastaid ?? '');
         $adet = (int) ($row->erapor_adet ?? 1);
         $hastaLabel = trim((string) ($row->hasta_isim ?? '') . ' ' . (string) ($row->hasta_soyisim ?? ''));
         ?>
@@ -75,23 +76,23 @@ foreach ($rows as $row):
             <td><?= !empty($row->yenilendimi) ? '<span class="badge bg-info">Evet</span>' : '<span class="text-muted small">—</span>' ?></td>
             <td><small><?= htmlspecialchars((string) ($row->bransadi ?? $row->brans ?? '—'), ENT_QUOTES, 'UTF-8') ?></small></td>
             <td>
-                <?php if ($pid > 0): ?>
+                <?php if (!IdHelper::isEmptyEntityId($pid)): ?>
                     <small><?= htmlspecialchars($hastaLabel, ENT_QUOTES, 'UTF-8') ?></small>
                 <?php else: ?>
                     <span class="text-danger small">Kart yok</span>
                 <?php endif; ?>
             </td>
             <td>
-                <?php if ($pid > 0): ?>
+                <?php if (!IdHelper::isEmptyEntityId($pid)): ?>
                     <?= BadgeHelper::patientStatusBadgeHtml($row) ?>
                 <?php else: ?>
                     <span class="text-muted small">—</span>
                 <?php endif; ?>
             </td>
             <td class="text-nowrap">
-                <a class="btn btn-sm btn-outline-info py-0" href="<?= htmlspecialchars(esh_url('Erapor', 'view', ["id" => (int) ($row->erapor_id ?? 0)]), ENT_QUOTES, "UTF-8") ?>">Havuz</a>
-                <?php if ($pid > 0): ?>
-                    <a class="btn btn-sm btn-outline-primary py-0" href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $pid]), ENT_QUOTES, "UTF-8") ?>">Kart</a>
+                <a class="btn btn-sm btn-outline-info py-0" href="<?= htmlspecialchars(esh_url('Erapor', 'view', ['id' => (string) ($row->erapor_id ?? '')]), ENT_QUOTES, 'UTF-8') ?>">Havuz</a>
+                <?php if (!IdHelper::isEmptyEntityId($pid)): ?>
+                    <a class="btn btn-sm btn-outline-primary py-0" href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $pid]), ENT_QUOTES, 'UTF-8') ?>">Kart</a>
                 <?php endif; ?>
             </td>
         </tr>

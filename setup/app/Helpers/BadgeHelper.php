@@ -1,7 +1,13 @@
 <?php
 namespace App\Helpers;
 
+use App\Helpers\IdHelper;
 class BadgeHelper {
+    private static function entityId(mixed $raw): ?string
+    {
+        return IdHelper::normalizeRequestId($raw);
+    }
+
     public static function patientHasGeciciFlag(object $patient): bool
     {
         return !empty($patient->gecici);
@@ -176,8 +182,8 @@ class BadgeHelper {
             return '<span class="badge bg-info x-small">Nakil bekleyen</span>';
         }
 
-        $pid = (int) ($p->id ?? 0);
-        if ($pid > 0 && PatientNakilRequest::hasPending($pid)) {
+        $pid = self::entityId($p->id ?? null);
+        if ($pid !== null && PatientNakilRequest::hasPending($pid)) {
             $pending = PatientNakilRequest::findPendingForPatient($pid);
             if ($pending !== null && (string) ($pending->tip ?? '') === \App\Models\HastaNakil::TIP_GERI_NAKIL) {
                 return '<span class="badge bg-warning text-dark x-small">Geri nakil talebi</span>';
@@ -203,12 +209,12 @@ class BadgeHelper {
     }
 
     public static function patientViewUrl($p) {
-        $id = (int) $p->id;
+        $id = self::entityId($p->id ?? null) ?? '';
         return esh_url('Patient', 'view', ['id' => $id]);
     }
 
     public static function patientEditUrl($p) {
-        $id = (int) $p->id;
+        $id = self::entityId($p->id ?? null) ?? '';
         if (PatientKurumTransfer::isWaitingFromNakil($p)) {
             return esh_url('Patient', 'edit', ['id' => $id]);
         }
@@ -257,7 +263,7 @@ class BadgeHelper {
     /**
      * TC ajax / API yanıtı: hasta dosya durumu (pasif alanı → aktif, pasif, bekleyen, …).
      *
-     * @return array{hastaid: int, status_key: string, status_text: string, status_badge: string, view_url: string}
+     * @return array{hastaid: string, status_key: string, status_text: string, status_badge: string, view_url: string}
      */
     public static function patientFileStatusForApi($p): array {
         $key = self::patientPasifKey($p);
@@ -272,7 +278,7 @@ class BadgeHelper {
         ];
 
         return [
-            'hastaid' => (int) ($p->id ?? 0),
+            'hastaid' => self::entityId($p->id ?? null) ?? '',
             'status_key' => $key,
             'status_text' => self::patientPublicLookupStatusLabel($p),
             'status_badge' => $badgeByKey[$key] ?? 'light text-dark border',
@@ -316,7 +322,7 @@ class BadgeHelper {
      * @return list<array<string, mixed>>
      */
     public static function patientUnifiedMenuEntries($p, bool $isAdmin): array {
-        $id = (int) ($p->id ?? 0);
+        $id = self::entityId($p->id ?? null) ?? '';
         $tcRaw = (string) ($p->tckimlik ?? '');
         $tcQ = rawurlencode($tcRaw);
         $key = self::patientPasifKey($p);
@@ -324,7 +330,7 @@ class BadgeHelper {
         $out = [];
         $out[] = ['type' => 'status', 'text' => self::patientUnifiedMenuStatusLine($p)];
 
-        if ($key !== 'deleted') {
+        if ($key !== 'deleted' && $key !== 'waiting') {
             $out[] = [
                 'type' => 'item',
                 'href' => self::patientViewUrl($p),
@@ -368,7 +374,7 @@ class BadgeHelper {
                         'label' => 'Planlı izlemler',
                         'icon' => 'fa-solid fa-calendar-week text-warning',
                     ];
-                    if ($id > 0) {
+                    if ($id !== '') {
                         foreach (self::patientWoundBradenMenuItems($p) as $clinicalRow) {
                             $out[] = $clinicalRow;
                         }
@@ -399,7 +405,7 @@ class BadgeHelper {
                             }
                         }
                     }
-                    if ($id > 0) {
+                    if ($id !== '') {
                         $out = self::appendPatientClinicalFormMenuSection($out, $p);
                     }
                 }
@@ -526,7 +532,7 @@ class BadgeHelper {
                 break;
         }
 
-        if (\App\Helpers\AuthHelper::sessionIsSuperAdmin() && $id > 0) {
+        if (\App\Helpers\AuthHelper::sessionIsSuperAdmin() && $id !== '') {
             foreach (self::patientSuperadminManagementMenuEntries($id) as $adminRow) {
                 $out[] = $adminRow;
             }
@@ -540,9 +546,10 @@ class BadgeHelper {
      *
      * @return list<array<string, mixed>>
      */
-    public static function patientSuperadminManagementMenuEntries(int $patientId): array
+    public static function patientSuperadminManagementMenuEntries(int|string $patientId): array
     {
-        if (!\App\Helpers\AuthHelper::sessionIsSuperAdmin() || $patientId <= 0 || !\App\Models\Kurum::tableExists()) {
+        $patientId = IdHelper::normalizeRequestId($patientId) ?? '';
+        if (!\App\Helpers\AuthHelper::sessionIsSuperAdmin() || $patientId === '' || !\App\Models\Kurum::tableExists()) {
             return [];
         }
 
@@ -563,8 +570,8 @@ class BadgeHelper {
      * @return list<array<string, mixed>>
      */
     public static function patientWoundBradenMenuItems(object $patient): array {
-        $id = (int) ($patient->id ?? 0);
-        if ($id <= 0 || !\App\Helpers\PatientClinicalFlagsHelper::isWoundPhotosModuleEnabled($patient)) {
+        $id = self::entityId($patient->id ?? null) ?? '';
+        if ($id === '' || !\App\Helpers\PatientClinicalFlagsHelper::isWoundPhotosModuleEnabled($patient)) {
             return [];
         }
 
@@ -584,8 +591,8 @@ class BadgeHelper {
      * @return list<array<string, mixed>>
      */
     public static function patientClinicalFormMenuItems(object $patient): array {
-        $id = (int) ($patient->id ?? 0);
-        if ($id <= 0) {
+        $id = self::entityId($patient->id ?? null) ?? '';
+        if ($id === '') {
             return [];
         }
 
@@ -676,7 +683,7 @@ class BadgeHelper {
      */
     public static function plannedVisitPassivePendingMenuEntries(object $planRow, string $planDeleteRetq): array
     {
-        $planId = (int) ($planRow->id ?? 0);
+        $planId = self::entityId($planRow->id ?? null) ?? '';
         $out = [];
 
         $tcRaw = (string) ($planRow->hastatckimlik ?? '');
@@ -699,11 +706,11 @@ class BadgeHelper {
         $out[] = ['type' => 'divider'];
 
         $patientStub = (object) [
-            'id' => (int) ($planRow->hid ?? 0),
+            'id' => (string) ($planRow->hid ?? ''),
             'tckimlik' => $tcRaw,
             'isim' => (string) ($planRow->isim ?? ''),
             'soyisim' => (string) ($planRow->soyisim ?? ''),
-            'cinsiyet' => (string) ($planRow->cinsiyet ?? 'E'),
+            'cinsiyet' => (string) (CinsiyetHelper::normalize($planRow->cinsiyet ?? null) ?? CinsiyetHelper::ERKEK),
             'pasif' => (int) ($planRow->pasif ?? 1),
         ];
         $patientRows = self::patientUnifiedMenuEntries($patientStub, true);
@@ -722,7 +729,7 @@ class BadgeHelper {
      */
     public static function plannedVisitIndexMenuEntries(object $planRow, bool $isAdmin, string $planDeleteRetq): array {
         $tcRaw = (string) ($planRow->hastatckimlik ?? '');
-        $planId = (int) ($planRow->id ?? 0);
+        $planId = self::entityId($planRow->id ?? null) ?? '';
         $out = [];
 
         $out[] = ['type' => 'header', 'text' => 'PLAN İŞLEMLERİ'];
@@ -754,11 +761,11 @@ class BadgeHelper {
         $out[] = ['type' => 'divider'];
 
         $patientStub = (object) [
-            'id' => (int) ($planRow->hid ?? 0),
+            'id' => (string) ($planRow->hid ?? ''),
             'tckimlik' => (string) ($planRow->hastatckimlik ?? ''),
             'isim' => (string) ($planRow->isim ?? ''),
             'soyisim' => (string) ($planRow->soyisim ?? ''),
-            'cinsiyet' => (string) ($planRow->cinsiyet ?? 'E'),
+            'cinsiyet' => (string) (CinsiyetHelper::normalize($planRow->cinsiyet ?? null) ?? CinsiyetHelper::ERKEK),
             'pasif' => 0,
         ];
         $patientRows = self::patientUnifiedMenuEntries($patientStub, $isAdmin);
@@ -786,8 +793,8 @@ class BadgeHelper {
             $out[] = ['type' => 'header', 'text' => 'PLAN İŞLEMLERİ'];
             $planCount = 0;
             foreach ($plans as $plan) {
-                $planId = (int) ($plan->id ?? 0);
-                if ($planId < 1) {
+                $planId = self::entityId($plan->id ?? null) ?? '';
+                if ($planId === '') {
                     continue;
                 }
                 ++$planCount;
@@ -832,7 +839,7 @@ class BadgeHelper {
      * @return list<array<string, mixed>>
      */
     public static function visitIndexMenuEntries(object $visitRow, bool $isAdmin): array {
-        $visitId = (int) ($visitRow->id ?? 0);
+        $visitId = self::entityId($visitRow->id ?? null) ?? '';
         $tcQ = rawurlencode((string) ($visitRow->hastatckimlik ?? ''));
         $out = [];
 
@@ -868,11 +875,11 @@ class BadgeHelper {
         $out[] = ['type' => 'divider'];
 
         $patientStub = (object) [
-            'id' => (int) ($visitRow->hid ?? 0),
+            'id' => (string) ($visitRow->hid ?? ''),
             'tckimlik' => (string) ($visitRow->hastatckimlik ?? ''),
             'isim' => (string) ($visitRow->isim ?? ''),
             'soyisim' => (string) ($visitRow->soyisim ?? ''),
-            'cinsiyet' => (string) ($visitRow->cinsiyet ?? 'E'),
+            'cinsiyet' => (string) (CinsiyetHelper::normalize($visitRow->cinsiyet ?? null) ?? CinsiyetHelper::ERKEK),
             'pasif' => 0,
         ];
         $patientRows = self::patientUnifiedMenuEntries($patientStub, $isAdmin);
@@ -913,7 +920,7 @@ class BadgeHelper {
         $aktif = \App\Models\Patient::isAktif($hasta->pasif ?? null);
         $tcQ = rawurlencode((string) ($hasta->tckimlik ?? ''));
         $tcRaw = (string) ($hasta->tckimlik ?? '');
-        $id = (int) ($hasta->id ?? 0);
+        $id = self::entityId($hasta->id ?? null) ?? '';
         $out = [];
 
         if ($aktif) {
@@ -935,7 +942,7 @@ class BadgeHelper {
                 'label' => 'Planlı izlemler',
                 'icon' => 'fa-solid fa-calendar-week text-warning',
             ];
-            if ($id > 0) {
+            if ($id !== '') {
                 foreach (self::patientWoundBradenMenuItems($hasta) as $clinicalRow) {
                     $out[] = $clinicalRow;
                 }
@@ -959,7 +966,7 @@ class BadgeHelper {
                     ];
                 }
             }
-            if ($id > 0) {
+            if ($id !== '') {
                 $out = self::appendPatientClinicalFormMenuSection($out, $hasta);
             }
         }

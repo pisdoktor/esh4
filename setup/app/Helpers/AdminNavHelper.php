@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Helpers\AuthHelper;
 /**
  * Yönetim navbar mega menüsü — tek kaynak (gruplu bağlantılar).
- * Kurum yöneticisi ve süper yönetici öğeleri role göre filtrelenir.
+ * Kurum yöneticisi ve bölge yöneticisi öğeleri role göre filtrelenir.
  */
 class AdminNavHelper
 {
@@ -30,9 +31,10 @@ class AdminNavHelper
         if ($currentController !== 'Settings') {
             return false;
         }
-        $active = isset($_GET['tab']) ? (string) $_GET['tab'] : 'modules';
+        $raw = isset($_GET['tab']) ? (string) $_GET['tab'] : 'modules';
+        $active = \App\Helpers\SettingsNavCatalog::resolveTab($raw);
 
-        return in_array($active, ['modules', 'islem_ids', 'harita', 'planlama', 'kurumsal', 'nobet'], true);
+        return in_array($active, \App\Helpers\SettingsNavCatalog::tabsForRole(), true);
     }
 
     private static function settingsUrl(string $tab = 'modules'): string
@@ -78,6 +80,18 @@ class AdminNavHelper
         return AuthHelper::sessionIsPlatformOwner();
     }
 
+    private static function menuRoleLabel(): string
+    {
+        if (self::isPlatformOwnerMenu()) {
+            return AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER);
+        }
+        if (self::isSuperAdminMenu()) {
+            return AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN);
+        }
+
+        return AuthHelper::adminLevelLabel(AuthHelper::ROLE_ADMIN);
+    }
+
     /**
      * @return array<int, array{title: string, icon: string, accent: string, items: list<array{label: string, href: string, icon: string, icon_class: string, title: string, active: bool, danger?: bool, full_width?: bool}>}>
      */
@@ -94,16 +108,7 @@ class AdminNavHelper
                 self::link('Federasyon özeti', esh_url('Federation', 'index'), 'fa-diagram-project', 'text-primary', $currentController === 'Federation'),
                 self::link('Federasyon bölgeleri', esh_url('FederationRegion', 'index'), 'fa-map', 'text-primary', $currentController === 'FederationRegion'),
                 self::link('Federasyon köprüsü', esh_url('FederationBridge', 'index'), 'fa-file-export', 'text-primary', $currentController === 'FederationBridge'),
-            ]));
-        }
-        if ($superAdmin) {
-            $platformItems = array_merge($platformItems, array_values(array_filter([
-                self::link('Kurum yönetimi', esh_url('Kurum', 'index'), 'fa-building', 'text-dark', $currentController === 'Kurum'),
-                self::link('Kurum adres ataması', esh_url('KurumAdres', 'index'), 'fa-map-location-dot', 'text-dark', $currentController === 'KurumAdres'),
-                self::link('Güvence yönetimi', esh_url('Guvence', 'index'), 'fa-shield-heart', 'text-dark', $currentController === 'Guvence'),
-                self::link('Rol ve izin yönetimi', esh_url('Role', 'index'), 'fa-user-shield', 'text-primary', $currentController === 'Role'),
-                self::link('Personel ünvanları', esh_url('Unvan', 'index'), 'fa-id-badge', 'text-primary', $currentController === 'Unvan'),
-                \App\Services\MesajService::canUseMessaging((int) ($_SESSION['user_id'] ?? 0))
+                \App\Services\MesajService::canUseMessaging((AuthHelper::sessionUserId() ?? ''))
                     ? self::link(
                         'Sistem duyurusu',
                         esh_url('Mesaj', 'broadcast'),
@@ -112,6 +117,14 @@ class AdminNavHelper
                         $currentController === 'Mesaj' && $currentAction === 'broadcast'
                     )
                     : null,
+                self::link('Personel ünvanları', esh_url('Unvan', 'index'), 'fa-id-badge', 'text-primary', $currentController === 'Unvan'),
+            ]));
+        }
+        if ($superAdmin) {
+            $platformItems = array_merge($platformItems, array_values(array_filter([
+                self::link('Kurum yönetimi', esh_url('Kurum', 'index'), 'fa-building', 'text-dark', $currentController === 'Kurum'),
+                self::link('Kurum adres ataması', esh_url('KurumAdres', 'index'), 'fa-map-location-dot', 'text-dark', $currentController === 'KurumAdres'),
+                self::link('Rol ve izin yönetimi', esh_url('Role', 'index'), 'fa-user-shield', 'text-primary', $currentController === 'Role'),
             ])));
         }
         if (AuthHelper::sessionIsAdmin()) {
@@ -186,6 +199,16 @@ class AdminNavHelper
                 $currentController === 'Adrestanim'
             );
         }
+        if (AppSettings::isModuleEnabled('manuel_koordinat')) {
+            $ekipSahaItems[] = self::link(
+                'Manuel koordinat düzeltme',
+                esh_url('ManuelKoordinat', 'index'),
+                'fa-map-pin',
+                'text-warning',
+                $currentController === 'ManuelKoordinat',
+                'Haritadan kapı koordinatı işaretleme'
+            );
+        }
         if (AppSettings::isModuleEnabled('archive')) {
             $ekipSahaItems[] = self::link(
                 'Hasta dosya sistemi',
@@ -218,14 +241,26 @@ class AdminNavHelper
 
         // --- Grup 3: Katalog ---
         $katalogItems = [];
-        if ($superAdmin) {
+        if ($platformOwner) {
             $katalogItems = [
+                self::link('Güvence yönetimi', esh_url('Guvence', 'index'), 'fa-shield-heart', 'text-dark', $currentController === 'Guvence'),
                 self::link('Hastalık yönetimi', esh_url('Hastalik', 'index'), 'fa-virus', 'text-danger', $currentController === 'Hastalik'),
                 self::link('İşlem yönetimi', esh_url('Islem', 'index'), 'fa-list-check', 'text-secondary', $currentController === 'Islem'),
                 self::link('Branş ve kota yönetimi', esh_url('Brans', 'index'), 'fa-building-user', 'text-info', $currentController === 'Brans'),
-                self::link('EK-3 başvuru amaçları yönetimi', esh_url('Istek', 'index'), 'fa-clipboard-list', 'text-primary', $currentController === 'Istek'),
                 self::link('İlaç Listesi Sistemi', esh_url('IlacListesi', 'index'), 'fa-pills', 'text-dark', $currentController === 'IlacListesi', 'TİTCK Modül 43 Excel → ilac-listesi.json'),
             ];
+        }
+        if ($superAdmin) {
+            $katalogItems = array_merge($katalogItems, [
+                self::link('EK-3 başvuru amaçları yönetimi', esh_url('Istek', 'index'), 'fa-clipboard-list', 'text-primary', $currentController === 'Istek'),
+            ]);
+            if (!$platformOwner) {
+                $katalogItems = array_merge($katalogItems, [
+                    self::link('Branş seçimi', esh_url('Brans', 'index'), 'fa-hospital-user', 'text-info', $currentController === 'Brans'),
+                    self::link('Hastalık seçimi', esh_url('Hastalik', 'index'), 'fa-virus', 'text-danger', $currentController === 'Hastalik'),
+                    self::link('İşlem seçimi', esh_url('Islem', 'index'), 'fa-list-check', 'text-secondary', $currentController === 'Islem'),
+                ]);
+            }
         } elseif ($kurumAdmin) {
             $katalogItems = [
                 self::link('Branş seçimi', esh_url('Brans', 'index'), 'fa-hospital-user', 'text-info', $currentController === 'Brans'),
@@ -251,42 +286,48 @@ class AdminNavHelper
                 'text-info',
                 $currentController === 'Stats' && $currentAction === 'adresPatientFilter'
             ),
-            self::link(
+        ];
+        if ($superAdmin) {
+            $raporItems[] = self::link(
                 'İşlem günlüğü (denetim)',
                 esh_url('AuditLog', 'index'),
                 'fa-clipboard-list',
                 'text-warning',
                 $currentController === 'AuditLog'
-            ),
-            self::link(
-                'ESYS alan eşlemesi',
-                esh_url('EsysCompliance', 'index'),
-                'fa-link',
-                'text-secondary',
-                $currentController === 'EsysCompliance'
-            ),
-            self::link(
-                'ESYS / AHBS köprüsü',
-                esh_url('EsysBridge', 'index'),
-                'fa-bridge',
-                'text-secondary',
-                $currentController === 'EsysBridge'
-            ),
-            self::link(
-                'USBS alan eşlemesi',
-                esh_url('UsbsCompliance', 'index'),
-                'fa-heart-pulse',
-                'text-info',
-                $currentController === 'UsbsCompliance'
-            ),
-            self::link(
-                'USBS / e-Nabız köprüsü',
-                esh_url('UsbsBridge', 'index'),
-                'fa-file-export',
-                'text-info',
-                $currentController === 'UsbsBridge'
-            ),
-        ];
+            );
+        }
+        if ($platformOwner) {
+            $raporItems = array_merge($raporItems, [
+                self::link(
+                    'ESYS alan eşlemesi',
+                    esh_url('EsysCompliance', 'index'),
+                    'fa-link',
+                    'text-secondary',
+                    $currentController === 'EsysCompliance'
+                ),
+                self::link(
+                    'ESYS / AHBS köprüsü',
+                    esh_url('EsysBridge', 'index'),
+                    'fa-bridge',
+                    'text-secondary',
+                    $currentController === 'EsysBridge'
+                ),
+                self::link(
+                    'USBS alan eşlemesi',
+                    esh_url('UsbsCompliance', 'index'),
+                    'fa-heart-pulse',
+                    'text-info',
+                    $currentController === 'UsbsCompliance'
+                ),
+                self::link(
+                    'USBS / e-Nabız köprüsü',
+                    esh_url('UsbsBridge', 'index'),
+                    'fa-file-export',
+                    'text-info',
+                    $currentController === 'UsbsBridge'
+                ),
+            ]);
+        }
         if (AppSettings::isModuleEnabled('patient_portal')) {
             $raporItems[] = self::link(
                 'Portal randevu talepleri',
@@ -311,7 +352,9 @@ class AdminNavHelper
         if ($superAdmin) {
             $altyapiItems = array_values(array_filter([
                 self::link('Tema görünümü yönetimi', esh_url('Theme', 'index'), 'fa-palette', 'text-dark', $currentController === 'Theme'),
-                self::link('CDN sürüm kontrolü', esh_url('CdnCheck', 'index'), 'fa-cloud-arrow-down', 'text-dark', $currentController === 'CdnCheck', 'Bootstrap, jQuery, Toastr vb. sabit sürümler — npm/cdnjs'),
+                $platformOwner
+                    ? self::link('CDN sürüm kontrolü', esh_url('CdnCheck', 'index'), 'fa-cloud-arrow-down', 'text-dark', $currentController === 'CdnCheck', 'Bootstrap, jQuery, Toastr vb. sabit sürümler — npm/cdnjs')
+                    : null,
                 self::link('Denizli adres senkronu', esh_url('AdresFetch', 'index'), 'fa-cloud-arrow-down', 'text-info', $currentController === 'AdresFetch' && $currentAction === 'index'),
                 self::link('Adres ağacı', esh_url('AdresFetch', 'tree'), 'fa-sitemap', 'text-secondary', $currentController === 'AdresFetch' && $currentAction === 'tree'),
                 self::link('Eksik ilçe taraması', esh_url('AdresFetch', 'tarama'), 'fa-magnifying-glass', 'text-warning', $currentController === 'AdresFetch' && $currentAction === 'tarama'),
@@ -319,7 +362,7 @@ class AdminNavHelper
                     ? self::link('Adres koordinat bulma', esh_url('AdresKoordinat', 'index'), 'fa-location-crosshairs', 'text-primary', $currentController === 'AdresKoordinat')
                     : null,
                 AppSettings::isModuleEnabled('harita')
-                    ? self::link('Hasta haritası (TomTom)', esh_url('Harita', 'index'), 'fa-map-marked-alt', 'text-danger', $currentController === 'Harita')
+                    ? self::link('Hasta haritası', esh_url('Harita', 'index'), 'fa-map-marked-alt', 'text-danger', $currentController === 'Harita')
                     : null,
                 AppSettings::isModuleEnabled('ilac_rehber')
                     ? self::link('İlaç rehberi (veri özeti)', esh_url('IlacRehber', 'index'), 'fa-book-medical', 'text-dark', $currentController === 'IlacRehber' && $currentAction === 'index')
@@ -476,7 +519,7 @@ class AdminNavHelper
         if ($groups === []) {
             return;
         }
-        $roleLabel = self::isSuperAdminMenu() ? 'Süper yönetici' : 'Kurum yöneticisi';
+        $roleLabel = self::menuRoleLabel();
         $totalLinks = 0;
         foreach ($groups as $group) {
             $totalLinks += count($group['items']);

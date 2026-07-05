@@ -4,7 +4,7 @@
                         <?= esh_form_route_hiddens('KurumAdres', 'index') ?>
                         <div class="col-md-6 col-lg-4">
                             <label class="form-label fw-semibold" for="eshKurumAdresKurum">Kurum</label>
-                            <select name="kurum_id" id="eshKurumAdresKurum" class="form-select" onchange="this.form.submit()">
+                            <select name="kurum_id" id="eshKurumAdresKurum" class="form-select" data-esh-auto-submit>
                                 <?php foreach ($kurumlar as $k): ?>
                                     <option value="<?= (int) ($k->id ?? 0) ?>"<?= (int) ($k->id ?? 0) === $kurumId ? ' selected' : '' ?>>
                                         <?= htmlspecialchars((string) ($k->ad ?? ''), ENT_QUOTES, 'UTF-8') ?>

@@ -2,16 +2,16 @@
 declare(strict_types=1);
 
 /** @var list<object> $ilaclar */
-/** @var array<int, string> $hastalikAdById */
-/** @var int $patientId */
+/** @var array<string, string> $hastalikAdByIcd */
+/** @var string $patientId */
 
 if (empty($ilaclar)): ?>
     <tr><td colspan="4" class="text-center text-muted py-4">Henüz ilaç kaydı yok. Yukarıdaki formdan ekleyebilirsiniz.</td></tr>
 <?php else:
     foreach ($ilaclar as $il):
-        $ilId = (int) ($il->id ?? 0);
-        $ilHid = (int) ($il->hastalikid ?? 0);
-        $ilTani = $ilHid > 0 ? ($hastalikAdById[$ilHid] ?? '—') : '—';
+        $ilId = (string) ($il->id ?? '');
+        $ilIcd = \App\Models\Patient::normalizeHastalikIcd((string) ($il->hastalikicd ?? ''));
+        $ilTani = $ilIcd !== '' ? ($hastalikAdByIcd[$ilIcd] ?? $ilIcd) : '—';
         $ilNot = trim((string) ($il->not ?? ''));
         $ilRecete = trim((string) ($il->recete_turu ?? ''));
         $ilMetaParts = $ilRecete !== '' ? [$ilRecete] : [];
@@ -38,11 +38,11 @@ if (empty($ilaclar)): ?>
             ?>
             <?= \App\Helpers\FormHelper::listActionsGroup(
                 '<button type="button" class="btn btn-sm btn-outline-primary hastailacrapor-edit-ilac-btn" data-bs-toggle="modal" data-bs-target="#hastailacIlacModal" title="Düzenle"'
-                . ' data-ilac-id="' . $ilId . '"'
+                . ' data-ilac-id="' . htmlspecialchars($ilId, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-ilac-adi="' . htmlspecialchars((string) ($il->ilac_adi ?? ''), ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-recete-turu="' . htmlspecialchars($ilRecete, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-not="' . htmlspecialchars($ilNot, ENT_QUOTES, 'UTF-8') . '"'
-                . ' data-hastalikid="' . ($ilHid > 0 ? $ilHid : '') . '"'
+                . ' data-hastalik-icd="' . htmlspecialchars($ilIcd, ENT_QUOTES, 'UTF-8') . '"'
                 . '><i class="fa-solid fa-pen" aria-hidden="true"></i></button>' . $__ilDel
             ) ?>
             <?php unset($__ilDel); ?>

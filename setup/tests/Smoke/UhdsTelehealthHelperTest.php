@@ -15,11 +15,12 @@ final class UhdsTelehealthHelperTest extends TestCase
 
     public function testPatientJoinTokenRoundTrip(): void
     {
-        $token = UhdsTelehealthHelper::createPatientJoinToken(42, '2026-07-02');
+        $appointmentId = 'bbbbbbbb-bbbb-4bbb-8bbb-000000000042';
+        $token = UhdsTelehealthHelper::createPatientJoinToken($appointmentId, '2026-07-02');
         self::assertNotSame('', $token);
         $claims = UhdsTelehealthHelper::verifyPatientJoinToken($token);
         self::assertIsArray($claims);
-        self::assertSame(42, $claims['id']);
+        self::assertSame($appointmentId, $claims['id']);
         self::assertSame('patient', $claims['role']);
         self::assertSame('2026-07-02', $claims['d']);
     }

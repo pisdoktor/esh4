@@ -20,7 +20,7 @@ use App\Models\KurumIslem;
 
 /**
 
- * Tıbbi işlem kataloğu (süper yönetici) ve kurum seçimi.
+ * Tıbbi işlem kataloğu (platform sahibi) ve kurum seçimi.
 
  */
 
@@ -38,9 +38,11 @@ class IslemController {
 
     private function requireCatalogAdmin(): void {
 
-        if (!AuthHelper::sessionIsSuperAdmin()) {
+        if (!AuthHelper::sessionIsPlatformOwner()) {
 
-            $_SESSION['error'] = 'Platform kataloğunu yalnızca süper yönetici düzenleyebilir.';
+            $_SESSION['error'] = 'Platform kataloğunu yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' düzenleyebilir.';
 
             header('Location: ' . esh_url('Islem', 'index'));
 

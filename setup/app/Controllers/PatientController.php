@@ -13,6 +13,7 @@ use App\Helpers\AuditLogHelper;
 use App\Helpers\EsysComplianceHelper;
 use App\Helpers\UsbsComplianceHelper;
 use App\Helpers\ClinicalDecisionSupportHelper;
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\BradenScaleHelper;
 use App\Helpers\ItakiScaleHelper;
 use App\Helpers\HarizmiScaleHelper;
@@ -21,6 +22,7 @@ use App\Helpers\MnaScaleHelper;
 use App\Helpers\IslemIdSettings;
 use App\Helpers\PatientKurumTransfer;
 use App\Helpers\PatientNakilRequest;
+use App\Helpers\IdHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\PostAllowlistHelper;
 use App\Helpers\QueryHelper;
@@ -353,8 +355,8 @@ class PatientController {
      * Dashboard "ilk ziyaret" kısayolu: bekleyen hastayı düzenleme ekranına yönlendirir.
      */
     public function firstSave() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             header('Location: ' . esh_url('Patient', 'ilkkayit'));
             exit;
         }
@@ -366,8 +368,8 @@ class PatientController {
      * Bekleyen hasta için pdfmake başvuru/değerlendirme formu.
      */
     public function waitingForm() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'waiting',
@@ -405,7 +407,7 @@ class PatientController {
     
     //bekleyen hasta düzenlemesi
     public function bedit() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = PatientAccessHelper::requirePatientAccess(
             $id,
             null,
@@ -506,7 +508,7 @@ class PatientController {
     
     //ilk kayıt hasta kaydetme
     public function fsave() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $isAdminFsave = AuthHelper::sessionIsAdmin();
         $data = PostAllowlistHelper::pick($_POST, $this->patientFsaveAllowlistKeys($id, $isAdminFsave));
         if ($isAdminFsave && EsysComplianceHelper::enabled()) {
@@ -515,37 +517,23 @@ class PatientController {
         if ($isAdminFsave && UsbsComplianceHelper::enabled()) {
             $data = array_merge($data, UsbsComplianceHelper::pickPatientRefs($data));
         }
-        $id = isset($data['id']) ? (int) $data['id'] : $id;
-
-        $phoneErr = \App\Helpers\ValidationHelper::applyPhoneFields($data, $id === 0);
-        if ($phoneErr !== null) {
-            $_SESSION['error'] = $phoneErr;
-            header('Location: ' . ($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
-            exit;
-        }
-
-        if (!\App\Helpers\ValidationHelper::isTcLength11($data['tckimlik'] ?? '')) {
-            $_SESSION['error'] = 'TC kimlik numarası tam 11 haneli olmalıdır.';
-            header('Location: ' . ($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
-            exit;
-        }
-
-        $tcDigits = \App\Helpers\ValidationHelper::tcDigitsOnly($data['tckimlik'] ?? '');
-        $tcUniqueErr = $this->validateTcGloballyUnique($tcDigits, $id);
-        if ($tcUniqueErr !== null) {
-            $_SESSION['error'] = $tcUniqueErr;
-            header('Location: ' . ($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
-            exit;
-        }
+        $id = IdHelper::normalizeRequestId($data['id'] ?? null) ?? $id;
 
         $model = new Patient();
         $previousTc = '';
-        if ($id > 0) {
-            PatientAccessHelper::requirePatientAccess(
+        if ($id !== null) {
+            $existingPatient = PatientAccessHelper::requirePatientAccess(
                 $id,
                 null,
                 esh_url('Patient', 'unified', ['status' => 'waiting'])
             );
+            if (!$isAdminFsave) {
+                foreach (['tckimlik', 'kayittarihi'] as $fsaveImmutableField) {
+                    if (!array_key_exists($fsaveImmutableField, $data)) {
+                        $data[$fsaveImmutableField] = (string) ($existingPatient->$fsaveImmutableField ?? '');
+                    }
+                }
+            }
             if (!$model->load($id)) {
                 $_SESSION['error'] = 'Hasta bulunamadı.';
                 header('Location: ' . esh_url('Patient', 'unified', array (
@@ -556,7 +544,28 @@ class PatientController {
             $previousTc = trim((string) ($model->tckimlik ?? ''));
         }
 
-        if ($id > 0 && AuthHelper::sessionIsSuperAdmin() && isset($_POST['kurum_id'])) {
+        $phoneErr = \App\Helpers\ValidationHelper::applyPhoneFields($data, $id === null);
+        if ($phoneErr !== null) {
+            $_SESSION['error'] = $phoneErr;
+            header('Location: ' . ($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
+            exit;
+        }
+
+        if (!\App\Helpers\ValidationHelper::isTcLength11($data['tckimlik'] ?? '')) {
+            $_SESSION['error'] = 'TC kimlik numarası tam 11 haneli olmalıdır.';
+            header('Location: ' . ($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
+            exit;
+        }
+
+        $tcDigits = \App\Helpers\ValidationHelper::tcDigitsOnly($data['tckimlik'] ?? '');
+        $tcUniqueErr = $this->validateTcGloballyUnique($tcDigits, $id);
+        if ($tcUniqueErr !== null) {
+            $_SESSION['error'] = $tcUniqueErr;
+            header('Location: ' . ($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
+            exit;
+        }
+
+        if ($id !== null && AuthHelper::sessionIsSuperAdmin() && isset($_POST['kurum_id'])) {
             $newKid = (int) $_POST['kurum_id'];
             if ((int) ($model->kurum_id ?? 0) !== $newKid) {
                 $err = PatientKurumTransfer::validate($model, $newKid);
@@ -566,7 +575,7 @@ class PatientController {
                     exit;
                 }
                 if ((string) ($model->pasif ?? '') === '0') {
-                    $transferResult = PatientKurumTransfer::apply($model, $newKid, (int) ($_SESSION['user_id'] ?? 0));
+                    $transferResult = PatientKurumTransfer::apply($model, $newKid, (AuthHelper::sessionUserId() ?? ''));
                     if ($transferResult === false) {
                         $_SESSION['error'] = 'Kurum değiştirilirken bir hata oluştu.';
                         header('Location: ' . esh_url('Patient', 'bedit', ['id' => $id]));
@@ -597,7 +606,7 @@ class PatientController {
         }
 
         // İlk kayıt (ilkkayit): doğum tarihi, ana adres mahalle zorunlu
-        if ($id === 0) {
+        if ($id === null) {
             $dogumVal = isset($data['dogumtarihi']) ? trim((string) $data['dogumtarihi']) : '';
             if ($dogumVal === '' || $dogumVal === '0000-00-00') {
                 $_SESSION['error'] = 'Doğum tarihi zorunludur.';
@@ -616,13 +625,13 @@ class PatientController {
         $randevuYmd = isset($data['randevutarihi']) ? trim((string) $data['randevutarihi']) : '';
         if ($kayitYmd !== '' && $randevuYmd !== '' && strcmp($randevuYmd, $kayitYmd) < 0) {
             $_SESSION['error'] = 'Ilk randevu tarihi, sisteme kayit tarihinden kucuk olamaz.';
-            header('Location: ' . ($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
+            header('Location: ' . ($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
             exit;
         }
         
         $pasifVal = null;
         $nakilPassiveCtx = ['error' => null, 'should_create' => false, 'hedef' => ''];
-        if ($id === 0) {
+        if ($id === null) {
             $data['pasif'] = '-3';
         } elseif ($isAdminFsave) {
             $pasifVal = PatientCareHelper::normalizePasifForStore(
@@ -646,7 +655,7 @@ class PatientController {
         } else {
             unset($data['pasif'], $data['pasifnedeni'], $data['pasiftarihi']);
         }
-        $data['cinsiyet'] = $this->normalizeGender($data['cinsiyet'] ?? null);
+        $data['cinsiyet'] = CinsiyetHelper::normalize($data['cinsiyet'] ?? null);
     
         // Çoklu Adres İşleme
         if (isset($data['adres']) && is_array($data['adres'])) {
@@ -668,13 +677,13 @@ class PatientController {
             $data['diger_adres'] = json_encode($yedekler, JSON_UNESCAPED_UNICODE);
         }
 
-        $kurumIdForScope = $id > 0
+        $kurumIdForScope = $id !== null
             ? (int) ($data['kurum_id'] ?? $model->kurum_id ?? TenantContext::assignKurumIdForStore())
-            : $this->resolveIlkkayitKurumId($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit'));
+            : $this->resolveIlkkayitKurumId($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit'));
         $this->assertPatientAddressScopeInPost(
             $data,
             $kurumIdForScope,
-            $id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')
+            $id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')
         );
 
         if (array_key_exists('guvence', $data)) {
@@ -685,12 +694,11 @@ class PatientController {
             }
         }
 
-        $postedCoords = isset($data['coords']) ? trim((string) $data['coords']) : '';
         unset($data['coords']);
 
         $model->bind($data);
 
-        if ($id === 0) {
+        if ($id === null) {
             TenantStoreHelper::applyKurumIdToModel(
                 $model,
                 AuthHelper::sessionIsSuperAdmin() ? $kurumIdForScope : null
@@ -698,25 +706,22 @@ class PatientController {
         }
         
         // Kayıt işlemi
-        $saved = $id > 0
+        $saved = $id !== null
             ? $this->storePatientWithTcCascade($model, $previousTc)
             : $model->store();
         if ($saved) {
-            if ($id > 0) {
+            if ($id !== null) {
                 AuditLogHelper::patientUpdate($model);
             } else {
                 AuditLogHelper::patientCreate($model);
             }
             $this->patientStoreTcChecksumWarning($data);
-            if ($postedCoords !== '') {
-                $this->persistCoordsStringForPatient($model, $postedCoords);
-            }
             $this->processNakilAfterPassiveSave($model, $nakilPassiveCtx);
-            $_SESSION['success'] = $id > 0
+            $_SESSION['success'] = $id !== null
                 ? 'Hasta bilgileri güncellendi.'
                 : 'Hasta ön kaydı başarıyla oluşturuldu.';
             $redirectStatus = 'waiting';
-            if ($id > 0 && isset($pasifVal)) {
+            if ($id !== null && isset($pasifVal)) {
                 if ($pasifVal === 0) {
                     $redirectStatus = 'active';
                 } elseif ($pasifVal === 1) {
@@ -726,7 +731,7 @@ class PatientController {
             header('Location: ' . esh_url('Patient', 'unified', ['status' => $redirectStatus]));
         } else {
             $_SESSION['error'] = 'Veritabanı hatası: Kayıt tamamlanamadı.';
-            header('Location: ' . ($id > 0 ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
+            header('Location: ' . ($id !== null ? esh_url('Patient', 'bedit', ['id' => $id]) : esh_url('Patient', 'ilkkayit')));
         }
         
         exit;
@@ -734,7 +739,7 @@ class PatientController {
 
     //hasta düzenleme
     public function edit() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = PatientAccessHelper::requirePatientAccess($id);
 
         AuditLogHelper::patientEditView($patient);
@@ -753,16 +758,13 @@ class PatientController {
      */
     private function buildPatientEditFormContext(object $patient): array
     {
-        $id = (int) ($patient->id ?? 0);
+        $id = (string) ($patient->id ?? '');
 
         if (is_array($patient->hastaliklar ?? null)) {
-            $selectedHastalikIds = $patient->hastaliklar;
+            $selectedHastalikIcds = Patient::parseHastalikCsvToIcds($patient->hastaliklar);
         } else {
-            $hlRaw = (string) ($patient->hastaliklar ?? '');
-            $selectedHastalikIds = $hlRaw === '' ? [] : array_values(array_filter(explode(',', $hlRaw), static function ($v) {
-                return $v !== null && $v !== '';
-            }));
-            $patient->hastaliklar = $selectedHastalikIds;
+            $selectedHastalikIcds = Patient::parseHastalikCsvToIcds((string) ($patient->hastaliklar ?? ''));
+            $patient->hastaliklar = $selectedHastalikIcds;
         }
 
         $patientKurumId = (int) ($patient->kurum_id ?? 0);
@@ -773,16 +775,19 @@ class PatientController {
         }
 
         $preselectedRows = [];
-        if ($selectedHastalikIds !== []) {
-            $preselectedRows = $hastalikModel->ensureIdsInList([], $selectedHastalikIds);
+        if ($selectedHastalikIcds !== []) {
+            $preselectedRows = $hastalikModel->ensureIcdsInList([], $selectedHastalikIcds);
         }
 
         $options = [];
         foreach ($preselectedRows as $hastalik) {
-            $icd = trim((string) ($hastalik->icd ?? ''));
+            $icd = Patient::normalizeHastalikIcd((string) ($hastalik->icd ?? ''));
+            if ($icd === '') {
+                continue;
+            }
             $name = trim((string) ($hastalik->hastalikadi ?? ''));
-            $label = ($icd !== '' ? $icd . ' — ' : '') . $name;
-            $options[] = \App\Helpers\FormHelper::makeOption($hastalik->id, $label);
+            $label = $icd . ' — ' . $name;
+            $options[] = \App\Helpers\FormHelper::makeOption($icd, $label);
         }
 
         $searchAssignedUrl = \App\Helpers\UrlHelper::fromRequestParams([
@@ -794,7 +799,7 @@ class PatientController {
             . ' data-search-url="' . htmlspecialchars($searchAssignedUrl, ENT_QUOTES, 'UTF-8') . '"'
             . ' data-kurum-id="' . (int) $patientKurumId . '"'
             . ' data-placeholder="Tanı ara veya listeden seçin"';
-        if ($kurumHastalikBos && $selectedHastalikIds === []) {
+        if ($kurumHastalikBos && $selectedHastalikIcds === []) {
             $hastalikSelectAttrs = str_replace('required="required"', '', $hastalikSelectAttrs) . ' disabled="disabled"';
         }
 
@@ -804,7 +809,7 @@ class PatientController {
             $hastalikSelectAttrs,
             'value',
             'text',
-            $selectedHastalikIds,
+            $selectedHastalikIcds,
             null,
             false
         );
@@ -855,8 +860,8 @@ class PatientController {
     public function changeKurum(): void
     {
         AuthHelper::requireSuperAdmin();
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -887,9 +892,9 @@ class PatientController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $newKid = isset($_POST['kurum_id']) ? (int) $_POST['kurum_id'] : 0;
-        if ($id < 1) {
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -916,7 +921,7 @@ class PatientController {
             exit;
         }
 
-        $transferResult = PatientKurumTransfer::apply($patient, $newKid, (int) ($_SESSION['user_id'] ?? 0));
+        $transferResult = PatientKurumTransfer::apply($patient, $newKid, (AuthHelper::sessionUserId() ?? ''));
         if ($transferResult === false) {
             $_SESSION['error'] = 'Kurum değiştirilirken bir hata oluştu.';
             header('Location: ' . $redirect);
@@ -934,7 +939,7 @@ class PatientController {
     
     //hasta bilgi gösterme
     public function view() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $hasta = PatientAccessHelper::requirePatientAccess($id);
 
         AuditLogHelper::patientView($hasta);
@@ -959,44 +964,44 @@ class PatientController {
         $hastalikRaporMeta = [];
         $hastaIlaclar = [];
         $ilacRaporOzet = [];
-        $hastalikIdsRapor = [];
+        $hastalikIcdsRapor = [];
         foreach ($hastalikCardItems as $hi) {
-            $hid = (int) ($hi->id ?? 0);
-            if ($hid > 0) {
-                $hastalikIdsRapor[] = $hid;
+            $icd = Patient::normalizeHastalikIcd((string) ($hi->icd ?? ''));
+            if ($icd !== '') {
+                $hastalikIcdsRapor[] = $icd;
             }
         }
-        $hastalikAdByIdKimlik = [];
+        $hastalikAdByIcdKimlik = [];
         foreach ($hastalikCardItems as $hi) {
-            $hid = (int) ($hi->id ?? 0);
-            if ($hid > 0) {
-                $hastalikAdByIdKimlik[$hid] = (string) ($hi->ad ?? '');
+            $icd = Patient::normalizeHastalikIcd((string) ($hi->icd ?? ''));
+            if ($icd !== '') {
+                $hastalikAdByIcdKimlik[$icd] = (string) ($hi->ad ?? '');
             }
         }
         if (AppSettings::isModuleEnabled('hasta_ilac_rapor')) {
             $ilacModel = new HastaIlac();
             $ilacModel->ensureTable();
-            $hastaIlaclar = $ilacModel->getByHastaId((int) $hasta->id);
+            $hastaIlaclar = $ilacModel->getByHastaId((string) $hasta->id);
             foreach ($hastaIlaclar as $il) {
-                $hid = (int) ($il->hastalikid ?? 0);
-                $il->hastalik_adi = $hid > 0 ? ($hastalikAdByIdKimlik[$hid] ?? '') : '';
+                $icd = Patient::normalizeHastalikIcd((string) ($il->hastalikicd ?? ''));
+                $il->hastalik_adi = $icd !== '' ? ($hastalikAdByIcdKimlik[$icd] ?? $icd) : '';
             }
 
-            $mergedIlacRaporIds = Patient::mergedHastalikIdsForIlacRapor($hasta);
+            $mergedIlacRaporIcds = Patient::mergedHastalikIcdsForIlacRapor($hasta);
             $tcDigits = preg_replace('/\D+/', '', (string) ($hasta->tckimlik ?? ''));
-            if ($mergedIlacRaporIds !== [] && ValidationHelper::isTcLength11($tcDigits)) {
-                foreach ((new HastaIlacRapor())->getReportRowsForPatient($tcDigits, $mergedIlacRaporIds) as $rr) {
-                    $hid = (int) ($rr->hastalik_id ?? 0);
-                    if ($hid < 1) {
+            if ($mergedIlacRaporIcds !== [] && ValidationHelper::isTcLength11($tcDigits)) {
+                foreach ((new HastaIlacRapor())->getReportRowsForPatient($tcDigits, $mergedIlacRaporIcds) as $rr) {
+                    $icd = Patient::normalizeHastalikIcd((string) ($rr->hastalik_icd ?? ''));
+                    if ($icd === '') {
                         continue;
                     }
                     $raporEval = HastaIlacRaporStatusHelper::evaluateRow($rr);
                     if (!$raporEval['raporLu']) {
                         continue;
                     }
-                    $hastalikRaporVar[$hid] = true;
+                    $hastalikRaporVar[$icd] = true;
                     $bitisTr = !empty($rr->bitistarihi) ? DateHelper::toTrOrEmpty((string) $rr->bitistarihi) : '';
-                    $hastalikRaporMeta[$hid] = [
+                    $hastalikRaporMeta[$icd] = [
                         'bitis_tr' => $bitisTr,
                         'raporyeri' => (int) ($rr->raporyeri ?? 0),
                         'status' => $raporEval['status'],
@@ -1006,19 +1011,19 @@ class PatientController {
                     }
                 }
             }
-        } elseif ($hastalikIdsRapor !== []) {
+        } elseif ($hastalikIcdsRapor !== []) {
             $tcDigits = preg_replace('/\D+/', '', (string) ($hasta->tckimlik ?? ''));
             if (ValidationHelper::isTcLength11($tcDigits)) {
-                foreach ((new HastaIlacRapor())->getReportRowsForPatient($tcDigits, $hastalikIdsRapor) as $rr) {
-                    $hid = (int) ($rr->hastalik_id ?? 0);
-                    if ($hid < 1 || (int) ($rr->rapor_id ?? 0) < 1) {
+                foreach ((new HastaIlacRapor())->getReportRowsForPatient($tcDigits, $hastalikIcdsRapor) as $rr) {
+                    $icd = Patient::normalizeHastalikIcd((string) ($rr->hastalik_icd ?? ''));
+                    if ($icd === '' || (int) ($rr->rapor_id ?? 0) < 1) {
                         continue;
                     }
                     $raporEval = HastaIlacRaporStatusHelper::evaluateRow($rr);
                     if ($raporEval['raporLu']) {
-                        $hastalikRaporVar[$hid] = true;
+                        $hastalikRaporVar[$icd] = true;
                         $bitisTr = !empty($rr->bitistarihi) ? DateHelper::toTrOrEmpty((string) $rr->bitistarihi) : '';
-                        $hastalikRaporMeta[$hid] = [
+                        $hastalikRaporMeta[$icd] = [
                             'bitis_tr' => $bitisTr,
                             'raporyeri' => (int) ($rr->raporyeri ?? 0),
                             'status' => $raporEval['status'],
@@ -1036,7 +1041,7 @@ class PatientController {
         $woundPhotoCount = 0;
         $woundPhotosPreview = [];
         if (\App\Helpers\PatientClinicalFlagsHelper::isWoundPhotosModuleEnabled($hasta)) {
-            $woundPhotosAll = $woundModel->getByHastaId((int) $hasta->id);
+            $woundPhotosAll = $woundModel->getByHastaId((string) $hasta->id);
             $woundPhotoCount = count($woundPhotosAll);
             $woundPhotosPreview = array_slice($woundPhotosAll, 0, 3);
         }
@@ -1046,8 +1051,8 @@ class PatientController {
         $bradenLatest = null;
         $bradenCount = 0;
         if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($hasta)) {
-            $bradenLatest = $bradenModel->getLatestByHastaId((int) $hasta->id);
-            $bradenCount = $bradenModel->countByHastaId((int) $hasta->id);
+            $bradenLatest = $bradenModel->getLatestByHastaId((string) $hasta->id);
+            $bradenCount = $bradenModel->countByHastaId((string) $hasta->id);
         }
 
         $itakiModel = new ItakiAssessment();
@@ -1055,8 +1060,8 @@ class PatientController {
         $itakiLatest = null;
         $itakiCount = 0;
         if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($hasta)) {
-            $itakiLatest = $itakiModel->getLatestByHastaId((int) $hasta->id);
-            $itakiCount = $itakiModel->countByHastaId((int) $hasta->id);
+            $itakiLatest = $itakiModel->getLatestByHastaId((string) $hasta->id);
+            $itakiCount = $itakiModel->countByHastaId((string) $hasta->id);
         }
 
         $harizmiModel = new HarizmiAssessment();
@@ -1064,8 +1069,8 @@ class PatientController {
         $harizmiLatest = null;
         $harizmiCount = 0;
         if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($hasta)) {
-            $harizmiLatest = $harizmiModel->getLatestByHastaId((int) $hasta->id);
-            $harizmiCount = $harizmiModel->countByHastaId((int) $hasta->id);
+            $harizmiLatest = $harizmiModel->getLatestByHastaId((string) $hasta->id);
+            $harizmiCount = $harizmiModel->countByHastaId((string) $hasta->id);
         }
 
         $mnaModel = new MnaAssessment();
@@ -1073,8 +1078,8 @@ class PatientController {
         $mnaLatest = null;
         $mnaCount = 0;
         if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($hasta)) {
-            $mnaLatest = $mnaModel->getLatestByHastaId((int) $hasta->id);
-            $mnaCount = $mnaModel->countByHastaId((int) $hasta->id);
+            $mnaLatest = $mnaModel->getLatestByHastaId((string) $hasta->id);
+            $mnaCount = $mnaModel->countByHastaId((string) $hasta->id);
         }
 
         $barthelModel = new BarthelAssessment();
@@ -1082,8 +1087,8 @@ class PatientController {
         $barthelLatest = null;
         $barthelCount = 0;
         if (\App\Helpers\PatientClinicalFlagsHelper::isBarthelModuleEnabled($hasta)) {
-            $barthelLatest = $barthelModel->getLatestByHastaId((int) $hasta->id);
-            $barthelCount = $barthelModel->countByHastaId((int) $hasta->id);
+            $barthelLatest = $barthelModel->getLatestByHastaId((string) $hasta->id);
+            $barthelCount = $barthelModel->countByHastaId((string) $hasta->id);
         }
 
         $clinicalDecisionAlerts = [];
@@ -1103,7 +1108,7 @@ class PatientController {
                 $cdsAssessments,
                 $cdsDaysSince
             );
-            $ackCodes = $this->loadAcknowledgedClinicalAlertCodes((int) $hasta->id);
+            $ackCodes = $this->loadAcknowledgedClinicalAlertCodes((string) $hasta->id);
             if ($ackCodes !== []) {
                 $clinicalDecisionAlerts = array_values(array_filter(
                     $clinicalDecisionAlerts,
@@ -1114,7 +1119,7 @@ class PatientController {
                 ));
             }
         }
-        $clinicalDecisionPatientId = (int) $hasta->id;
+        $clinicalDecisionPatientId = (string) $hasta->id;
 
         $pasifnedeni = "";
         if ($hasta->pasif) {
@@ -1160,11 +1165,11 @@ class PatientController {
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
         }
-        $patientId = (int) ($_POST['patient_id'] ?? 0);
+        $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
         $code = trim((string) ($_POST['alert_code'] ?? ''));
-        if ($patientId <= 0 || $code === '') {
+        if ($patientId === null || $code === '') {
             $_SESSION['error'] = 'Geçersiz klinik uyarı isteği.';
-            header('Location: ' . esh_url('Patient', 'view', ['id' => $patientId]));
+            header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
         }
         $patient = PatientAccessHelper::requirePatientAccess($patientId);
@@ -1176,7 +1181,7 @@ class PatientController {
                 $patientId,
                 (int) ($patient->kurum_id ?? 1),
                 substr($code, 0, 80),
-                (int) ($_SESSION['user_id'] ?? 0),
+                (AuthHelper::sessionUserId() ?? ''),
                 trim((string) ($_POST['ack_note'] ?? '')),
             ]
         );
@@ -1190,9 +1195,9 @@ class PatientController {
     /**
      * @return list<string>
      */
-    private function loadAcknowledgedClinicalAlertCodes(int $patientId): array
+    private function loadAcknowledgedClinicalAlertCodes(string $patientId): array
     {
-        if ($patientId <= 0) {
+        if ($patientId === null) {
             return [];
         }
         $db = \App\Core\Database::getInstance();
@@ -1221,8 +1226,8 @@ class PatientController {
      * Hasta yara fotoğrafları — tam galeri, yükleme ve karşılaştırma.
      */
     public function wounds() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -1252,8 +1257,8 @@ class PatientController {
      * Hasta Braden ölçeği — değerlendirme formu ve geçmiş kayıtlar.
      */
     public function braden() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -1277,8 +1282,8 @@ class PatientController {
     }
 
     public function saveBraden() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -1319,7 +1324,7 @@ class PatientController {
         $row->set('risk_duzeyi', $risk['label']);
         $notlar = trim((string) ($_POST['notlar'] ?? ''));
         $row->set('notlar', $notlar !== '' ? $notlar : null);
-        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+        $row->set('kaydeden_id', AuthHelper::sessionUserId());
 
         if ($row->store()) {
             $_SESSION['success'] = 'Braden değerlendirmesi kaydedildi.';
@@ -1332,9 +1337,9 @@ class PatientController {
     }
 
     public function deleteBraden() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
-        if ($id <= 0 || $assessmentId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $assessmentId = IdHelper::normalizeRequestId($_POST['assessment_id'] ?? null);
+        if ($id === null || $assessmentId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -1354,7 +1359,7 @@ class PatientController {
         $bradenModel = new BradenAssessment();
         $bradenModel->ensureTable();
         $assessment = $bradenModel->getById($assessmentId);
-        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+        if (!$assessment || !IdHelper::idsMatch($assessment->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'Braden kaydı bulunamadı.';
             header('Location: ' . $this->patientBradenUrl($id));
             exit;
@@ -1370,8 +1375,8 @@ class PatientController {
      * Hasta İTAKİ II düşme riski ölçeği.
      */
     public function itaki() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1397,8 +1402,8 @@ class PatientController {
     }
 
     public function saveItaki() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1438,7 +1443,7 @@ class PatientController {
         $row->set('risk_duzeyi', $risk['label']);
         $notlar = trim((string) ($_POST['notlar'] ?? ''));
         $row->set('notlar', $notlar !== '' ? $notlar : null);
-        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+        $row->set('kaydeden_id', AuthHelper::sessionUserId());
 
         if ($row->store()) {
             $_SESSION['success'] = 'İTAKİ değerlendirmesi kaydedildi.';
@@ -1451,9 +1456,9 @@ class PatientController {
     }
 
     public function deleteItaki() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
-        if ($id <= 0 || $assessmentId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $assessmentId = IdHelper::normalizeRequestId($_POST['assessment_id'] ?? null);
+        if ($id === null || $assessmentId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1471,7 +1476,7 @@ class PatientController {
         $itakiModel = new ItakiAssessment();
         $itakiModel->ensureTable();
         $assessment = $itakiModel->getById($assessmentId);
-        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+        if (!$assessment || !IdHelper::idsMatch($assessment->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'İTAKİ kaydı bulunamadı.';
             header('Location: ' . $this->patientItakiUrl($id));
             exit;
@@ -1487,8 +1492,8 @@ class PatientController {
      * Hasta Harizmi II düşme riski ölçeği.
      */
     public function harizmi() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1514,8 +1519,8 @@ class PatientController {
     }
 
     public function saveHarizmi() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1555,7 +1560,7 @@ class PatientController {
         $row->set('risk_duzeyi', $risk['label']);
         $notlar = trim((string) ($_POST['notlar'] ?? ''));
         $row->set('notlar', $notlar !== '' ? $notlar : null);
-        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+        $row->set('kaydeden_id', AuthHelper::sessionUserId());
 
         if ($row->store()) {
             $_SESSION['success'] = 'Harizmi değerlendirmesi kaydedildi.';
@@ -1568,9 +1573,9 @@ class PatientController {
     }
 
     public function deleteHarizmi() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
-        if ($id <= 0 || $assessmentId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $assessmentId = IdHelper::normalizeRequestId($_POST['assessment_id'] ?? null);
+        if ($id === null || $assessmentId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1588,7 +1593,7 @@ class PatientController {
         $harizmiModel = new HarizmiAssessment();
         $harizmiModel->ensureTable();
         $assessment = $harizmiModel->getById($assessmentId);
-        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+        if (!$assessment || !IdHelper::idsMatch($assessment->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'Harizmi kaydı bulunamadı.';
             header('Location: ' . $this->patientHarizmiUrl($id));
             exit;
@@ -1604,8 +1609,8 @@ class PatientController {
      * Hasta MNA-SF beslenme değerlendirmesi.
      */
     public function mna() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1630,8 +1635,8 @@ class PatientController {
     }
 
     public function saveMna() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1677,7 +1682,7 @@ class PatientController {
         $row->set('durum_duzeyi', $status['label']);
         $notlar = trim((string) ($_POST['notlar'] ?? ''));
         $row->set('notlar', $notlar !== '' ? $notlar : null);
-        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+        $row->set('kaydeden_id', AuthHelper::sessionUserId());
 
         if ($row->store()) {
             $_SESSION['success'] = 'MNA değerlendirmesi kaydedildi.';
@@ -1690,9 +1695,9 @@ class PatientController {
     }
 
     public function deleteMna() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
-        if ($id <= 0 || $assessmentId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $assessmentId = IdHelper::normalizeRequestId($_POST['assessment_id'] ?? null);
+        if ($id === null || $assessmentId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1710,7 +1715,7 @@ class PatientController {
         $mnaModel = new MnaAssessment();
         $mnaModel->ensureTable();
         $assessment = $mnaModel->getById($assessmentId);
-        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+        if (!$assessment || !IdHelper::idsMatch($assessment->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'MNA kaydı bulunamadı.';
             header('Location: ' . $this->patientMnaUrl($id));
             exit;
@@ -1726,8 +1731,8 @@ class PatientController {
      * Hasta Barthel indeksi — düzenleme formu (edit sayfasındaki bölümle aynı).
      */
     public function barthel() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1749,8 +1754,8 @@ class PatientController {
     }
 
     public function saveBarthel() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1789,7 +1794,7 @@ class PatientController {
         $row->set('bagimlilik_duzeyi', $status['label']);
         $notlar = trim((string) ($_POST['notlar'] ?? ''));
         $row->set('notlar', $notlar !== '' ? $notlar : null);
-        $row->set('kaydeden_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+        $row->set('kaydeden_id', AuthHelper::sessionUserId());
 
         if ($row->store()) {
             $_SESSION['success'] = 'Barthel değerlendirmesi kaydedildi.';
@@ -1802,9 +1807,9 @@ class PatientController {
     }
 
     public function deleteBarthel() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $assessmentId = isset($_POST['assessment_id']) ? (int) $_POST['assessment_id'] : 0;
-        if ($id <= 0 || $assessmentId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $assessmentId = IdHelper::normalizeRequestId($_POST['assessment_id'] ?? null);
+        if ($id === null || $assessmentId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -1822,7 +1827,7 @@ class PatientController {
         $barthelModel = new BarthelAssessment();
         $barthelModel->ensureTable();
         $assessment = $barthelModel->getById($assessmentId);
-        if (!$assessment || (int) ($assessment->hasta_id ?? 0) !== $id) {
+        if (!$assessment || !IdHelper::idsMatch($assessment->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'Barthel kaydı bulunamadı.';
             header('Location: ' . $this->patientBarthelUrl($id));
             exit;
@@ -1835,8 +1840,8 @@ class PatientController {
     }
 
     public function uploadWoundPhoto() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -1935,7 +1940,7 @@ class PatientController {
             $row->set('yara_bolgesi', $yaraBolgesi);
             $row->set('yara_evresi', $yaraEvresi);
             $row->set('cekim_tarihi', $cekimTarihi);
-            $row->set('yukleyen_id', isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null);
+            $row->set('yukleyen_id', AuthHelper::sessionUserId());
             $ok = $row->store();
             if (!$ok) {
                 @unlink($fullPath);
@@ -1966,8 +1971,8 @@ class PatientController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -2066,8 +2071,8 @@ class PatientController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -2108,9 +2113,9 @@ class PatientController {
     }
 
     public function deleteWoundPhoto() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $photoId = isset($_POST['photo_id']) ? (int) $_POST['photo_id'] : 0;
-        if ($id <= 0 || $photoId <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $photoId = IdHelper::normalizeRequestId($_POST['photo_id'] ?? null);
+        if ($id === null || $photoId === null) {
             $_SESSION['error'] = 'Geçersiz silme isteği.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -2121,7 +2126,7 @@ class PatientController {
         $model = new WoundPhoto();
         $model->ensureTable();
         $photo = $model->getById($photoId);
-        if (!$photo || (int) ($photo->hasta_id ?? 0) !== $id) {
+        if (!$photo || !IdHelper::idsMatch($photo->hasta_id ?? null, $id)) {
             $_SESSION['error'] = 'Fotoğraf kaydı bulunamadı.';
             header('Location: ' . $this->patientWoundsUrl($id));
             exit;
@@ -2153,8 +2158,8 @@ class PatientController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta kaydı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -2196,18 +2201,18 @@ class PatientController {
 
         $position = $this->tomtomGeocodeFirstResult($query);
         if ($position === null) {
-            $_SESSION['error'] = 'TomTom ile koordinat bulunamadı.';
+            $_SESSION['error'] = 'Koordinat bulunamadı (aktif harita sağlayıcısı).';
             header('Location: ' . esh_url('Patient', 'view', ['id' => $id]));
             exit;
         }
 
         if ($this->persistCoordsForPatient($patient, (float) $position['lat'], (float) $position['lon'])) {
-            $kapinoId = trim((string) ($patient->kapino ?? ''));
-            $_SESSION['success'] = $kapinoId !== ''
-                ? 'Koordinat hasta ve kapı no kaydına yazıldı.'
-                : 'Koordinat hasta kaydına yazıldı.';
+            $_SESSION['success'] = 'Koordinat kapı no kaydına yazıldı.';
         } else {
-            $_SESSION['error'] = 'Koordinat bulundu ancak kaydedilemedi (veritabanı hatası).';
+            $kapinoId = trim((string) ($patient->kapino ?? ''));
+            $_SESSION['error'] = $kapinoId === ''
+                ? 'Koordinat kaydedilemedi: önce tam adres (kapı no) seçilmelidir.'
+                : 'Koordinat bulundu ancak kaydedilemedi (veritabanı hatası).';
         }
         header('Location: ' . esh_url('Patient', 'view', ['id' => $id]));
         exit;
@@ -2273,9 +2278,9 @@ class PatientController {
         return \App\Helpers\MapRoutingGeocodeHelper::firstPosition($addressQuery);
     }
 
-    private function refreshCoordsFromCurrentMainAddress(int $patientId): void
+    private function refreshCoordsFromCurrentMainAddress(string $patientId): void
     {
-        if ($patientId <= 0) {
+        if ($patientId === null) {
             return;
         }
 
@@ -2319,32 +2324,14 @@ class PatientController {
             return false;
         }
 
-        $kapinoOk = true;
         $kapinoId = trim((string) ($patient->kapino ?? ''));
-        if ($kapinoId !== '') {
-            $kapinoOk = (new Address())->setKapinoCoords($kapinoId, $coords);
+        if ($kapinoId === '') {
+            return false;
         }
 
-        $patient->set('coords', $coords);
-
-        return $patient->store() && $kapinoOk;
+        return (new Address())->setKapinoCoords($kapinoId, $coords);
     }
 
-    private function normalizeGender($value): ?string
-    {
-        $v = strtoupper(trim((string) $value));
-        if ($v === '' || $v === '0') {
-            return null;
-        }
-        if ($v === '1' || $v === 'E' || $v === 'ERKEK') {
-            return 'E';
-        }
-        if ($v === '2' || $v === 'K' || $v === 'KADIN') {
-            return 'K';
-        }
-
-        return null;
-    }
 
     /** Adres tablosu kimliği (UUID veya sayısal) dolu mu? */
     private function patientEditAddressIdFilled(mixed $value): bool
@@ -2447,13 +2434,27 @@ class PatientController {
         if (!isset($data['hastaliklar']) || !is_array($data['hastaliklar'])) {
             return false;
         }
-        foreach ($data['hastaliklar'] as $id) {
-            if ((int) $id > 0) {
-                return true;
+
+        return Patient::parseHastalikCsvToIcds($data['hastaliklar']) !== [];
+    }
+
+    /**
+     * @param list<string> $icds
+     */
+    private function normalizePatientHastaliklarInput(array $icds, int $kurumId): string
+    {
+        $icds = Patient::parseHastalikCsvToIcds($icds);
+        if ($kurumId > 0 && \App\Models\KurumHastalik::tableExists()) {
+            $assigned = array_flip((new \App\Models\KurumHastalik())->getAssignedIcds($kurumId));
+            if ($assigned !== []) {
+                $icds = array_values(array_filter(
+                    $icds,
+                    static fn (string $icd): bool => isset($assigned[$icd])
+                ));
             }
         }
 
-        return false;
+        return Patient::hastaliklarToStorageCsv($icds);
     }
 
     /**
@@ -2518,7 +2519,7 @@ class PatientController {
         if ($inScope('randevutarihi') && !$this->patientEditDateFilled($data['randevutarihi'] ?? '')) {
             $missing[] = 'Randevu tarihi';
         }
-        if ($inScope('cinsiyet') && $this->normalizeGender($data['cinsiyet'] ?? null) === null) {
+        if ($inScope('cinsiyet') && CinsiyetHelper::normalize($data['cinsiyet'] ?? null) === null) {
             $missing[] = 'Cinsiyet';
         }
         if ($inScope('guvence')) {
@@ -2591,11 +2592,9 @@ class PatientController {
             }
         }
 
-        $gender = $this->normalizeGender($patient->cinsiyet ?? null);
-        if ($gender === 'E') {
-            $snap['cinsiyet'] = 'E';
-        } elseif ($gender === 'K') {
-            $snap['cinsiyet'] = 'K';
+        $gender = CinsiyetHelper::normalize($patient->cinsiyet ?? null);
+        if ($gender !== null) {
+            $snap['cinsiyet'] = $gender;
         }
 
         foreach (['dogumtarihi', 'kayittarihi', 'pasiftarihi', 'randevutarihi', 'mamaraporbitis', 'bezraporbitis', 'sondatarihi'] as $df) {
@@ -2605,10 +2604,7 @@ class PatientController {
             }
         }
 
-        $hlRaw = (string) ($patient->hastaliklar ?? '');
-        $snap['hastaliklar'] = $hlRaw === ''
-            ? []
-            : array_values(array_filter(array_map('intval', explode(',', $hlRaw)), static fn ($v) => $v > 0));
+        $snap['hastaliklar'] = Patient::parseHastalikCsvToIcds($patient->hastaliklar ?? null);
 
         $snap['adres'] = [[
             'ilce' => $patient->ilce ?? null,
@@ -2633,7 +2629,7 @@ class PatientController {
         return $snap;
     }
 
-    private function patientPartialStoreRedirectUrl(int $id, string $partialSection = ''): string
+    private function patientPartialStoreRedirectUrl(string $id, string $partialSection = ''): string
     {
         $params = ['id' => $id];
         if ($partialSection !== '') {
@@ -2679,8 +2675,8 @@ class PatientController {
     
     //hasta bilgileri kayıt
     public function store() {
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz hasta.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -2709,7 +2705,7 @@ class PatientController {
                 exit;
             }
             if ((int) ($patient->kurum_id ?? 0) !== $newKid) {
-                $transferResult = PatientKurumTransfer::apply($patient, $newKid, (int) ($_SESSION['user_id'] ?? 0));
+                $transferResult = PatientKurumTransfer::apply($patient, $newKid, (AuthHelper::sessionUserId() ?? ''));
                 if ($transferResult === false) {
                     $_SESSION['error'] = 'Kurum değiştirilirken bir hata oluştu.';
                     header('Location: ' . esh_url('Patient', 'edit', ['id' => $id]));
@@ -2824,7 +2820,7 @@ class PatientController {
         }
 
         if (!$isPartialStore || array_key_exists('cinsiyet', $picked)) {
-            $data['cinsiyet'] = $this->normalizeGender($data['cinsiyet'] ?? null);
+            $data['cinsiyet'] = CinsiyetHelper::normalize($data['cinsiyet'] ?? null);
         }
 
         if (array_key_exists('boy', $data)) {
@@ -2841,7 +2837,8 @@ class PatientController {
         }
 
         if (isset($data['hastaliklar']) && is_array($data['hastaliklar'])) {
-            $data['hastaliklar'] = implode(',', array_filter(array_map('intval', $data['hastaliklar'])));
+            $kurumIdForHl = (int) ($data['kurum_id'] ?? $patient->kurum_id ?? TenantContext::assignKurumIdForStore() ?? 0);
+            $data['hastaliklar'] = $this->normalizePatientHastaliklarInput($data['hastaliklar'], $kurumIdForHl);
         }
 
         $dateFields = ['dogumtarihi', 'kayittarihi', 'pasiftarihi', 'randevutarihi', 'mamaraporbitis', 'bezraporbitis', 'sondatarihi'];
@@ -3037,7 +3034,7 @@ class PatientController {
             $this->patientStoreTcChecksumWarning($_POST);
             $this->processNakilAfterPassiveSave($patient, $nakilPassiveCtx);
             if ($mainAddressChanged) {
-                $this->refreshCoordsFromCurrentMainAddress((int) $patient->id);
+                $this->refreshCoordsFromCurrentMainAddress((string) $patient->id);
             }
             $savedTc = trim((string) ($patient->tckimlik ?? ''));
             $redirectToFirstVisit = $wasWaiting
@@ -3070,7 +3067,7 @@ class PatientController {
         }
     }
 
-    private function validateTcGloballyUnique(string $tc, int $excludeId = 0): ?string
+    private function validateTcGloballyUnique(string $tc, int|string|null $excludeId = null): ?string
     {
         if (!\App\Helpers\ValidationHelper::isTcLength11($tc)) {
             return null;
@@ -3079,8 +3076,8 @@ class PatientController {
         if ($found === null) {
             return null;
         }
-        $foundId = (int) ($found->id ?? 0);
-        if ($excludeId > 0 && $foundId === $excludeId) {
+        $foundId = IdHelper::normalizeRequestId($found->id ?? null);
+        if (!IdHelper::isEmptyEntityId($excludeId) && IdHelper::idsMatch($foundId, $excludeId)) {
             return null;
         }
 
@@ -3094,7 +3091,7 @@ class PatientController {
     }
 
     $tc = \App\Helpers\ValidationHelper::tcDigitsOnly($_GET['tc'] ?? '');
-    $excludeId = isset($_GET['exclude_id']) ? (int) $_GET['exclude_id'] : 0;
+    $excludeId = IdHelper::normalizeRequestId($_GET['exclude_id'] ?? null);
     $model = new Patient();
 
     $lenOk = \App\Helpers\ValidationHelper::isTcLength11($tc);
@@ -3103,8 +3100,8 @@ class PatientController {
     if ($lenOk) {
         $found = $model->findByTcGlobal($tc);
         if ($found) {
-            $foundId = (int) ($found->id ?? 0);
-            $exists = !($excludeId > 0 && $foundId === $excludeId);
+            $foundId = IdHelper::normalizeRequestId($found->id ?? null);
+            $exists = !(!IdHelper::isEmptyEntityId($excludeId) && IdHelper::idsMatch($foundId, $excludeId));
         }
     }
 
@@ -3135,8 +3132,6 @@ class PatientController {
 
     //tekli hasta ölüm sorgulama
     public function died() {
-        AuthHelper::requireAdminJson();
-
         $tc = \App\Helpers\ValidationHelper::tcDigitsOnly($_GET['tc'] ?? '');
 
         if ($tc === '' || !\App\Helpers\ValidationHelper::isTcLength11($tc)) {
@@ -3153,7 +3148,7 @@ class PatientController {
             echo json_encode(['oldu' => 0, 'error' => 'Hasta bulunamadi'], JSON_UNESCAPED_UNICODE);
             return 0;
         }
-        if (!PatientAccessHelper::canAccessPatient((int) $patientRow->id, $patientRow)) {
+        if (!PatientAccessHelper::canAccessPatient( $patientRow->id, $patientRow)) {
             header('Content-Type: application/json; charset=utf-8');
             http_response_code(403);
             echo json_encode(['oldu' => 0, 'error' => 'Bu hasta kaydina erisim yetkiniz bulunmamaktadir.'], JSON_UNESCAPED_UNICODE);
@@ -3197,8 +3192,8 @@ class PatientController {
     }
     
     public function updateNotes() {
-        $id = (int) ($_POST['id'] ?? 0);
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'active',
@@ -3236,11 +3231,11 @@ class PatientController {
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $field = trim((string) ($_POST['field'] ?? ''));
         $value = (int) ($_POST['value'] ?? -1);
 
-        if ($id <= 0 || !in_array($field, \App\Helpers\PatientClinicalFlagsHelper::generalTabToggleKeys(), true)) {
+        if ($id === null || !in_array($field, \App\Helpers\PatientClinicalFlagsHelper::generalTabToggleKeys(), true)) {
             echo json_encode(['success' => false, 'message' => 'Geçersiz istek.'], JSON_UNESCAPED_UNICODE);
             exit;
         }
@@ -3293,10 +3288,10 @@ class PatientController {
     public function deleteNote() {
     header('Content-Type: application/json; charset=utf-8');
 
-    $id = (int) ($_POST['id'] ?? 0);
+    $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
     $index = (int) ($_POST['index'] ?? 0);
 
-    if ($id <= 0) {
+    if ($id === null) {
         echo json_encode(['success' => false, 'message' => 'Geçersiz istek.'], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -3430,7 +3425,7 @@ class PatientController {
     */
     public function deletedied() {
         
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = new Patient();
         
         if (!$patient->load($id)) {
@@ -3453,7 +3448,7 @@ class PatientController {
 )));
         } else {
             $_SESSION['error'] = "Veritabanı hatası: Hasta bilgileri kaydedilemedi";
-            header('Location: ' . esh_url('Patient', 'edit', ['id' => (int) $patient->id]));
+            header('Location: ' . esh_url('Patient', 'edit', ['id' => (string) $patient->id]));
         }
         exit;
         
@@ -3461,7 +3456,7 @@ class PatientController {
     
     public function deletewaiting() {
         
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = new Patient();
         
         if (!$patient->load($id)) {
@@ -3505,10 +3500,10 @@ class PatientController {
             exit;
         }
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = new Patient();
 
-        if ($id <= 0 || !$patient->load($id)) {
+        if ($id === null || !$patient->load($id)) {
             $_SESSION['error'] = 'Hasta bulunamadı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'deleted',
@@ -3548,10 +3543,10 @@ class PatientController {
      * Pasif dosyayı (pasif=1) bekleyen ön kayıt (pasif=-3) durumuna alır.
      */
     public function passiveToWaiting(): void {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = new Patient();
 
-        if ($id <= 0 || !$patient->load($id)) {
+        if ($id === null || !$patient->load($id)) {
             $_SESSION['error'] = 'Hasta bulunamadı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
   'status' => 'passive',
@@ -3589,7 +3584,7 @@ class PatientController {
     
     public function changeactive() {
         
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = new Patient();
         
         if (!$patient->load($id)) {
@@ -3635,8 +3630,8 @@ class PatientController {
         foreach ($list as $row) {
             $name = isset($row->guvenceadi) ? trim((string) $row->guvenceadi) : '';
             if ($name !== '' && strcasecmp($name, 'YUPAS') === 0) {
-                $id = (int) ($row->id ?? 0);
-                if ($id > 0) {
+                $id = (string) ($row->id ?? '');
+                if ($id !== null) {
                     $ids[] = $id;
                 }
             }
@@ -3650,33 +3645,33 @@ class PatientController {
             return;
         }
         $_SESSION['error'] = 'Pasif dosyada ' . $islem . '.';
-        $id = (int) ($patient->id ?? 0);
-        header('Location: ' . ($id > 0 ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'passive'])));
+        $id = (string) ($patient->id ?? '');
+        header('Location: ' . ($id !== null ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'passive'])));
         exit;
     }
 
-    private function patientWoundsUrl(int $patientId): string
+    private function patientWoundsUrl(string $patientId): string
     {
         return esh_url('Patient', 'wounds', array (
   'id' => '',
 )) . max(0, $patientId);
     }
 
-    private function patientBarthelUrl(int $patientId): string
+    private function patientBarthelUrl(string $patientId): string
     {
         return esh_url('Patient', 'barthel', array (
   'id' => '',
 )) . max(0, $patientId);
     }
 
-    private function patientBradenUrl(int $patientId): string
+    private function patientBradenUrl(string $patientId): string
     {
         return esh_url('Patient', 'braden', array (
   'id' => '',
 )) . max(0, $patientId);
     }
 
-    private function denyBradenIfNotEnabled(object $patient, int $patientId): void
+    private function denyBradenIfNotEnabled(object $patient, string $patientId): void
     {
         if (\App\Helpers\PatientClinicalFlagsHelper::isBradenModuleEnabled($patient)) {
             return;
@@ -3686,22 +3681,22 @@ class PatientController {
         exit;
     }
 
-    private function patientItakiUrl(int $patientId): string
+    private function patientItakiUrl(string $patientId): string
     {
         return esh_url('Patient', 'itaki', ['id' => $patientId]);
     }
 
-    private function patientHarizmiUrl(int $patientId): string
+    private function patientHarizmiUrl(string $patientId): string
     {
         return esh_url('Patient', 'harizmi', ['id' => $patientId]);
     }
 
-    private function patientMnaUrl(int $patientId): string
+    private function patientMnaUrl(string $patientId): string
     {
         return esh_url('Patient', 'mna', ['id' => $patientId]);
     }
 
-    private function denyItakiIfNotEnabled(object $patient, int $patientId): void
+    private function denyItakiIfNotEnabled(object $patient, string $patientId): void
     {
         if (\App\Helpers\PatientClinicalFlagsHelper::isItakiModuleEnabled($patient)) {
             return;
@@ -3711,7 +3706,7 @@ class PatientController {
         exit;
     }
 
-    private function denyHarizmiIfNotEnabled(object $patient, int $patientId): void
+    private function denyHarizmiIfNotEnabled(object $patient, string $patientId): void
     {
         if (\App\Helpers\PatientClinicalFlagsHelper::isHarizmiModuleEnabled($patient)) {
             return;
@@ -3721,7 +3716,7 @@ class PatientController {
         exit;
     }
 
-    private function denyMnaIfNotEnabled(object $patient, int $patientId): void
+    private function denyMnaIfNotEnabled(object $patient, string $patientId): void
     {
         if (\App\Helpers\PatientClinicalFlagsHelper::isMnaModuleEnabled($patient)) {
             return;
@@ -3731,7 +3726,7 @@ class PatientController {
         exit;
     }
 
-    private function denyBarthelIfNotEnabled(object $patient, int $patientId): void
+    private function denyBarthelIfNotEnabled(object $patient, string $patientId): void
     {
         if (\App\Helpers\PatientClinicalFlagsHelper::isBarthelModuleEnabled($patient)) {
             return;
@@ -3810,23 +3805,23 @@ class PatientController {
     }
 
     /** @return list<string> */
-    private function patientFsaveAllowlistKeys(int $patientId, bool $isAdmin): array
+    private function patientFsaveAllowlistKeys(?string $patientId, bool $isAdmin): array
     {
         $keys = [
             'id', 'tckimlik', 'isim', 'soyisim', 'anneAdi', 'babaAdi', 'dogumtarihi', 'cinsiyet',
             'ceptel1', 'ceptel2', 'guvence', 'yupasno', 'kayittarihi', 'randevutarihi', 'zaman',
             'ilce', 'mahalle', 'sokak', 'kapino', 'adres_aciklama', 'diger_adres',
-            'adres', 'ana_adres_index', 'coords', 'hastaliklar', 'bagimlilik',
+            'adres', 'ana_adres_index', 'hastaliklar', 'bagimlilik',
         ];
         if ($isAdmin) {
             $keys[] = 'pasif';
             $keys[] = 'pasifnedeni';
             $keys[] = 'pasiftarihi';
         }
-        if ($patientId > 0 && !$isAdmin) {
-            $keys = array_values(array_diff($keys, ['tckimlik', 'kayittarihi', 'randevutarihi']));
+        if ($patientId !== null && $patientId !== '' && !$isAdmin) {
+            $keys = array_values(array_diff($keys, ['tckimlik', 'kayittarihi']));
         }
-        if ($patientId > 0 && AuthHelper::sessionIsSuperAdmin()) {
+        if ($patientId !== null && $patientId !== '' && AuthHelper::sessionIsSuperAdmin()) {
             $keys[] = 'kurum_id';
         }
         if ($isAdmin && EsysComplianceHelper::enabled()) {
@@ -3876,7 +3871,7 @@ class PatientController {
     /**
      * @return array{error: ?string, should_create: bool, hedef: string}
      */
-    private function resolveNakilPassiveContext(object $patient, array $data, int $patientId): array
+    private function resolveNakilPassiveContext(object $patient, array $data, ?string $patientId): array
     {
         $out = ['error' => null, 'should_create' => false, 'hedef' => ''];
         $pasifVal = isset($data['pasif']) ? (int) $data['pasif'] : (int) ($patient->pasif ?? 0);
@@ -3914,7 +3909,7 @@ class PatientController {
             return $out;
         }
 
-        if ($patientId > 0 && !PatientNakilRequest::hasPending($patientId)) {
+        if ($patientId !== null && $patientId !== '' && !PatientNakilRequest::hasPending($patientId)) {
             $out['should_create'] = true;
             $out['hedef'] = $hedef;
         }
@@ -3929,8 +3924,8 @@ class PatientController {
             return;
         }
 
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($userId <= 0) {
+        $userId = (AuthHelper::sessionUserId() ?? '');
+        if ($userId === null) {
             return;
         }
 
@@ -3942,8 +3937,8 @@ class PatientController {
         }
 
         $base = trim((string) ($_SESSION['success'] ?? 'Hasta kaydedildi.'));
-        if ($ctx['hedef'] === PatientNakilRequest::NAKIL_HEDEF_IL_DISI) {
-            $_SESSION['success'] = $base . ' İl dışı nakil kaydı oluşturuldu.';
+        if (PatientNakilRequest::isBolgeHedef((string) $ctx['hedef'])) {
+            $_SESSION['success'] = $base . ' Nakil talebi hedef bölgeye iletildi (onay bekleniyor).';
         } elseif (ctype_digit(trim((string) $ctx['hedef']))
             && PatientNakilRequest::detectReturnNakilContext($patient, (int) $ctx['hedef']) !== null) {
             $_SESSION['success'] = $base . ' Geri nakil talebi kaynak kuruma iletildi (onay bekleniyor).';

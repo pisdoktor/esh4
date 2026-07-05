@@ -1,4 +1,3 @@
-<div class="esh-page esh-page--list esh-page-cdn_check container-fluid py-4">
 <?php
 /**
  * @var list<array<string, mixed>> $compareRows
@@ -75,4 +74,3 @@ $compareRows = $compareRows ?? [];
     · <span class="badge text-bg-secondary me-1">Manuel</span> uzaktan karşılaştırılmıyor
     · <span class="badge text-bg-warning me-1">Belirsiz</span> son sürüm okunamadı
 </p>
-</div>

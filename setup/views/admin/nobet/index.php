@@ -1,4 +1,5 @@
 <div class="esh-page esh-page--nobet-index">
+<?php include __DIR__ . '/partials/empty_pool_alert.php'; ?>
 <?php include __DIR__ . '/partials/month_toolbar.php'; ?>
 
     <div class="row g-3 mb-3">

@@ -52,8 +52,8 @@ jQuery(function ($) {
     });
 
     function eshEk3MetaUrl(visitId) {
-        visitId = parseInt(visitId, 10);
-        if (isNaN(visitId) || visitId < 1) {
+        visitId = String(visitId || '').trim();
+        if (!visitId) {
             return '';
         }
         return eshUrl('Visit', 'ek3Document', { visit_id: visitId, meta: 1 });
@@ -218,18 +218,18 @@ jQuery(function ($) {
         });
     }
 
-    var autoOpenId = 0;
+    var autoOpenId = '';
     var $ek3Trigger = $('#eshEk3OpenTrigger');
     if ($ek3Trigger.length) {
-        autoOpenId = parseInt($ek3Trigger.attr('data-visit-id') || '0', 10);
+        autoOpenId = String($ek3Trigger.attr('data-visit-id') || '').trim();
     }
     if (!autoOpenId) {
         try {
             var pageUrl = new URL(window.location.href);
-            autoOpenId = parseInt(pageUrl.searchParams.get('ek3_open') || '0', 10);
+            autoOpenId = String(pageUrl.searchParams.get('ek3_open') || '').trim();
         } catch (ignoreUrl) { /* eski tarayıcı */ }
     }
-    if (autoOpenId > 0) {
+    if (autoOpenId) {
         window.eshOpenEk3FromHistory(autoOpenId);
     }
 });

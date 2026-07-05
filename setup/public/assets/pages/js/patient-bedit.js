@@ -441,7 +441,7 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res && res.ok && res.coords) {
-                    $('#coords').val(res.coords);
+                    $('#kapino-coords-display').val(res.coords);
                     toastr.success('Konum bulundu!');
                     return;
                 }

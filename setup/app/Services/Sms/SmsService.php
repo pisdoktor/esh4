@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services\Sms;
 
 use App\Helpers\AppSettings;
+use App\Helpers\IdHelper;
 use App\Helpers\SmsSettings;
 use App\Models\SmsAlici;
 use App\Models\SmsGonderim;
@@ -34,9 +35,9 @@ final class SmsService
             && SmsAlici::tableReady();
     }
 
-    public static function canUseSms(int $userId): bool
+    public static function canUseSms(int|string|null $userId): bool
     {
-        if ($userId <= 0 || !AppSettings::isModuleEnabled('sms_bildirim') || !self::moduleReady()) {
+        if (\App\Helpers\IdHelper::isEmptyEntityId($userId) || !AppSettings::isModuleEnabled('sms_bildirim') || !self::moduleReady()) {
             return false;
         }
 
@@ -104,18 +105,18 @@ final class SmsService
     /**
      * @param array<string, mixed> $segmentParams
      * @param list<string> $roles
-     * @return array{ok:bool,mesaj?:string,gonderim_id?:int,stats?:array{toplam:int,basarili:int,basarisiz:int}}
+     * @return array{ok:bool,mesaj?:string,gonderim_id?:string,stats?:array{toplam:int,basarili:int,basarisiz:int}}
      */
     public function sendBatch(
         int $kurumId,
-        int $userId,
+        int|string $userId,
         string $segment,
         array $segmentParams,
         string $bodyTemplate,
         array $roles,
         ?int $sablonId = null
     ): array {
-        if ($kurumId <= 0 || $userId <= 0) {
+        if ($kurumId <= 0 || \App\Helpers\IdHelper::isEmptyEntityId($userId)) {
             return ['ok' => false, 'mesaj' => 'Geçersiz oturum veya kurum.'];
         }
         if (!SmsProviderFactory::isReady()) {
@@ -145,7 +146,7 @@ final class SmsService
             'basarili' => 0,
             'basarisiz' => 0,
         ]);
-        if ($gonderimId <= 0) {
+        if ($gonderimId === false || IdHelper::isEmptyEntityId($gonderimId)) {
             return ['ok' => false, 'mesaj' => 'Gönderim kaydı oluşturulamadı.'];
         }
 
@@ -164,7 +165,7 @@ final class SmsService
                 'govde' => $r['govde'] ?? '',
                 'durum' => 'beklemede',
             ]);
-            if ($aliciId <= 0) {
+            if ($aliciId === false || IdHelper::isEmptyEntityId($aliciId)) {
                 continue;
             }
             if (($r['skip_reason'] ?? '') !== '' || ($r['telefon_norm'] ?? '') === '') {
@@ -218,8 +219,8 @@ final class SmsService
         $pending = $this->aliciModel->listPending($limit);
         $done = 0;
         foreach ($pending as $row) {
-            $id = (int) ($row->id ?? 0);
-            if ($id <= 0) {
+            $id = IdHelper::normalizeRequestId($row->id ?? null);
+            if ($id === null) {
                 continue;
             }
             if ($this->dispatchOne($provider, $id, (string) ($row->telefon_norm ?? ''), (string) ($row->govde ?? ''))) {
@@ -245,7 +246,7 @@ final class SmsService
         ];
     }
 
-    private function dispatchOne(SmsProviderInterface $provider, int $aliciId, string $phone, string $body): bool
+    private function dispatchOne(SmsProviderInterface $provider, int|string $aliciId, string $phone, string $body): bool
     {
         if ($phone === '' || $body === '') {
             $this->aliciModel->updateRow($aliciId, [

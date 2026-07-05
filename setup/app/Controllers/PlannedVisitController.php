@@ -11,6 +11,7 @@ use App\Helpers\AuditLogHelper;
 use App\Helpers\IzlemPlanTekrarHelper;
 use App\Helpers\PlannedVisitIndexPdfHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\IslemIdSettings;
 use App\Helpers\VisitIslemHelper;
@@ -617,7 +618,7 @@ class PlannedVisitController {
             echo json_encode(['ok' => false, 'error' => 'Hasta bulunamadı'], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        if (!PatientAccessHelper::canAccessPatient((int) $patient->id, $patient)) {
+        if (!PatientAccessHelper::canAccessPatient((string) ($patient->id ?? ''), $patient)) {
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'Bu hasta kaydına erişim yetkiniz bulunmamaktadır.'], JSON_UNESCAPED_UNICODE);
             exit;
@@ -650,7 +651,7 @@ class PlannedVisitController {
 
         $tcRaw = isset($_POST['tc']) ? trim((string) $_POST['tc']) : '';
         $tc = preg_replace('/\D/', '', $tcRaw);
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
 
         $redirectPatient = ($tc !== '' && ValidationHelper::isTcLength11($tc))
             ? esh_url('PlannedVisit', 'patient', ['tc' => $tc])
@@ -665,7 +666,7 @@ class PlannedVisitController {
             exit;
         }
 
-        if ($id < 1) {
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz plan kaydı.';
             header('Location: ' . $redirectFail);
             exit;
@@ -715,8 +716,8 @@ class PlannedVisitController {
     {
         self::requireAdmin();
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz plan kaydı.';
             header('Location: ' . esh_url('PlannedVisit', 'index'));
             exit;
@@ -743,7 +744,7 @@ class PlannedVisitController {
             header('Location: ' . esh_url('PlannedVisit', 'index'));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient);
+        PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient);
 
         $islemler = (new Islem())->getList();
         $preYapilacak = [];
@@ -752,7 +753,7 @@ class PlannedVisitController {
         }
         $prePlaniyapan = [];
         if (!empty($plan->planiyapan)) {
-            $prePlaniyapan = array_filter(array_map('intval', explode(',', str_replace(' ', '', (string) $plan->planiyapan))));
+            $prePlaniyapan = IdHelper::csvToEntityIds((string) $plan->planiyapan);
         }
 
         $list['islem'] = \App\Helpers\FormHelper::selectList($islemler, 'yapilacak[]', 'multiple="multiple" required', 'id', 'islemadi', $preYapilacak);
@@ -775,8 +776,8 @@ class PlannedVisitController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz plan kaydı.';
             header('Location: ' . esh_url('PlannedVisit', 'index'));
             exit;
@@ -825,7 +826,7 @@ class PlannedVisitController {
             header('Location: ' . esh_url('PlannedVisit', 'edit', ['id' => $id, 'tc' => $tc]));
             exit;
         }
-        $planiyapanCsv = implode(',', array_filter(array_map('intval', $_POST['planiyapan'])));
+        $planiyapanCsv = implode(',', IdHelper::csvToEntityIds(implode(',', (array) ($_POST['planiyapan'] ?? []))));
 
         $zaman = \App\Helpers\ZamanDilimiHelper::clamp($_POST['zaman'] ?? null);
         $zamanValid = \App\Helpers\ZamanDilimiHelper::validateForSave(
@@ -886,7 +887,7 @@ class PlannedVisitController {
 )));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient);
+        PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient);
         $this->requireAktifPatientForPlan($patient);
 
         $islemler = (new Islem())->getList();
@@ -980,7 +981,7 @@ class PlannedVisitController {
 
         $islemIds = $this->parseYapilacakIdsFromQuery();
         $zaman = $this->parseZamanFromQuery();
-        $excludePlanId = isset($_GET['exclude_plan_id']) ? (int) $_GET['exclude_plan_id'] : 0;
+        $excludePlanId = IdHelper::normalizeRequestId($_GET['exclude_plan_id'] ?? null);
 
         $planned = new PlannedVisit();
         $overlapIds = ($islemIds !== [] && $zaman !== null)
@@ -1023,7 +1024,7 @@ class PlannedVisitController {
 )));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patientRow->id, $patientRow);
+        PatientAccessHelper::requirePatientAccess((string) $patientRow->id, $patientRow);
         $this->requireAktifPatientForPlan($patientRow);
 
         $dateTr = isset($data['planlanantarih_date']) ? trim((string) $data['planlanantarih_date']) : '';
@@ -1056,7 +1057,7 @@ class PlannedVisitController {
             header('Location: ' . esh_url('PlannedVisit', 'create', ['tc' => $tc]));
             exit;
         }
-        $planiyapanCsv = implode(',', array_filter(array_map('intval', $data['planiyapan'])));
+        $planiyapanCsv = implode(',', IdHelper::csvToEntityIds(implode(',', (array) ($data['planiyapan'] ?? []))));
 
         $zaman = \App\Helpers\ZamanDilimiHelper::clamp($data['zaman'] ?? null);
         $zamanValid = \App\Helpers\ZamanDilimiHelper::validateForSave($zaman);
@@ -1144,8 +1145,8 @@ class PlannedVisitController {
             return;
         }
         $_SESSION['error'] = 'Yalnızca aktif (pasif=0) hastalara izlem planlanabilir.';
-        $id = (int) ($patient->id ?? 0);
-        header('Location: ' . ($id > 0 ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'active'])));
+        $id = IdHelper::normalizeRequestId($patient->id ?? null);
+        header('Location: ' . ($id !== null ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'active'])));
         exit;
     }
 
@@ -1165,7 +1166,7 @@ class PlannedVisitController {
             exit;
         }
 
-        return PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient, $redirectUrl);
+        return PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient, $redirectUrl);
     }
 
     /**

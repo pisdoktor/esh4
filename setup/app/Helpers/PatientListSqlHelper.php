@@ -10,6 +10,8 @@ namespace App\Helpers;
 
 use App\Core\Database;
 
+use App\Helpers\IdHelper;
+
 
 
 /**
@@ -170,11 +172,13 @@ final class PatientListSqlHelper
 
         bool $planPendingOnly,
 
-        bool $includeSonIzlemDate = true
+        bool $includeSonIzlemDate = true,
+
+        bool $matchIzlemToPatientKurum = false
 
     ): string {
 
-        if (!TenantSqlHelper::izlemScopedToPatientKurum()) {
+        if (!TenantSqlHelper::scopeIzlemToPatientKurum($matchIzlemToPatientKurum)) {
 
             return self::izlemPlanAggregateJoinsAllKurum(
 
@@ -424,7 +428,9 @@ final class PatientListSqlHelper
 
         bool $planPendingOnly = false,
 
-        bool $includeSonIzlemDate = true
+        bool $includeSonIzlemDate = true,
+
+        bool $matchIzlemToPatientKurum = false
 
     ): array {
 
@@ -440,7 +446,7 @@ final class PatientListSqlHelper
 
         }
 
-        $orderBy = self::resolveOrderByForIdPage(trim($orderBy));
+        $orderBy = self::resolveOrderByForIdPage(trim($orderBy), $matchIzlemToPatientKurum);
 
         if ($orderBy === '') {
 
@@ -466,11 +472,17 @@ final class PatientListSqlHelper
 
 
 
-        $idList = implode(',', array_map('intval', $ids));
+        $idList = self::quotedEntityIdInList($db, $ids);
+
+        if ($idList === null) {
+
+            return [];
+
+        }
 
         $tcSub = "SELECT tckimlik FROM #__hastalar WHERE id IN ({$idList})";
 
-        $hastaScope = TenantSqlHelper::izlemScopedToPatientKurum()
+        $hastaScope = TenantSqlHelper::scopeIzlemToPatientKurum($matchIzlemToPatientKurum)
 
             ? "h_iz.id IN ({$idList})"
 
@@ -478,7 +490,7 @@ final class PatientListSqlHelper
 
         $selectExtra = self::izlemPlanSelectColumns($fullStats, $includeSonIzlemDate);
 
-        $aggJoins = self::izlemPlanAggregateJoins($hastaScope, $fullStats, $planPendingOnly, $includeSonIzlemDate);
+        $aggJoins = self::izlemPlanAggregateJoins($hastaScope, $fullStats, $planPendingOnly, $includeSonIzlemDate, $matchIzlemToPatientKurum);
 
 
 
@@ -509,7 +521,7 @@ final class PatientListSqlHelper
 
      */
 
-    private static function resolveOrderByForIdPage(string $orderBy): string
+    private static function resolveOrderByForIdPage(string $orderBy, bool $matchIzlemToPatientKurum = false): string
 
     {
 
@@ -519,7 +531,7 @@ final class PatientListSqlHelper
 
         }
 
-        $expr = QueryHelper::patientSonIzlemDateSqlExpr();
+        $expr = QueryHelper::patientSonIzlemDateSqlExpr($matchIzlemToPatientKurum);
 
         $hasPrefix = (bool) preg_match('/^\s*ORDER\s+BY\b/i', $orderBy);
 
@@ -536,6 +548,44 @@ final class PatientListSqlHelper
 
 
         return $hasPrefix ? 'ORDER BY ' . $body : $body;
+
+    }
+
+
+
+    /**
+
+     * @param list<mixed> $ids
+
+     */
+
+    private static function quotedEntityIdInList(Database $db, array $ids): ?string
+
+    {
+
+        $quoted = [];
+
+        foreach ($ids as $id) {
+
+            $norm = IdHelper::normalizeRequestId($id);
+
+            if ($norm !== null) {
+
+                $quoted[] = $db->quote($norm);
+
+            }
+
+        }
+
+        if ($quoted === []) {
+
+            return null;
+
+        }
+
+
+
+        return implode(',', $quoted);
 
     }
 

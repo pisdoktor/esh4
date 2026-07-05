@@ -54,7 +54,7 @@ $kurumKod = trim((string) ($hastaKurum->kod ?? ''));
 
                 </span>
 
-                <a href="<?= htmlspecialchars(esh_url('Patient', 'changeKurum', ['id' => (int) ($hasta->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none">Kurum değiştir</a>
+                <a href="<?= htmlspecialchars(esh_url('Patient', 'changeKurum', ['id' => (string) ($hasta->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none">Kurum değiştir</a>
 
             </div>
 

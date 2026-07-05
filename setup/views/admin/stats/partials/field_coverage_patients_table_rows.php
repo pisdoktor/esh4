@@ -29,7 +29,7 @@ if (empty($rows)) { ?>
         $ym = \App\Helpers\DateHelper::yearMonth(isset($row->kayittarihi) ? (string) $row->kayittarihi : null);
         $kayitayKey = $ym['month'] ?? 0;
         $ayAd = $kayitayKey >= 1 && $kayitayKey <= 12 ? $ayAdlar[$kayitayKey] : '';
-        $pid = (int) ($row->id ?? 0);
+        $pid = (string) ($row->id ?? '');
         ?>
         <tr>
             <td class="text-center small">

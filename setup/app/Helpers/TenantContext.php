@@ -155,6 +155,80 @@ final class TenantContext
     }
 
     /**
+     * Hasta haritası kapsamı — PS yalnızca gönüllü bölge filtresini kullanır (kurum filtresi uygulanmaz).
+     *
+     * @return list<int>|null
+     */
+    public static function filterKurumIdsForHarita(): ?array
+    {
+        if (AuthHelper::sessionIsPlatformOwner()) {
+            if (!class_exists(FederationHelper::class) || !FederationHelper::enabled()) {
+                return null;
+            }
+            $bolgeId = FederationContext::sessionBolgeFilter();
+            if ($bolgeId === null || $bolgeId <= 0) {
+                return null;
+            }
+            if (!FederationHelper::columnsReady()) {
+                return null;
+            }
+
+            return FederationHelper::activeKurumIdsForBolge($bolgeId);
+        }
+
+        return self::filterKurumIds();
+    }
+
+    /** Harita önbellek anahtarı — rol + efektif kapsam (PO ile bölgesiz BY çakışmasını önler). */
+    public static function haritaScopeCacheKey(): string
+    {
+        if (AuthHelper::sessionIsPlatformOwner()) {
+            return 'po_' . self::haritaScopeSuffixForIds(self::filterKurumIdsForHarita());
+        }
+        if (AuthHelper::sessionIsSuperAdminOnly()) {
+            if (self::superAdminHaritaShowsNoPatients()) {
+                return 'sa_none';
+            }
+
+            return 'sa_' . self::haritaScopeSuffixForIds(self::filterKurumIdsForHarita());
+        }
+        $kid = self::sessionKurumId();
+
+        return ($kid !== null && $kid > 0) ? 'ku_' . (int) $kid : 'ku_none';
+    }
+
+    /** Federasyon açık, bölge atanmamış süper yönetici — hasta haritası SQL AND 1=0 ile uyumlu. */
+    private static function superAdminHaritaShowsNoPatients(): bool
+    {
+        if (!class_exists(FederationHelper::class) || !FederationHelper::enabled()) {
+            return false;
+        }
+        if (self::sessionAssignedBolgeId() !== null || self::sessionKurumFilter() !== null) {
+            return false;
+        }
+        $bolgeFilter = FederationContext::sessionBolgeFilter();
+
+        return $bolgeFilter === null || $bolgeFilter <= 0;
+    }
+
+    /**
+     * @param list<int>|null $ids
+     */
+    private static function haritaScopeSuffixForIds(?array $ids): string
+    {
+        if ($ids === null) {
+            return 'all';
+        }
+        if ($ids === []) {
+            return 'none';
+        }
+        $ids = array_map('intval', $ids);
+        sort($ids);
+
+        return 'ids_' . implode('_', $ids);
+    }
+
+    /**
      * @return list<int>|null null = bölge kısıtı yok
      */
     private static function kurumIdsForBolgeScope(): ?array
@@ -315,7 +389,11 @@ final class TenantContext
             return (int) $ids[0];
         }
         if (AuthHelper::sessionIsSuperAdmin()) {
-            throw new \RuntimeException('Kurum kapsamı gerekli; süper yönetici için kurum filtresi seçin.');
+            throw new \RuntimeException(
+                'Kurum kapsamı gerekli; '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' için kurum filtresi seçin.'
+            );
         }
         throw new \RuntimeException('Oturum kurum bilgisi eksik.');
     }

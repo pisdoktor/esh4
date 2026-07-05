@@ -1,5 +1,0 @@
-[out:json][timeout:120];
-(
-  relation(37.68,28.85,38.15,29.35)["boundary"="administrative"]["admin_level"="8"];
-);
-out tags;

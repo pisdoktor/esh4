@@ -4,6 +4,7 @@ declare(strict_types=1);
  * Admin kullanıcı listesi — GET süzgeçleri (collapse kart).
  * Controller: $eshUserListActivated, $eshUserListRole, $eshUserListUnvan, $filterExpanded
  */
+use App\Helpers\AuthHelper;
 use App\Helpers\FormHelper;
 
 $a = isset($eshUserListActivated) ? (string) $eshUserListActivated : '';
@@ -65,14 +66,14 @@ $filterExpanded = !empty($filterExpanded);
                     ]);
                     $eshUserRoleOptions = [
                         FormHelper::makeOption('', 'Tümü'),
-                        FormHelper::makeOption('admin', 'Yönetici (admin+)'),
+                        FormHelper::makeOption('admin', AuthHelper::adminLevelLabel(AuthHelper::ROLE_ADMIN) . ' (admin+)'),
                         FormHelper::makeOption('staff', 'Personel'),
                     ];
                     if (\App\Helpers\AuthHelper::sessionIsSuperAdmin()) {
-                        $eshUserRoleOptions[] = FormHelper::makeOption('superadmin', 'Süper yönetici');
+                        $eshUserRoleOptions[] = FormHelper::makeOption('superadmin', AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN));
                     }
                     if (\App\Helpers\AuthHelper::sessionIsPlatformOwner()) {
-                        $eshUserRoleOptions[] = FormHelper::makeOption('platform_owner', 'Sistem sahibi');
+                        $eshUserRoleOptions[] = FormHelper::makeOption('platform_owner', AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER));
                     }
                     echo FormHelper::fieldSelect('role', 'Yetki', $eshUserRoleOptions, $r, [
                         'col' => 'col-12 col-sm-6 col-lg-4 col-xl-2',

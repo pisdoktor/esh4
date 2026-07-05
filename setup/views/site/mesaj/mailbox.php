@@ -18,7 +18,7 @@ $iconClass = $icons[$mailboxType] ?? $icons['inbox'];
             <a href="<?= htmlspecialchars(esh_url('Mesaj', 'compose'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-primary btn-sm">
                 <i class="fa-solid fa-pen me-1"></i>Yeni Mesaj
             </a>
-            <?php if (\App\Helpers\AuthHelper::sessionIsSuperAdmin()): ?>
+            <?php if (\App\Helpers\AuthHelper::sessionIsPlatformOwner()): ?>
             <a href="<?= htmlspecialchars(esh_url('Mesaj', 'broadcast'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-warning btn-sm">
                 <i class="fa-solid fa-bullhorn me-1"></i>Duyuru Gönder
             </a>

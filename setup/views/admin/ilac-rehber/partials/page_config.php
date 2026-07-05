@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.ilacRehberMigration = {
     csrfToken: <?= json_encode((string) ($csrfToken ?? ''), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,

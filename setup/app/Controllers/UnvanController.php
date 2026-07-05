@@ -11,13 +11,13 @@ use App\Models\Unvan;
 use App\Services\UnvanRoleService;
 
 /**
- * Personel ünvanları kataloğu (platform geneli — yalnızca süper yönetici).
+ * Personel ünvanları kataloğu (platform geneli — yalnızca platform sahibi).
  */
 class UnvanController
 {
     public function __construct()
     {
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
     }
 
     public function index(): void
@@ -55,11 +55,7 @@ class UnvanController
             echo json_encode(['ok' => false, 'error' => 'Oturum gerekli'], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            http_response_code(403);
-            echo json_encode(['ok' => false, 'error' => 'Yetkisiz'], JSON_UNESCAPED_UNICODE);
-            exit;
-        }
+        AuthHelper::requirePlatformOwnerJson();
 
         $sort = \App\Helpers\QueryHelper::catalogSort(
             [

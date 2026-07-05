@@ -13,7 +13,7 @@ if ($chartValues === [] || array_sum($chartValues) === 0) {
 }
 ?>
 <canvas id="<?= htmlspecialchars($chartId, ENT_QUOTES, 'UTF-8') ?>"></canvas>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     var el = document.getElementById(<?= json_encode($chartId, JSON_UNESCAPED_UNICODE) ?>);

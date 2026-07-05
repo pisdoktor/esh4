@@ -98,7 +98,7 @@
                             <?php if (\App\Helpers\AuthHelper::sessionIsSuperAdmin()
                                 && (int) ($user->isadmin ?? 0) < \App\Helpers\AuthHelper::ROLE_SUPERADMIN
                                 && !\App\Helpers\UserKurumTransfer::isArchivedAtSource($user)): ?>
-                            <a href="<?= htmlspecialchars(esh_url('User', 'changeKurum', ['id' => (int) ($user->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-info">
+                            <a href="<?= htmlspecialchars(esh_url('User', 'changeKurum', ['id' => (string) ($user->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-info">
                                 <i class="fa-solid fa-building-user me-1"></i> Kuruma nakil
                             </a>
                             <?php endif; ?>

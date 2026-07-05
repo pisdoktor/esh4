@@ -73,7 +73,7 @@ $resetUrl = esh_url('Stats', $statsDateFilterAction);
         </div>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 $(function () {
     $('.esh-stats-date-filter .datepicker').datepicker({
         format: 'dd-mm-yyyy',

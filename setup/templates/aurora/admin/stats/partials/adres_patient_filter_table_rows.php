@@ -25,7 +25,7 @@ if (empty($rows)) { ?>
                 <div class="dropdown">
                     <a class="dropdown-toggle d-inline-block text-decoration-none fw-bold"
                        href="#" role="button" data-bs-toggle="dropdown" data-bs-display="static"
-                       style="color:<?= (($row->cinsiyet ?? '') === '1' || ($row->cinsiyet ?? '') === 'E') ? '#0d6efd' : '#dc3545' ?>; font-size: 0.82rem;">
+                       style="color:<?= \App\Helpers\CinsiyetHelper::nameColor($row->cinsiyet ?? null) ?>; font-size: 0.82rem;">
                         <?= htmlspecialchars(trim((string) ($row->isim ?? '') . ' ' . (string) ($row->soyisim ?? '')), ENT_QUOTES, 'UTF-8') ?>
                     </a>
                     <?php

@@ -5,4 +5,4 @@ $__eshPwToggleCss = rtrim((string) SITEURL, '/') . '/public/assets/login-passwor
 $__eshPwToggleJs = rtrim((string) SITEURL, '/') . '/public/assets/login-password-toggle.js';
 ?>
 <link rel="stylesheet" href="<?= htmlspecialchars($__eshPwToggleCss, ENT_QUOTES, 'UTF-8'); ?>">
-<script defer src="<?= htmlspecialchars($__eshPwToggleJs, ENT_QUOTES, 'UTF-8'); ?>"></script>
+<?= esh_csp_script_src_tag($__eshPwToggleJs, 'defer') ?>

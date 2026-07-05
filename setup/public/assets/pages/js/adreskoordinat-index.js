@@ -201,7 +201,8 @@
                 if (data.stop_reason === 'complete') {
                     msg = 'Tüm koordinatsız kapılar işlendi.';
                 } else if (data.stop_reason === 'quota') {
-                    msg = 'Günlük TomTom kotası doldu. Yarın veya kota boşalınca devam edebilirsiniz.';
+                    const providerLabel = String(cfg.providerLabel || 'Harita');
+                    msg = 'Günlük ' + providerLabel + ' kotası doldu. Yarın veya kota boşalınca devam edebilirsiniz.';
                 } else if (data.stop_reason === 'round_complete') {
                     msg = data.mesaj || 'Bu tur tamamlandı.';
                 } else if (data.mesaj) {

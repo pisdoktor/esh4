@@ -8,7 +8,7 @@
  */
 use App\Helpers\BradenScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $bradenUrl = esh_url('Patient', 'braden', ['id' => $hastaId]);
 $count = (int) ($bradenCount ?? 0);
 $latest = $bradenLatest ?? null;

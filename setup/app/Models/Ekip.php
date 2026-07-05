@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Helpers\TenantSqlHelper;
+use App\Helpers\IdHelper;
 
 class Ekip extends BaseModel {
     public $id = null;
@@ -64,9 +65,7 @@ class Ekip extends BaseModel {
         if (empty($this->user_ids)) {
             return 'Personel Atanmamış';
         }
-        $ids = array_values(array_unique(array_filter(
-            array_map('intval', explode(',', preg_replace('/[^0-9,]/', '', (string) $this->user_ids)))
-        )));
+        $ids = IdHelper::csvToEntityIds((string) $this->user_ids);
         if ($ids === []) {
             return 'Personel Atanmamış';
         }

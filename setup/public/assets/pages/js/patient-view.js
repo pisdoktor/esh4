@@ -15,8 +15,8 @@ $(document).ready(function () {
     }
 
     var clinicalToggleEnabled = cfg && String(cfg.getAttribute('data-clinical-toggle') || '') === '1';
-    var patientId = cfg ? parseInt(cfg.getAttribute('data-patient-id') || '0', 10) : 0;
-    if (clinicalToggleEnabled && patientId > 0) {
+    var patientId = cfg ? String(cfg.getAttribute('data-patient-id') || '').trim() : '';
+    if (clinicalToggleEnabled && patientId !== '') {
         $(document).on('click', '.esh-clinical-flag-toggle', function () {
             var $btn = $(this);
             if ($btn.prop('disabled')) {
@@ -90,9 +90,13 @@ $('#changenotes').on('shown.bs.modal', function () {
     textarea.val('').val(val);
 });
 
-function tekliMernisSorgula(tc) {
+function tekliMernisSorgula(btn, tc) {
+    if (arguments.length === 1) {
+        tc = btn;
+        btn = document.querySelector('[data-esh-call="tekliMernisSorgula"][data-esh-call-arg="' + String(tc).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]');
+    }
     if (!tc) return;
-    const btn = event.currentTarget;
+    if (!btn) return;
     const oldHtml = btn.innerHTML;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sorgulanıyor...';
     btn.disabled = true;

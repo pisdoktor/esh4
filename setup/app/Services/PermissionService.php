@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
 use App\Helpers\CsrfHelper;
+use App\Helpers\IdHelper;
 use App\Models\User;
 
 /**
@@ -228,9 +229,9 @@ final class PermissionService
         return $id !== null && $id !== false ? (int) $id : 0;
     }
 
-    public static function roleIdForUser(int $userId): int
+    public static function roleIdForUser(int|string $userId): int
     {
-        if (!self::tablesReady() || $userId <= 0) {
+        if (!self::tablesReady() || IdHelper::isEmptyEntityId($userId)) {
             return 0;
         }
         $db = Database::getInstance();
@@ -313,9 +314,9 @@ final class PermissionService
     /**
      * Personel kullanıcıya ünvana göre rol atar (gerontolog/sekreter/diger → personel).
      */
-    public static function syncUserRoleFromUnvan(int $userId, ?string $unvanCode): bool
+    public static function syncUserRoleFromUnvan(int|string $userId, ?string $unvanCode): bool
     {
-        if (!self::tablesReady() || $userId <= 0) {
+        if (!self::tablesReady() || IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
         $roleId = self::roleIdForUnvanCode($unvanCode);
@@ -387,9 +388,9 @@ final class PermissionService
         return $out;
     }
 
-    public static function assignRoleToUser(int $userId, int $roleId): bool
+    public static function assignRoleToUser(int|string $userId, int $roleId): bool
     {
-        if (!self::tablesReady() || $userId <= 0 || $roleId <= 0) {
+        if (!self::tablesReady() || IdHelper::isEmptyEntityId($userId) || $roleId <= 0) {
             return false;
         }
         $db = Database::getInstance();
@@ -412,7 +413,7 @@ final class PermissionService
         ]) !== false;
     }
 
-    public static function syncSessionPermissions(int $userId, int $isadmin): void
+    public static function syncSessionPermissions(int|string $userId, int $isadmin): void
     {
         if ($isadmin >= AuthHelper::ROLE_ADMIN || !self::tablesReady()) {
             $_SESSION['permissions'] = [];
@@ -425,7 +426,7 @@ final class PermissionService
         $roleId = self::roleIdForUser($userId);
         if ($roleId <= 0) {
             $roleId = self::defaultRoleId();
-            if ($roleId > 0 && $userId > 0) {
+            if ($roleId > 0 && !IdHelper::isEmptyEntityId($userId)) {
                 self::assignRoleToUser($userId, $roleId);
             }
         }
@@ -445,13 +446,33 @@ final class PermissionService
         $_SESSION['permissions'] = $roleId > 0 ? self::permissionSlugsForRole($roleId) : [];
     }
 
-    public static function invalidateUserSession(int $userId): void
+    public static function invalidateUserSession(int|string $userId): void
     {
-        if ($userId <= 0 || (int) ($_SESSION['user_id'] ?? 0) !== $userId) {
+        if (IdHelper::isEmptyEntityId($userId) || !IdHelper::idsMatch($_SESSION['user_id'] ?? null, $userId)) {
             return;
         }
         $level = AuthHelper::sessionAdminLevel();
         self::syncSessionPermissions($userId, $level);
+    }
+
+    /** Personel «İzin/Mazeret» uçları — ünvan + modül; nobet.* RBAC gerekmez. */
+    private static function isNobetStaffMineRoute(string $controller, string $action): bool
+    {
+        if ($controller !== 'Nobet') {
+            return false;
+        }
+
+        static $actions = [
+            'mine',
+            'mineIstekRows',
+            'mineIzinRows',
+            'saveMineIstek',
+            'saveMineIzin',
+            'deleteMineIstek',
+            'deleteMineIzin',
+        ];
+
+        return in_array($action, $actions, true);
     }
 
     public static function assertRouteAllowed(string $controller, string $action): void
@@ -467,6 +488,13 @@ final class PermissionService
         // Kurum yöneticisi personel RBAC kapısından muaf
         if (AuthHelper::sessionIsAdmin()) {
             return;
+        }
+
+        if (self::isNobetStaffMineRoute($controller, $action)) {
+            if (User::canAccessNobetMine()) {
+                return;
+            }
+            self::denyAccess();
         }
 
         $slug = self::permissionSlugForRoute($controller, $action);

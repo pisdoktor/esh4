@@ -19,7 +19,10 @@ final class EsysBridgeHelper
      * @param object $row
      * @return array<string, mixed>
      */
-    public static function mapRowToEsysPayload(object $row, string $entityKey): array
+    /**
+     * @param string|null $entityFilter basvuru gibi çok kaynaklı entity'lerde alan filtresi (patient|erapor)
+     */
+    public static function mapRowToEsysPayload(object $row, string $entityKey, ?string $entityFilter = null): array
     {
         $sections = EsysComplianceHelper::entitySections();
         $fields = [];
@@ -35,6 +38,13 @@ final class EsysBridgeHelper
             if (!is_array($field)) {
                 continue;
             }
+            $fieldEntity = (string) ($field['entity'] ?? '');
+            if ($entityFilter !== null && $fieldEntity !== '' && $fieldEntity !== $entityFilter) {
+                continue;
+            }
+            if ($entityFilter === null && $fieldEntity !== '' && $entityKey !== 'basvuru') {
+                continue;
+            }
             $eshKey = (string) ($field['esh'] ?? '');
             $esysKey = (string) ($field['esys'] ?? '');
             if ($eshKey === '' || $esysKey === '') {
@@ -46,6 +56,11 @@ final class EsysBridgeHelper
             $raw = $row->{$eshKey} ?? null;
             if ($raw === null || $raw === '') {
                 $payload[$esysKey] = null;
+                continue;
+            }
+            $lookup = (string) ($field['lookup'] ?? '');
+            if ($lookup !== '' || $eshKey === 'cinsiyet' || $eshKey === 'kons_brans_istek') {
+                $payload[$esysKey] = BridgeLookupResolver::resolve($raw, $lookup, $eshKey);
                 continue;
             }
             $format = (string) ($field['format'] ?? '');
@@ -147,6 +162,22 @@ final class EsysBridgeHelper
         }
         if (array_key_exists('esys_plan_ref', $item)) {
             return self::normalizeRef(is_scalar($item['esys_plan_ref']) ? (string) $item['esys_plan_ref'] : null);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    public static function extractEraporRef(array $item): ?string
+    {
+        $refs = is_array($item['refs'] ?? null) ? $item['refs'] : $item;
+        if (array_key_exists('esys_erapor_ref', $refs)) {
+            return self::normalizeRef(is_scalar($refs['esys_erapor_ref']) ? (string) $refs['esys_erapor_ref'] : null);
+        }
+        if (array_key_exists('esys_erapor_ref', $item)) {
+            return self::normalizeRef(is_scalar($item['esys_erapor_ref']) ? (string) $item['esys_erapor_ref'] : null);
         }
 
         return null;

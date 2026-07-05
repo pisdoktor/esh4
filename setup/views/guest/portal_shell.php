@@ -69,7 +69,7 @@ $__isDashboard = ($__portalScript === 'index');
 <?php
 $__portalJs = ROOT_PATH . '/public/assets/pages/js/publicpatientportal-' . $__portalScript . '.js';
 if (is_file($__portalJs)) {
-    echo '<script src="' . htmlspecialchars($__assets . '/pages/js/publicpatientportal-' . $__portalScript . '.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+    echo esh_csp_script_src_tag($__assets . '/pages/js/publicpatientportal-' . $__portalScript . '.js');
 }
 ?>
 </body>

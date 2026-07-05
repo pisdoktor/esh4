@@ -2,7 +2,9 @@
 /** @var array $tables */
 /** @var array $tools */
 /** @var array $summary */
+/** @var list<array{key:string,label:string,count:int,mb:float,rows:int}> $tableGroupSummary */
 $topTables = array_slice($tables, 0, 10);
+$tableGroupSummary = $tableGroupSummary ?? [];
 $mysqldumpOk = !empty($summary['mysqldump_available']);
 $baseUrl = esh_url('DbMaintenance', 'index');
 $tabUrl = static function (string $tab) use ($baseUrl): string {
@@ -74,3 +76,39 @@ $tabUrl = static function (string $tab) use ($baseUrl): string {
         </div>
     </div>
 </div>
+<?php if ($tableGroupSummary !== []): ?>
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">Tablo grupları</h6>
+                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($tabUrl('tablolar'), ENT_QUOTES, 'UTF-8') ?>">Filtrele</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Grup</th>
+                                <th class="text-end">Tablo</th>
+                                <th class="text-end">Tahm. satır</th>
+                                <th class="text-end pe-3">MB</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($tableGroupSummary as $g): ?>
+                                <tr>
+                                    <td class="ps-3"><span class="badge bg-light text-dark border"><?= htmlspecialchars((string) ($g['label'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span></td>
+                                    <td class="text-end"><?= number_format((int) ($g['count'] ?? 0), 0, ',', '.') ?></td>
+                                    <td class="text-end"><?= number_format((int) ($g['rows'] ?? 0), 0, ',', '.') ?></td>
+                                    <td class="text-end pe-3"><?= number_format((float) ($g['mb'] ?? 0), 2, ',', '.') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>

@@ -21,7 +21,7 @@
                 <button type="submit" class="btn btn-success px-4">Seçimi kaydet</button>
                 <a href="<?= htmlspecialchars(esh_url('User', 'index'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary px-4">İptal</a>
             </form>
-            <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::cropperJsHref(), ENT_QUOTES, 'UTF-8') ?>"></script>
+            <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::cropperJsHref()) ?>
         </section>
 
     <?php else: ?>

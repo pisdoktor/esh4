@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 use App\Models\Patient;
 use App\Models\Uhds;
 
@@ -71,7 +72,7 @@ final class PatientPortalHelper
     {
         $hours = self::sessionHours();
         $_SESSION[self::SESSION_KEY] = [
-            'patient_id' => (int) ($patient->id ?? 0),
+            'patient_id' => IdHelper::normalizeRequestId($patient->id ?? null),
             'tc' => ValidationHelper::tcDigitsOnly((string) ($patient->tckimlik ?? '')),
             'kurum_id' => (int) ($patient->kurum_id ?? 1),
             'role' => $role === 'bakimveren' ? 'bakimveren' : 'hasta',
@@ -91,8 +92,8 @@ final class PatientPortalHelper
             return false;
         }
         $exp = (int) ($s['expires'] ?? 0);
-        $pid = (int) ($s['patient_id'] ?? 0);
-        if ($pid <= 0 || $exp < time()) {
+        $pid = IdHelper::normalizeRequestId($s['patient_id'] ?? null);
+        if ($pid === null || $exp < time()) {
             self::clearSession();
 
             return false;
@@ -102,7 +103,7 @@ final class PatientPortalHelper
     }
 
     /**
-     * @return array{patient_id:int,tc:string,kurum_id:int,role:string,expires:int}|null
+     * @return array{patient_id:string,tc:string,kurum_id:int,role:string,expires:int}|null
      */
     public static function sessionClaims(): ?array
     {
@@ -113,9 +114,13 @@ final class PatientPortalHelper
         if (!is_array($s)) {
             return null;
         }
+        $pid = IdHelper::normalizeRequestId($s['patient_id'] ?? null);
+        if ($pid === null) {
+            return null;
+        }
 
         return [
-            'patient_id' => (int) ($s['patient_id'] ?? 0),
+            'patient_id' => $pid,
             'tc' => (string) ($s['tc'] ?? ''),
             'kurum_id' => (int) ($s['kurum_id'] ?? 1),
             'role' => (string) ($s['role'] ?? 'hasta'),
@@ -245,7 +250,7 @@ final class PatientPortalHelper
         return Uhds::yapildiMiLabel($hastaGeldi);
     }
 
-    public static function updateSmsConsent(int $patientId, bool $onay): bool
+    public static function updateSmsConsent(int|string $patientId, bool $onay): bool
     {
         $patient = new Patient();
         if (!$patient->load($patientId)) {
@@ -277,9 +282,12 @@ final class PatientPortalHelper
     /**
      * @return list<object>
      */
-    public static function listAppointmentRequests(int $patientId, int $limit = 10): array
+    public static function listAppointmentRequests(int|string $patientId, int $limit = 10): array
     {
-        $patientId = max(1, $patientId);
+        $patientId = IdHelper::entityIdOrFalse($patientId);
+        if ($patientId === false) {
+            return [];
+        }
         $limit = max(1, min(50, $limit));
         $db = Database::getInstance();
         $rows = $db->fetchObjectListPrepared(
@@ -295,17 +303,18 @@ final class PatientPortalHelper
     }
 
     public static function createAppointmentRequest(
-        int $patientId,
+        int|string $patientId,
         int $kurumId,
-        int $uhdsId,
+        int|string $uhdsId,
         string $mevcutTarih,
         string $talepTarih,
         ?int $talepZaman,
         string $neden
     ): bool {
-        $patientId = max(1, $patientId);
+        $patientId = IdHelper::entityIdOrFalse($patientId);
+        $uhdsId = IdHelper::entityIdOrFalse($uhdsId);
         $kurumId = max(1, $kurumId);
-        if ($patientId <= 0 || $uhdsId <= 0) {
+        if ($patientId === false || $uhdsId === false) {
             return false;
         }
         $talepZaman = ($talepZaman !== null && $talepZaman >= 0 && $talepZaman <= 2) ? $talepZaman : null;

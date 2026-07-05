@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\RateLimitHelper;
 use App\Helpers\TenantContext;
@@ -33,9 +34,9 @@ final class MesajService
         return MesajKonusma::tableReady();
     }
 
-    public static function isActiveUser(int $userId): bool
+    public static function isActiveUser(string $userId): bool
     {
-        if ($userId <= 0) {
+        if (IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
         $u = new User();
@@ -43,7 +44,7 @@ final class MesajService
         return $u->load($userId) && (int) ($u->activated ?? 0) === 1;
     }
 
-    public static function canUseMessaging(int $userId): bool
+    public static function canUseMessaging(string $userId): bool
     {
         if (!AppSettings::isModuleEnabled('mesajlasma')
             || !self::moduleReady()
@@ -61,7 +62,7 @@ final class MesajService
     /**
      * @throws RuntimeException
      */
-    public function assertActiveUser(int $userId): void
+    public function assertActiveUser(string $userId): void
     {
         if (!self::isActiveUser($userId)) {
             throw new RuntimeException('Pasif hesaplar mesajlaşmayı kullanamaz.');
@@ -71,9 +72,9 @@ final class MesajService
     /**
      * @throws RuntimeException
      */
-    public function assertCanAccessConversation(int $userId, int $konusmaId): object
+    public function assertCanAccessConversation(string $userId, string $konusmaId): object
     {
-        if ($userId <= 0 || $konusmaId <= 0) {
+        if (IdHelper::isEmptyEntityId($userId) || IdHelper::isEmptyEntityId($konusmaId)) {
             throw new RuntimeException('Geçersiz konuşma.');
         }
         $this->assertActiveUser($userId);
@@ -83,7 +84,7 @@ final class MesajService
         }
 
         if ($row->tip === 'patient') {
-            $hastaId = (int) ($row->hasta_id ?? 0);
+            $hastaId = (string) ($row->hasta_id ?? '');
             if (!PatientAccessHelper::canAccessPatient($hastaId)) {
                 throw new RuntimeException('Bu hasta konuşmasına erişim yetkiniz yok.');
             }
@@ -103,7 +104,7 @@ final class MesajService
         return $row;
     }
 
-    public function moveToTrash(int $konusmaId, int $userId): array
+    public function moveToTrash(string $konusmaId, string $userId): array
     {
         try {
             $this->assertCanAccessConversation($userId, $konusmaId);
@@ -117,7 +118,7 @@ final class MesajService
         return ['ok' => true, 'unread_total' => $this->countUnread($userId)];
     }
 
-    public function restoreFromTrash(int $konusmaId, int $userId): array
+    public function restoreFromTrash(string $konusmaId, string $userId): array
     {
         try {
             $this->assertActiveUser($userId);
@@ -134,7 +135,7 @@ final class MesajService
         return ['ok' => true];
     }
 
-    public function purgeFromTrash(int $konusmaId, int $userId): array
+    public function purgeFromTrash(string $konusmaId, string $userId): array
     {
         try {
             $this->assertActiveUser($userId);
@@ -151,19 +152,19 @@ final class MesajService
         return ['ok' => true, 'unread_total' => $this->countUnread($userId)];
     }
 
-    public function isTrashedForUser(int $konusmaId, int $userId): bool
+    public function isTrashedForUser(string $konusmaId, string $userId): bool
     {
         return $this->konusmaModel->isTrashedForUser($konusmaId, $userId);
     }
 
-    public function countUnread(int $userId): int
+    public function countUnread(string $userId): int
     {
         return Mesaj::countUnreadForUser($userId);
     }
 
-    public function markRead(int $konusmaId, int $userId, int $lastMessageId): void
+    public function markRead(string $konusmaId, string $userId, string $lastMessageId): void
     {
-        if ($konusmaId <= 0 || $userId <= 0 || $lastMessageId <= 0) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || IdHelper::isEmptyEntityId($lastMessageId)) {
             return;
         }
         $this->assertCanAccessConversation($userId, $konusmaId);
@@ -171,8 +172,8 @@ final class MesajService
         if (!$member) {
             return;
         }
-        $current = (int) ($member->son_okunan_mesaj_id ?? 0);
-        if ($lastMessageId <= $current) {
+        $current = IdHelper::normalizeRequestId($member->son_okunan_mesaj_id ?? null);
+        if ($current !== null && !IdHelper::isEmptyEntityId($lastMessageId) && strcmp($lastMessageId, $current) <= 0) {
             return;
         }
         $this->konusmaModel->db->executePrepared(
@@ -184,7 +185,7 @@ final class MesajService
     /**
      * @return array{ok:bool, mesaj_id?:int, mesaj?:string}
      */
-    public function sendMessage(int $konusmaId, int $userId, string $body): array
+    public function sendMessage(string $konusmaId, string $userId, string $body): array
     {
         $body = trim($body);
         if ($body === '') {
@@ -207,7 +208,7 @@ final class MesajService
 
         if ($konusma->tip === 'dm') {
             $otherId = $this->dmOtherUserId($konusma, $userId);
-            if ($otherId > 0 && !self::isActiveUser($otherId)) {
+            if ($otherId !== '' && $otherId !== null && !self::isActiveUser($otherId)) {
                 return ['ok' => false, 'mesaj' => 'Pasif kullanıcıya mesaj gönderilemez.'];
             }
         }
@@ -215,7 +216,7 @@ final class MesajService
         RateLimitHelper::hit('mesaj_send', $rateKey, 60);
 
         $mesajId = $this->mesajModel->insertMessage($konusmaId, $userId, 'user', $body);
-        if ($mesajId <= 0) {
+        if ($mesajId === null) {
             return ['ok' => false, 'mesaj' => 'Mesaj kaydedilemedi.'];
         }
 
@@ -224,7 +225,7 @@ final class MesajService
 
         if ($konusma->tip === 'dm') {
             $otherId = $this->dmOtherUserId($konusma, $userId);
-            if ($otherId > 0 && self::isActiveUser($otherId)) {
+            if ($otherId !== '' && $otherId !== null && self::isActiveUser($otherId)) {
                 $this->konusmaModel->addMember($konusmaId, $otherId);
             }
         }
@@ -235,12 +236,12 @@ final class MesajService
     /**
      * @throws RuntimeException
      */
-    public function getOrCreateDm(int $userA, int $userB): int
+    public function getOrCreateDm(string $userA, string $userB): string
     {
-        if ($userA <= 0 || $userB <= 0) {
+        if (IdHelper::isEmptyEntityId($userA) || IdHelper::isEmptyEntityId($userB)) {
             throw new RuntimeException('Geçersiz kullanıcı.');
         }
-        if ($userA === $userB) {
+        if (IdHelper::idsMatch($userA, $userB)) {
             throw new RuntimeException('Kendinize mesaj gönderemezsiniz.');
         }
 
@@ -248,15 +249,15 @@ final class MesajService
 
         $existing = $this->konusmaModel->findDmPair($userA, $userB);
         if ($existing) {
-            $kid = (int) $existing->id;
+            $kid = (string) $existing->id;
             $this->konusmaModel->addMember($kid, $userA);
             $this->konusmaModel->addMember($kid, $userB);
 
             return $kid;
         }
 
-        $low = min($userA, $userB);
-        $high = max($userA, $userB);
+        $low = strcmp($userA, $userB) <= 0 ? $userA : $userB;
+        $high = strcmp($userA, $userB) <= 0 ? $userB : $userA;
         $kurumId = $this->resolveSharedKurumId($userA, $userB);
 
         $uLow = new User();
@@ -267,6 +268,7 @@ final class MesajService
         }
 
         $id = $this->konusmaModel->db->insertPrepared('#__mesaj_konusmalar', [
+            'id' => IdHelper::generateUuidV4(),
             'tip' => 'dm',
             'kurum_id' => $kurumId,
             'dm_kucuk_id' => $low,
@@ -277,7 +279,7 @@ final class MesajService
         if ($id === false) {
             throw new RuntimeException('Konuşma oluşturulamadı.');
         }
-        $kid = (int) $id;
+        $kid = (string) $id;
         $this->konusmaModel->addMember($kid, $userA);
         $this->konusmaModel->addMember($kid, $userB);
 
@@ -287,9 +289,9 @@ final class MesajService
     /**
      * @throws RuntimeException
      */
-    public function getOrCreatePatientThread(int $hastaId, int $userId): int
+    public function getOrCreatePatientThread(string $hastaId, string $userId): string
     {
-        if ($hastaId <= 0 || $userId <= 0) {
+        if (IdHelper::isEmptyEntityId($hastaId) || IdHelper::isEmptyEntityId($userId)) {
             throw new RuntimeException('Geçersiz hasta.');
         }
         $this->assertActiveUser($userId);
@@ -304,7 +306,7 @@ final class MesajService
 
         $existing = $this->konusmaModel->findByHastaId($hastaId);
         if ($existing) {
-            $kid = (int) $existing->id;
+            $kid = (string) $existing->id;
             $this->konusmaModel->addMember($kid, $userId);
 
             return $kid;
@@ -314,6 +316,7 @@ final class MesajService
         $title = $ad !== '' ? 'Hasta: ' . $ad : 'Hasta #' . $hastaId;
 
         $id = $this->konusmaModel->db->insertPrepared('#__mesaj_konusmalar', [
+            'id' => IdHelper::generateUuidV4(),
             'tip' => 'patient',
             'kurum_id' => $kurumId,
             'hasta_id' => $hastaId,
@@ -323,20 +326,20 @@ final class MesajService
         if ($id === false) {
             throw new RuntimeException('Hasta konuşması oluşturulamadı.');
         }
-        $kid = (int) $id;
+        $kid = (string) $id;
         $this->konusmaModel->addMember($kid, $userId);
 
         return $kid;
     }
 
     /**
-     * @param list<int> $recipientUserIds
-     * @return array{ok:bool, konusma_id?:int, mesaj?:string}
+     * @param list<string> $recipientUserIds
+     * @return array{ok:bool, konusma_id?:string, mesaj?:string}
      */
-    public function sendSystemBroadcast(int $adminId, string $title, string $body, array $recipientUserIds): array
+    public function sendSystemBroadcast(string $adminId, string $title, string $body, array $recipientUserIds): array
     {
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            return ['ok' => false, 'mesaj' => 'Yalnızca süper yöneticiler sistem duyurusu gönderebilir.'];
+        if (!AuthHelper::sessionIsPlatformOwner()) {
+            return ['ok' => false, 'mesaj' => 'Yalnızca ' . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8') . ' sistem duyurusu gönderebilir.'];
         }
         if (!self::isActiveUser($adminId)) {
             return ['ok' => false, 'mesaj' => 'Pasif hesaplar mesajlaşmayı kullanamaz.'];
@@ -347,8 +350,11 @@ final class MesajService
             return ['ok' => false, 'mesaj' => 'Başlık ve mesaj zorunludur.'];
         }
 
-        $recipients = array_values(array_unique(array_filter(array_map('intval', $recipientUserIds))));
-        $recipients = array_filter($recipients, static fn (int $id): bool => $id > 0 && $id !== $adminId);
+        $recipients = array_values(array_unique(array_filter(array_map(
+            static fn ($raw) => IdHelper::normalizeRequestId($raw),
+            $recipientUserIds
+        ))));
+        $recipients = array_filter($recipients, static fn (?string $id): bool => $id !== null && !IdHelper::idsMatch($id, $adminId));
         if ($recipients === []) {
             return ['ok' => false, 'mesaj' => 'En az bir alıcı seçin.'];
         }
@@ -368,6 +374,7 @@ final class MesajService
         }
 
         $id = $this->konusmaModel->db->insertPrepared('#__mesaj_konusmalar', [
+            'id' => IdHelper::generateUuidV4(),
             'tip' => 'system',
             'kurum_id' => $kurumId,
             'baslik' => mb_substr($title, 0, 255),
@@ -376,7 +383,7 @@ final class MesajService
         if ($id === false) {
             return ['ok' => false, 'mesaj' => 'Duyuru oluşturulamadı.'];
         }
-        $konusmaId = (int) $id;
+        $konusmaId = (string) $id;
 
         $this->konusmaModel->addMember($konusmaId, $adminId);
         foreach ($recipients as $rid) {
@@ -384,7 +391,7 @@ final class MesajService
         }
 
         $mesajId = $this->mesajModel->insertMessage($konusmaId, null, 'system', $body);
-        if ($mesajId <= 0) {
+        if ($mesajId === null) {
             return ['ok' => false, 'mesaj' => 'Duyuru mesajı kaydedilemedi.'];
         }
         $this->konusmaModel->touchLastMessage($konusmaId);
@@ -396,17 +403,17 @@ final class MesajService
     /**
      * @return list<object>
      */
-    public function getDmCandidates(int $currentUserId): array
+    public function getDmCandidates(string $currentUserId): array
     {
-        if ($currentUserId <= 0 || !self::canUseMessaging($currentUserId)) {
+        if (IdHelper::isEmptyEntityId($currentUserId) || !self::canUseMessaging($currentUserId)) {
             return [];
         }
         $userModel = new User();
         $list = $userModel->getMessagingAdminList();
         $out = [];
         foreach ($list as $u) {
-            $uid = (int) ($u->id ?? 0);
-            if ($uid <= 0 || $uid === $currentUserId) {
+            $uid = (string) ($u->id ?? '');
+            if ($uid === '' || IdHelper::idsMatch($uid, $currentUserId)) {
                 continue;
             }
             try {
@@ -420,17 +427,17 @@ final class MesajService
         return $out;
     }
 
-    public function conversationDisplayTitle(object $konusma, int $viewerId): string
+    public function conversationDisplayTitle(object $konusma, string $viewerId): string
     {
         $tip = (string) ($konusma->tip ?? '');
         if ($tip === 'patient' || $tip === 'system') {
             return (string) ($konusma->baslik ?? 'Konuşma');
         }
         if ($tip === 'dm') {
-            $low = (int) ($konusma->dm_kucuk_id ?? 0);
-            $high = (int) ($konusma->dm_buyuk_id ?? 0);
-            $otherId = $viewerId === $low ? $high : ($viewerId === $high ? $low : 0);
-            if ($otherId > 0) {
+            $low = (string) ($konusma->dm_kucuk_id ?? '');
+            $high = (string) ($konusma->dm_buyuk_id ?? '');
+            $otherId = $viewerId === $low ? $high : ($viewerId === $high ? $low : '');
+            if ($otherId !== '') {
                 $u = new User();
                 if ($u->load($otherId)) {
                     return (string) ($u->name ?? 'Kullanıcı');
@@ -441,24 +448,24 @@ final class MesajService
         return (string) ($konusma->baslik ?? 'Konuşma');
     }
 
-    private function dmOtherUserId(object $konusma, int $viewerId): int
+    private function dmOtherUserId(object $konusma, string $viewerId): ?string
     {
-        $low = (int) ($konusma->dm_kucuk_id ?? 0);
-        $high = (int) ($konusma->dm_buyuk_id ?? 0);
+        $low = (string) ($konusma->dm_kucuk_id ?? '');
+        $high = (string) ($konusma->dm_buyuk_id ?? '');
         if ($viewerId === $low) {
-            return $high;
+            return $high !== '' ? $high : null;
         }
         if ($viewerId === $high) {
-            return $low;
+            return $low !== '' ? $low : null;
         }
 
-        return 0;
+        return null;
     }
 
     /**
      * @throws RuntimeException
      */
-    private function assertUsersCanDm(int $userA, int $userB): void
+    private function assertUsersCanDm(string $userA, string $userB): void
     {
         $ua = new User();
         $ub = new User();
@@ -474,7 +481,7 @@ final class MesajService
         }
     }
 
-    private function resolveSharedKurumId(int $userA, int $userB): int
+    private function resolveSharedKurumId(string $userA, string $userB): int
     {
         $ua = new User();
         $ub = new User();
@@ -492,9 +499,9 @@ final class MesajService
         return (int) (TenantContext::sessionKurumId() ?? 1);
     }
 
-    private static function userIsAdminOrAbove(int $userId): bool
+    private static function userIsAdminOrAbove(string $userId): bool
     {
-        if ($userId <= 0 || !self::isActiveUser($userId)) {
+        if (IdHelper::isEmptyEntityId($userId) || !self::isActiveUser($userId)) {
             return false;
         }
         $u = new User();
@@ -508,9 +515,10 @@ final class MesajService
      * @param list<int> $recipientUserIds
      * @return array{ok:bool,sent:int,error?:string}
      */
-    public function notifyFieldTeam(int $senderUserId, array $recipientUserIds, string $subject, string $body): array
+    public function notifyFieldTeam(int|string $senderUserId, array $recipientUserIds, string $subject, string $body): array
     {
-        if (!self::canUseMessaging($senderUserId)) {
+        $senderUserId = IdHelper::normalizeRequestId($senderUserId);
+        if ($senderUserId === null || !self::canUseMessaging($senderUserId)) {
             return ['ok' => false, 'sent' => 0, 'error' => 'Mesajlaşma kullanılamıyor.'];
         }
         $subject = trim($subject);
@@ -523,8 +531,8 @@ final class MesajService
         }
         $sent = 0;
         foreach ($recipientUserIds as $rid) {
-            $rid = (int) $rid;
-            if ($rid <= 0 || $rid === $senderUserId || !self::canUseMessaging($rid)) {
+            $rid = IdHelper::normalizeRequestId($rid);
+            if ($rid === null || $rid === $senderUserId || !self::canUseMessaging($rid)) {
                 continue;
             }
             try {

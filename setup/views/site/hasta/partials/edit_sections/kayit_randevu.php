@@ -13,7 +13,7 @@ $kayitValue = $eshIsBedit
     : \App\Helpers\DateHelper::todayTr();
 $randevuValue = $eshIsBedit ? ($patient->randevutarihi ?? '') : '';
 $zamanValue = $eshIsBedit ? ($patient->zaman ?? 1) : 1;
-$zamanGroupId = $eshIsBedit ? 'hasta-bed-' . (int) ($patient->id ?? 0) : 'hasta-ilkkayit';
+$zamanGroupId = $eshIsBedit ? 'hasta-bed-' . (string) ($patient->id ?? '') : 'hasta-ilkkayit';
 
 $kayitOpts = [
     'col' => 'col-md-6',
@@ -34,9 +34,6 @@ $randevuOpts = [
     'icon' => 'fa-solid fa-calendar-plus text-info',
     'extraAttrs' => ['style' => 'background-color: #fff;'],
 ];
-if ($eshIsBedit) {
-    $randevuOpts['extraAttrs']['readonly'] = 'readonly';
-}
 ?>
 <div class="mb-4">
     <label class="form-label fw-bold">E-Rapor Durumu:</label>

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services\Api\V1;
 
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\ValidationHelper;
 use App\Models\Patient;
@@ -24,13 +25,13 @@ final class PatientResource
         ];
     }
 
-    public function show(int $id): ?object
+    public function show(string $id): ?object
     {
-        if ($id <= 0) {
+        if ($id === null) {
             return null;
         }
         $patient = (new Patient())->getById($id);
-        if (!$patient || (int) ($patient->id ?? 0) !== $id) {
+        if (!$patient || (string) ($patient->id ?? '') !== $id) {
             return null;
         }
         if (!PatientAccessHelper::canAccessPatient($id, $patient)) {
@@ -46,13 +47,13 @@ final class PatientResource
     public function serialize(object $row): array
     {
         return [
-            'id' => (int) ($row->id ?? 0),
+            'id' => (string) ($row->id ?? ''),
             'kurum_id' => (int) ($row->kurum_id ?? 0),
             'tckimlik' => (string) ($row->tckimlik ?? ''),
             'isim' => (string) ($row->isim ?? ''),
             'soyisim' => (string) ($row->soyisim ?? ''),
             'dogumtarihi' => (string) ($row->dogumtarihi ?? ''),
-            'cinsiyet' => (string) ($row->cinsiyet ?? ''),
+            'cinsiyet' => (string) (CinsiyetHelper::normalize($row->cinsiyet ?? null) ?? ''),
             'pasif' => (string) ($row->pasif ?? '0'),
             'ilce' => (string) ($row->ilce ?? ''),
             'mahalle' => (string) ($row->mahalle ?? ''),

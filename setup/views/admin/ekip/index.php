@@ -10,9 +10,9 @@ ob_start();
                             <i class="fa fa-file-pdf me-1"></i> PDF ÇIKTI
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="preparePDF('gunluk')">Günlük Plan</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="preparePDF('haftalik')">Haftalık Plan</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="preparePDF('aylik')">Aylık Plan</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" data-esh-call="preparePDF" data-esh-call-arg="gunluk">Günlük Plan</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" data-esh-call="preparePDF" data-esh-call-arg="haftalik">Haftalık Plan</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" data-esh-call="preparePDF" data-esh-call-arg="aylik">Aylık Plan</a></li>
                         </ul>
                     </div>
                     <a href="<?= htmlspecialchars(esh_url('Ekip', 'edit', ['tarih' => date('Y-m-d')]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-success btn-sm ms-1">
@@ -50,7 +50,7 @@ include dirname(__DIR__, 2) . '/partials/admin/list_page_open.php';
 
 <?php include dirname(__DIR__, 2) . '/partials/admin/list_page_close.php'; ?>
 
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var pdfJsonUrl = esh_url('Ekip', 'getEkiplerJSON');
     var todayYmd = '<?= htmlspecialchars(date('Y-m-d'), ENT_QUOTES, 'UTF-8'); ?>';

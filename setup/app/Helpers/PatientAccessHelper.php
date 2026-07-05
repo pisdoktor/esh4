@@ -14,16 +14,17 @@ final class PatientAccessHelper
     /** Personel (user) birleşik listede görebildiği pasif kodları. */
     private const STAFF_VISIBLE_PASIF = ['0', '1', '-3'];
 
-    public static function canAccessPatient(int $patientId, ?object $patient = null): bool
+    public static function canAccessPatient(int|string $patientId, ?object $patient = null): bool
     {
-        if ((int) ($_SESSION['user_id'] ?? 0) <= 0) {
+        $patientIdNorm = IdHelper::normalizeRequestId($patientId);
+        if ($patientIdNorm === null || !AuthHelper::sessionHasUser()) {
             return false;
         }
 
         if ($patient === null) {
-            $patient = (new Patient())->getById($patientId);
+            $patient = (new Patient())->getById($patientIdNorm);
         }
-        if (!$patient || (int) ($patient->id ?? 0) !== $patientId) {
+        if (!$patient || !IdHelper::idsMatch($patient->id ?? null, $patientIdNorm)) {
             return false;
         }
 
@@ -35,18 +36,19 @@ final class PatientAccessHelper
         return self::canAccessByPasifStatus($patient->pasif ?? '0');
     }
 
-    public static function requirePatientAccess(int $patientId, ?object $patient = null, string $redirectUrl = ''): object
+    public static function requirePatientAccess(int|string|null $patientId, ?object $patient = null, string $redirectUrl = ''): object
     {
+        $patientIdNorm = IdHelper::normalizeRequestId($patientId);
         if ($patient === null) {
-            $patient = (new Patient())->getById($patientId);
+            $patient = $patientIdNorm !== null ? (new Patient())->getById($patientIdNorm) : null;
         }
-        if (!$patient || (int) ($patient->id ?? 0) !== $patientId) {
+        if (!$patient || $patientIdNorm === null || !IdHelper::idsMatch($patient->id ?? null, $patientIdNorm)) {
             $_SESSION['error'] = 'Hasta bulunamadı.';
             header('Location: ' . ($redirectUrl !== '' ? $redirectUrl : esh_url('Patient', 'unified', ['status' => 'active'])));
             exit;
         }
 
-        if (!self::canAccessPatient($patientId, $patient)) {
+        if (!self::canAccessPatient($patientIdNorm, $patient)) {
             $_SESSION['error'] = 'Bu hasta kaydına erişim yetkiniz bulunmamaktadır.';
             header('Location: ' . ($redirectUrl !== '' ? $redirectUrl : esh_url('Patient', 'unified', ['status' => 'active'])));
             exit;

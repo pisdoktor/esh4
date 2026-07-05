@@ -6,6 +6,9 @@ namespace App\Models;
  */
 class HarizmiAssessment extends BaseModel
 {
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
+
     public $id = null;
     public $kurum_id = null;
     public $hasta_id = null;
@@ -26,16 +29,16 @@ class HarizmiAssessment extends BaseModel
     public function ensureTable(): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS #__hasta_harizmi (
-            id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            id CHAR(36) NOT NULL,
             kurum_id INT UNSIGNED NOT NULL DEFAULT 1,
-            hasta_id INT UNSIGNED NOT NULL,
+            hasta_id CHAR(36) NOT NULL,
             degerlendirme_tarihi DATE NOT NULL,
             degerlendirme_gerekcesi TINYINT UNSIGNED NOT NULL DEFAULT 1,
             secimler_json TEXT NOT NULL,
             toplam_skor SMALLINT UNSIGNED NOT NULL DEFAULT 0,
             risk_duzeyi VARCHAR(32) NOT NULL DEFAULT '',
             notlar TEXT DEFAULT NULL,
-            kaydeden_id INT UNSIGNED DEFAULT NULL,
+            kaydeden_id CHAR(36) DEFAULT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY idx_harizmi_hasta (hasta_id),
@@ -48,7 +51,7 @@ class HarizmiAssessment extends BaseModel
     /**
      * @return array<int, object>
      */
-    public function getByHastaId(int $hastaId): array
+    public function getByHastaId(string $hastaId): array
     {
         return $this->db->fetchObjectListPrepared(
             'SELECT b.*, u.name AS kaydeden_adi
@@ -60,7 +63,7 @@ class HarizmiAssessment extends BaseModel
         );
     }
 
-    public function getLatestByHastaId(int $hastaId): ?object
+    public function getLatestByHastaId(string $hastaId): ?object
     {
         return $this->db->fetchObjectPrepared(
             'SELECT b.*, u.name AS kaydeden_adi
@@ -73,7 +76,7 @@ class HarizmiAssessment extends BaseModel
         );
     }
 
-    public function countByHastaId(int $hastaId): int
+    public function countByHastaId(string $hastaId): int
     {
         return (int) $this->db->loadResultPrepared(
             'SELECT COUNT(*) FROM #__hasta_harizmi WHERE hasta_id = :hasta',
@@ -81,7 +84,7 @@ class HarizmiAssessment extends BaseModel
         );
     }
 
-    public function getById(int $id): ?object
+    public function getById(int|string $id): ?object
     {
         return $this->db->fetchObjectPrepared(
             'SELECT * FROM #__hasta_harizmi WHERE id = :id',

@@ -51,7 +51,7 @@
     </section>
 </div>
 
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_PAGE = window.ESH_PAGE || {};
 window.ESH_PAGE.totalRecords = <?= json_encode((int) ($totalCount ?? 0), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 window.ESH_PAGE.scanScope = <?= json_encode((string) ($scanScope ?? 'active'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
@@ -63,4 +63,4 @@ window.ESH_PAGE.bulkDiedScanUrl = <?= json_encode(esh_url('Patient', 'bulkDiedSc
 $__eshPatientScanJs = (($scanScope ?? 'active') === 'waiting') ? 'patient-scanwaiting' : 'patient-scan';
 $GLOBALS['eshPatientScanScript'] = $__eshPatientScanJs;
 ?>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/' . $__eshPatientScanJs . '.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/' . $__eshPatientScanJs . '.js') ?>

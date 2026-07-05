@@ -34,7 +34,9 @@ final class UserKurumTransfer
     public static function validate(object $user, int $newKurumId, ?int $newIsadmin = null): ?string
     {
         if (!AuthHelper::sessionIsSuperAdmin()) {
-            return 'Bu işlem yalnızca süper yönetici tarafından yapılabilir.';
+            return 'Bu işlem yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' tarafından yapılabilir.';
         }
 
         $level = AuthHelper::clampLevel((int) ($user->isadmin ?? 0));
@@ -72,10 +74,15 @@ final class UserKurumTransfer
             return 'Kullanıcı adı olmayan hesap nakil edilemez.';
         }
 
+        $userId = IdHelper::normalizeRequestId($user->id ?? null);
+        if ($userId === null) {
+            return 'Geçersiz kullanıcı kaydı.';
+        }
+
         $db = Database::getInstance();
         $exists = (int) $db->loadResultPrepared(
             'SELECT COUNT(*) FROM #__users WHERE username = ? AND id <> ?',
-            [$originalUsername, (int) ($user->id ?? 0)]
+            [$originalUsername, $userId]
         );
         if ($exists > 0) {
             return 'Hedef kurumda veya sistemde aynı kullanıcı adı zaten kullanılıyor.';
@@ -96,9 +103,9 @@ final class UserKurumTransfer
 
     /**
      * @param int|null $newIsadmin null = kaynak yetkisini kopyala
-     * @return int|true|false int = hedef kurumdaki yeni kullanıcı id
+     * @return string|true|false string = hedef kurumdaki yeni kullanıcı id
      */
-    public static function apply(object $user, int $newKurumId, ?int $newIsadmin = null): int|bool
+    public static function apply(object $user, int $newKurumId, ?int $newIsadmin = null): string|bool
     {
         $err = self::validate($user, $newKurumId, $newIsadmin);
         if ($err !== null) {
@@ -111,9 +118,9 @@ final class UserKurumTransfer
             return true;
         }
 
-        $userId = (int) ($user->id ?? 0);
+        $userId = IdHelper::normalizeRequestId($user->id ?? null);
         $originalUsername = trim((string) ($user->username ?? ''));
-        if ($userId <= 0 || $originalUsername === '') {
+        if ($userId === null || $originalUsername === '') {
             return false;
         }
 
@@ -122,7 +129,7 @@ final class UserKurumTransfer
             : AuthHelper::clampLevel((int) ($user->isadmin ?? 0));
 
         $db = Database::getInstance();
-        $newUserId = $db->transaction(static function (Database $db) use ($user, $userId, $newKurumId, $originalUsername, $targetLevel): int|false {
+        $newUserId = $db->transaction(static function (Database $db) use ($user, $userId, $newKurumId, $originalUsername, $targetLevel): string|false {
             $archivedUsername = self::archivedUsername($userId, $originalUsername);
             if (!$db->updatePrepared(
                 '#__users',
@@ -141,10 +148,10 @@ final class UserKurumTransfer
             return $cloneId;
         });
 
-        return is_int($newUserId) && $newUserId > 0 ? $newUserId : false;
+        return is_string($newUserId) && $newUserId !== '' ? $newUserId : false;
     }
 
-    private static function cloneUserAtKurum(object $source, int $newKurumId, string $username, int $isadmin): ?int
+    private static function cloneUserAtKurum(object $source, int $newKurumId, string $username, int $isadmin): ?string
     {
         $clone = new User();
         $data = get_object_vars($source);
@@ -160,12 +167,10 @@ final class UserKurumTransfer
             return null;
         }
 
-        $newId = (int) ($clone->id ?? 0);
-
-        return $newId > 0 ? $newId : null;
+        return IdHelper::normalizeRequestId($clone->id ?? null);
     }
 
-    private static function archivedUsername(int $userId, string $original): string
+    private static function archivedUsername(string $userId, string $original): string
     {
         $prefix = '__nakil_' . $userId . '__';
         $maxOrig = self::USERNAME_MAX_LEN - strlen($prefix);

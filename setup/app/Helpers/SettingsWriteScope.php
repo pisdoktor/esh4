@@ -14,22 +14,10 @@ final class SettingsWriteScope
     public const TARGET_KURUM = 'kurum';
 
     /** @var list<string> */
-    public const KURUM_SCOPED_TABS = [
-        'modules',
-        'islem_ids',
-        'harita',
-        'planlama',
-        'kurumsal',
-        'nobet',
-        'sms',
-    ];
+    public const KURUM_SCOPED_TABS = SettingsNavCatalog::KURUM_SCOPED_TABS;
 
     /** @var list<string> */
-    public const PLATFORM_ONLY_TABS = [
-        'guvenlik',
-        'eimza',
-        'kps',
-    ];
+    public const PLATFORM_ONLY_TABS = SettingsNavCatalog::PLATFORM_ONLY_TABS;
 
     public static function canWritePlatformDefaults(): bool
     {
@@ -60,7 +48,9 @@ final class SettingsWriteScope
         }
 
         if (AuthHelper::sessionIsSuperAdmin() && !AuthHelper::sessionIsPlatformOwner()) {
-            return 'Kurum veya bölge kapsamı seçin. Platform varsayılanları yalnızca sistem sahibi tarafından değiştirilebilir.';
+            return 'Kurum veya bölge kapsamı seçin. Platform varsayılanları yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' tarafından değiştirilebilir.';
         }
 
         if (!AuthHelper::sessionIsSuperAdmin()) {
@@ -72,7 +62,7 @@ final class SettingsWriteScope
 
     public static function canSaveTab(string $tab): bool
     {
-        if ($tab === 'eimza') {
+        if ($tab === 'overview') {
             return false;
         }
         if (in_array($tab, self::PLATFORM_ONLY_TABS, true)) {
@@ -161,7 +151,11 @@ final class SettingsWriteScope
             return [
                 'mode' => 'denied',
                 'label' => 'Kayıt kapsamı seçilmedi',
-                'hint' => 'Üst menüden kurum seçin veya bölge atanmış süper yönetici olarak giriş yapın. Platform varsayılanları yalnızca sistem sahibi değiştirebilir.',
+                'hint' => 'Üst menüden kurum seçin veya bölge atanmış '
+                    . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                    . ' olarak giriş yapın. Platform varsayılanları yalnızca '
+                    . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                    . ' değiştirebilir.',
             ];
         }
 

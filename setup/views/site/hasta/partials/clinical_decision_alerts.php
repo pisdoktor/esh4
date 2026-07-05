@@ -5,7 +5,7 @@
  * @var list<array{code:string,severity:string,title:string,message:string,action_url?:string,action_label?:string}> $clinicalDecisionAlerts
  */
 $clinicalDecisionAlerts = $clinicalDecisionAlerts ?? [];
-$clinicalDecisionPatientId = isset($clinicalDecisionPatientId) ? (int) $clinicalDecisionPatientId : 0;
+$clinicalDecisionPatientId = isset($clinicalDecisionPatientId) ? trim((string) $clinicalDecisionPatientId) : '';
 if ($clinicalDecisionAlerts === []) {
     return;
 }
@@ -44,7 +44,7 @@ $severityIcons = [
                                 <?= htmlspecialchars((string) ($alert['action_label'] ?? 'Git'), ENT_QUOTES, 'UTF-8') ?>
                             </a>
                         <?php endif; ?>
-                        <?php if ($clinicalDecisionPatientId > 0 && !empty($alert['code'])): ?>
+                        <?php if ($clinicalDecisionPatientId !== '' && !empty($alert['code'])): ?>
                             <form method="post" action="<?= htmlspecialchars(esh_url('Patient', 'acknowledgeClinicalAlert'), ENT_QUOTES, 'UTF-8') ?>" class="ms-1">
                                 <?= esh_csrf_field() ?>
                                 <input type="hidden" name="patient_id" value="<?= $clinicalDecisionPatientId ?>">

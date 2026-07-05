@@ -7,7 +7,7 @@
 $active = (string) ($izlemPatientHeaderMenuActive ?? 'history');
 $tc = (string) ($tc ?? '');
 $tcQ = isset($tcQ) ? (string) $tcQ : rawurlencode($tc);
-$patientIdForHeader = (int) ($patientIdForHeader ?? 0);
+$patientIdForHeader = (string) ($patientIdForHeader ?? '');
 $histAktif = isset($histAktif) ? (bool) $histAktif : true;
 ?>
 <ul class="dropdown-menu shadow border-0 py-2">

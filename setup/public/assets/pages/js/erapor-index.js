@@ -77,8 +77,8 @@ jQuery(function ($) {
     function collectTcRowIds(tbodyEl, tc) {
         var ids = [];
         tbodyEl.querySelectorAll('tr[data-esh-tc-group="' + tc + '"][data-esh-row-id]').forEach(function (tr) {
-            var id = parseInt(tr.getAttribute('data-esh-row-id'), 10);
-            if (id > 0) {
+            var id = (tr.getAttribute('data-esh-row-id') || '').trim();
+            if (id !== '') {
                 ids.push(id);
             }
         });

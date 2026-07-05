@@ -14,4 +14,5 @@ return [
     'seed_esh_islemler.sql',
     'seed_esh_istekler.sql',
     'seed_esh_adrestablosu.sql',
+    'seed_esh_adrestablosu_bolge_tier.sql',
 ];

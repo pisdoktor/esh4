@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services\Api;
 
+use App\Helpers\IdHelper;
 use App\Models\ApiToken;
 use App\Models\User;
 
@@ -21,16 +22,17 @@ final class ApiTokenService
     /**
      * @return array{ok: bool, token?: string, id?: int, message?: string}
      */
-    public static function create(int $userId, string $label, string $scopes = 'read', ?string $expiresAt = null): array
+    public static function create(int|string $userId, string $label, string $scopes = 'read', ?string $expiresAt = null): array
     {
         if (!self::tableReady()) {
             return ['ok' => false, 'message' => 'API token tablosu kurulu değil.'];
         }
-        if ($userId <= 0) {
+        $uid = IdHelper::normalizeRequestId($userId);
+        if ($uid === null) {
             return ['ok' => false, 'message' => 'Geçersiz kullanıcı.'];
         }
         $user = new User();
-        if (!$user->load($userId)) {
+        if (!$user->load($uid)) {
             return ['ok' => false, 'message' => 'Kullanıcı bulunamadı.'];
         }
 
@@ -45,7 +47,7 @@ final class ApiTokenService
 
         $model = new ApiToken();
         $model->bind([
-            'user_id' => $userId,
+            'user_id' => $uid,
             'kurum_id' => isset($user->kurum_id) ? (int) $user->kurum_id : null,
             'label' => $label,
             'token_prefix' => $lookupPrefix,
@@ -93,8 +95,8 @@ final class ApiTokenService
         }
 
         $user = new User();
-        $uid = (int) ($row->user_id ?? 0);
-        if ($uid <= 0 || !$user->load($uid) || empty($user->activated)) {
+        $uid = IdHelper::normalizeRequestId($row->user_id ?? null);
+        if ($uid === null || !$user->load($uid) || empty($user->activated)) {
             return ['ok' => false, 'message' => 'Token kullanıcısı aktif değil.'];
         }
 

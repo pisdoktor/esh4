@@ -1,12 +1,18 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\MapRoutingAjaxHelper;
+use App\Helpers\MapRoutingGeocodeHelper;
+use App\Helpers\OperationalSettings;
 use App\Helpers\StatsQueryCache;
+use App\Helpers\TenantContext;
 use App\Helpers\ThemeViewHelper;
 use App\Models\Address;
 use App\Models\Patient;
+use App\Services\MapRouting\MapRoutingProviderFactory;
 
 /**
  * Yönetim: hasta haritası (çoklu sağlayıcı).
@@ -20,15 +26,17 @@ class HaritaController {
     public function index(): void {
         $rows = $this->loadMapPatientRows();
         $mapPayload = $this->buildMapMarkers($rows);
-        $mapPatientsJson = json_encode($mapPayload, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
-        if ($mapPatientsJson === false) {
-            $mapPatientsJson = '[]';
-        }
         $centerLon = defined('START_LNG') ? (float) START_LNG : 29.079663;
         $centerLat = defined('START_LAT') ? (float) START_LAT : 37.783291;
         $mapConfigUrl = esh_url('Harita', 'mapConfigAjax');
-        $mapKeyUrl = esh_url('Harita', 'tomtomMapKeyAjax');
+        $mapKeyUrl = esh_url('Harita', 'mapConfigAjax');
         $routeUrl = esh_url('Harita', 'routeAjax');
+        $activeMapProvider = OperationalSettings::activeMapProviderStatusForAdmin();
+        $mapProviderConfigured = MapRoutingGeocodeHelper::isActiveProviderConfigured();
+        $keyStatus = MapRoutingProviderFactory::keyStatusForProvider($activeMapProvider['code']);
+        $eshHaritaScopeLabel = $this->haritaScopeLabel();
+        $eshHaritaPatientCount = count($mapPayload);
+        $eshHaritaCounts = $this->summarizeMarkerCounts($mapPayload);
         $pageTitle = 'Hasta haritası';
         $mahalleCombinedUrl = '';
         $mahalleGeoNameAllowlist = (new Address())->getMahalleAdlariForHaritaGeoPamukkaleMerkezefendi();
@@ -36,6 +44,19 @@ class HaritaController {
         if (is_file($mahalleGeoPath)) {
             $mahalleCombinedUrl = rtrim((string) SITEURL, '/') . '/public/geo/denizli_pamukkale_merkezefendi_mahalleler.geojson';
         }
+
+        $GLOBALS['eshHaritaPageConfig'] = [
+            'patients' => $mapPayload,
+            'center' => [$centerLon, $centerLat],
+            'mapConfigUrl' => $mapConfigUrl,
+            'mapKeyUrl' => $mapKeyUrl,
+            'routeUrl' => $routeUrl,
+            'providerLabel' => (string) ($activeMapProvider['label'] ?? 'Harita'),
+            'providerConfigured' => !empty($mapProviderConfigured),
+            'patientCount' => $eshHaritaPatientCount,
+            'mahalleCombinedUrl' => $mahalleCombinedUrl,
+            'mahalleGeoNameAllowlist' => $mahalleGeoNameAllowlist,
+        ];
 
         include ThemeViewHelper::resolvePartial('header');
         include ThemeViewHelper::resolveAreaView('admin', 'harita/index');
@@ -46,7 +67,8 @@ class HaritaController {
      * @return array<int, object>
      */
     private function loadMapPatientRows(): array {
-        $cached = StatsQueryCache::get('harita_map_rows', 600);
+        $cacheKey = 'harita_map_rows_' . TenantContext::haritaScopeCacheKey();
+        $cached = StatsQueryCache::get($cacheKey, 600);
         if (is_array($cached)) {
             $rows = [];
             foreach ($cached as $item) {
@@ -65,10 +87,74 @@ class HaritaController {
             $payload[] = (array) $row;
         }
         if ($payload !== []) {
-            StatsQueryCache::set('harita_map_rows', $payload, 600);
+            StatsQueryCache::set($cacheKey, $payload, 600);
         }
 
         return $rows;
+    }
+
+    private function haritaScopeLabel(): string
+    {
+        if (\App\Helpers\FederationHelper::enabled()) {
+            if (AuthHelper::sessionIsPlatformOwner()) {
+                $bolgeId = \App\Helpers\FederationContext::sessionBolgeFilter();
+                if ($bolgeId !== null && $bolgeId > 0) {
+                    return \App\Helpers\FederationHelper::kurumBolgeLabel($bolgeId);
+                }
+
+                return 'Tüm bölgeler';
+            }
+            $assigned = TenantContext::sessionAssignedBolgeId();
+            if ($assigned !== null && $assigned > 0) {
+                return \App\Helpers\FederationHelper::kurumBolgeLabel($assigned);
+            }
+
+            if (AuthHelper::sessionIsSuperAdminOnly() && TenantContext::sessionKurumFilter() === null) {
+                return 'Bölge atanmamış';
+            }
+        }
+
+        $kurumFilter = TenantContext::sessionKurumFilter();
+        if ($kurumFilter !== null && $kurumFilter > 0) {
+            $kurum = new \App\Models\Kurum();
+            if ($kurum->load($kurumFilter)) {
+                $ad = trim((string) ($kurum->ad ?? ''));
+                if ($ad !== '') {
+                    return $ad;
+                }
+            }
+
+            return 'Kurum #' . $kurumFilter;
+        }
+
+        $ids = TenantContext::filterKurumIds();
+        if ($ids === []) {
+            return 'Kapsam dışı';
+        }
+        if ($ids === null) {
+            return 'Tüm bölgeler';
+        }
+
+        return count($ids) === 1 ? ('Kurum #' . (int) $ids[0]) : (count($ids) . ' kurum');
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $markers
+     * @return array{all: int, erkek: int, kadin: int}
+     */
+    private function summarizeMarkerCounts(array $markers): array
+    {
+        $erkek = 0;
+        $kadin = 0;
+        foreach ($markers as $marker) {
+            if (CinsiyetHelper::isErkek($marker['cinsiyet'] ?? null)) {
+                $erkek++;
+            } elseif (CinsiyetHelper::isKadin($marker['cinsiyet'] ?? null)) {
+                $kadin++;
+            }
+        }
+
+        return ['all' => count($markers), 'erkek' => $erkek, 'kadin' => $kadin];
     }
 
     /**
@@ -99,7 +185,7 @@ class HaritaController {
             $sonIzlemRaw = $this->formatMapLastVisit($row->sonizlem ?? null);
             $sonIzlem = htmlspecialchars($sonIzlemRaw, ENT_QUOTES, 'UTF-8');
 
-            $patientId = (int) ($row->id ?? 0);
+            $patientId = (string) ($row->id ?? '');
             $viewUrl = esh_url('Patient', 'view', ['id' => $patientId]);
 
             $popupHtml = "<div class='esh-harita-popup-card'>";
@@ -119,7 +205,12 @@ class HaritaController {
             $ceptel = preg_replace('/\D+/', '', (string) ($row->ceptel1 ?? ''));
             $popupHtml .= "<div class='esh-harita-popup-card__actions'>";
             $popupHtml .= "<a href='" . htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8') . "' class='btn btn-primary btn-sm'><i class='fa-solid fa-id-card me-1'></i>Hasta kartı</a>";
-            $popupHtml .= "<button type='button' class='btn btn-success btn-sm' onclick='window.ESH_HARITA_ROTA && window.ESH_HARITA_ROTA([" . $lng . ',' . $lat . "])'><i class='fa-solid fa-route me-1'></i>Rota</button>";
+            if (\App\Helpers\AppSettings::isModuleEnabled('manuel_koordinat') && AuthHelper::sessionIsAdmin()) {
+                $mkUrl = esh_url('ManuelKoordinat', 'index', ['hasta_id' => $patientId]);
+                $popupHtml .= "<a href='" . htmlspecialchars($mkUrl, ENT_QUOTES, 'UTF-8') . "' class='btn btn-warning btn-sm'><i class='fa-solid fa-map-pin me-1'></i>Konumu düzelt</a>";
+            }
+            $rotaCoordsEsc = htmlspecialchars(json_encode([(float) $lng, (float) $lat], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+            $popupHtml .= "<button type='button' class='btn btn-success btn-sm' data-esh-harita-rota='" . $rotaCoordsEsc . "'><i class='fa-solid fa-route me-1'></i>Rota</button>";
             if ($ceptel !== '') {
                 $ceptelEsc = htmlspecialchars($ceptel, ENT_QUOTES, 'UTF-8');
                 $popupHtml .= "<a href='tel:" . $ceptelEsc . "' class='btn btn-outline-secondary btn-sm'><i class='fa-solid fa-phone me-1'></i>" . $ceptelEsc . "</a>";

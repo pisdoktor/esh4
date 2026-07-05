@@ -1,7 +1,7 @@
 <?php use App\Helpers\AuthHelper; ?>
 <div class="esh-page esh-page--form esh-page-hasta container-fluid py-4">
 <form action="<?= htmlspecialchars(esh_url('Patient', 'fsave'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="needs-validation" novalidate id="patientForm" data-esh-required-legend="off">
-    <input type="hidden" name="id" value="<?= (int)($patient->id ?? 0); ?>">
+    <input type="hidden" name="id" value="<?= (string)($patient->id ?? ''); ?>">
     <input type="hidden" name="ana_adres_index" value="0">
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-primary  py-3 d-flex justify-content-between align-items-center">
@@ -56,7 +56,7 @@
         </div>
         <div class="card-footer bg-white py-3 border-top">
             <div class="d-flex justify-content-end gap-2">
-                <a href="javascript:history.go(-1);" class="btn btn-light border px-4 rounded-pill">
+                <a href="<?= htmlspecialchars(esh_url('Patient', 'unified', ['status' => 'waiting']), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light border px-4 rounded-pill">
                     <i class="fa-solid fa-xmark me-2"></i>İptal
                 </a>
                 <button type="submit" id="save" class="btn btn-primary px-5 rounded-pill shadow-sm" aria-busy="false">

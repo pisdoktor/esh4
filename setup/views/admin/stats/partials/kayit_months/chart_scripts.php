@@ -1,5 +1,5 @@
 <?php if (!empty($chartLabels) && $sumToplam > 0): ?>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     var el = document.getElementById('kayitMonthsChart');

@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 
 /**
@@ -168,23 +169,28 @@ class KonsRandevu extends BaseModel
         return (bool) $this->db->loadResultPrepared($sql, [$ymd, $bransId, $tc]);
     }
 
-    public function deleteById(int $id): bool
+    public function deleteById(int|string $id): bool
     {
-        if ($id <= 0) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
             return false;
         }
 
         return $this->db->executePrepared(
             'DELETE FROM ' . $this->_tbl . ' WHERE id = ?' . TenantSqlHelper::andBare('kurum_id'),
-            [$id]
+            [$rid]
         );
     }
 
     public function load($id)
     {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
+            return false;
+        }
         $query = 'SELECT * FROM ' . $this->_tbl . ' WHERE ' . $this->_tbl_key . ' = ?'
             . TenantSqlHelper::andBare('kurum_id');
-        $res = $this->db->fetchObjectPrepared($query, [(int) $id]);
+        $res = $this->db->fetchObjectPrepared($query, [$rid]);
         if ($res) {
             $this->_dirty = [];
             $this->bind($res, false);

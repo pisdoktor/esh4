@@ -60,7 +60,7 @@ INSERT IGNORE INTO `#__permissions` (`id`, `module_key`, `crud`, `slug`, `label`
 (39, 'hasta_ilac_rapor', 'delete', 'hasta_ilac_rapor.delete', 'İlaç/tanı raporu — silme'),
 (40, 'ilac_rehber', 'read', 'ilac_rehber.read', 'İlaç rehberi — okuma'),
 (41, 'ilac_rehber', 'admin', 'ilac_rehber.admin', 'İlaç rehberi — yönetim'),
-(42, 'ilac_rehber', 'superadmin', 'ilac_rehber.superadmin', 'İlaç rehberi — süper yönetici'),
+(42, 'ilac_rehber', 'superadmin', 'ilac_rehber.superadmin', 'İlaç rehberi — bölge yöneticisi'),
 (43, 'mesajlasma', 'read', 'mesajlasma.read', 'Mesajlaşma — okuma'),
 (44, 'mesajlasma', 'create', 'mesajlasma.create', 'Mesajlaşma — gönderme'),
 (45, 'mesajlasma', 'update', 'mesajlasma.update', 'Mesajlaşma — güncelleme'),

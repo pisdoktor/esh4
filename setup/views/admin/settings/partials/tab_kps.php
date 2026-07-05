@@ -1,9 +1,6 @@
             <div class="alert alert-info border-0 small mb-4" role="alert">
-                <i class="fa-solid fa-circle-info me-1"></i>
-                <strong>Kimlik Paylaşım Sistemi (KPS)</strong> altyapısı hazırdır. Modülü
-                <a href="<?= htmlspecialchars(esh_url('Settings', 'index') . '?tab=modules', ENT_QUOTES, 'UTF-8') ?>">Uygulama modülleri</a>
-                sekmesinden <strong>KPS TC sorgusu</strong> ile açıp kapatabilirsiniz.
-                Şu an: <strong><?= $kpsModuleEnabled ? 'Açık' : 'Kapalı' ?></strong>.
+                <i class="fa-solid fa-id-card me-1"></i>
+                <strong>KPS TC kimlik doğrulama.</strong>
                 SOAP sorgusu yetki ve resmi WSDL sonrası etkinleştirilecektir.
                 Vefat sorgusu varsayılan olarak kapalıdır; açıldığında stub döneminde belediye yedeği kullanılabilir.
             </div>
@@ -65,7 +62,7 @@
                     <pre id="kpsTestConnectionResult" class="small bg-light border rounded p-3 mb-0 text-muted">Henüz test yapılmadı.</pre>
                 </div>
             </div>
-            <script>
+            <script<?= esh_csp_nonce_attr() ?>>
             (function () {
                 var btn = document.getElementById('kpsTestConnectionBtn');
                 var out = document.getElementById('kpsTestConnectionResult');

@@ -30,7 +30,7 @@ class AlertHelper {
         }
 
         if ($script) {
-            echo "<script>
+            echo '<script' . esh_csp_nonce_attr() . ">
                 $(document).ready(function() {
                     toastr.options = {
                         'closeButton': true,

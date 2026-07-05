@@ -8,7 +8,7 @@
  */
 use App\Helpers\MnaScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $mnaUrl = esh_url('Patient', 'mna', ['id' => $hastaId]);
 $count = (int) ($mnaCount ?? 0);
 $latest = $mnaLatest ?? null;

@@ -94,7 +94,7 @@ $eshThemeHintBadge = static function (string $hint): string {
                         <input type="hidden" name="embed" value="1">
                         <?php endif; ?>
                         <label class="small text-muted mb-0" for="esh-theme-select">Tema</label>
-                        <select id="esh-theme-select" name="theme" class="form-select form-select-sm" style="min-width: 12rem;" onchange="this.form.submit()">
+                        <select id="esh-theme-select" name="theme" class="form-select form-select-sm" style="min-width: 12rem;" data-esh-auto-submit>
                             <?php foreach ($themesMeta as $row): ?>
                                 <?php $slug = (string) ($row['slug'] ?? ''); ?>
                                 <option value="<?= htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') ?>"<?= $slug === $editorThemeSlug ? ' selected' : '' ?>>
@@ -181,7 +181,7 @@ $eshThemeHintBadge = static function (string $hint): string {
     </div>
 </div>
 
-<script type="application/json" id="esh-theme-editor-initial">
+<script<?= esh_csp_nonce_attr() ?> type="application/json" id="esh-theme-editor-initial">
 <?= json_encode([
     'tokens' => $colorTokens,
     'gradient_vars' => $gradientVarTokens,

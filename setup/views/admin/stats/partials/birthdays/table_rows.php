@@ -7,7 +7,7 @@ if (empty($rows)): ?>
     <tr><td colspan="6" class="text-center text-muted py-5">Bugün doğum günü olan aktif hasta yok.</td></tr>
 <?php else:
     foreach ($rows as $row):
-        $erkek = ($row->cinsiyet === 'E' || $row->cinsiyet === '1' || (int) $row->cinsiyet === 1);
+        $erkek = \App\Helpers\CinsiyetHelper::isErkek($row->cinsiyet ?? null);
         $renk = $erkek ? '#0d6efd' : '#dc3545';
         $yas = \App\Helpers\DateHelper::calculateAge($row->dogumtarihi ?? '');
         ?>
@@ -21,7 +21,7 @@ if (empty($rows)): ?>
             ) ?>
         </td>
         <td class="ps-4">
-            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (int) $row->id]), ENT_QUOTES, 'UTF-8') ?>" class="fw-semibold text-decoration-none" style="color:<?= htmlspecialchars($renk, ENT_QUOTES, 'UTF-8') ?>">
+            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (string) ($row->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="fw-semibold text-decoration-none" style="color:<?= htmlspecialchars($renk, ENT_QUOTES, 'UTF-8') ?>">
                 <?= htmlspecialchars((string) $row->isim, ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars((string) $row->soyisim, ENT_QUOTES, 'UTF-8') ?>
             </a>
         </td>

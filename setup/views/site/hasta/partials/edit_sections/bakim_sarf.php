@@ -7,12 +7,12 @@ use App\Helpers\UIHelper;
 use App\Helpers\ZamanDilimiHelper;
 
 $eshFormIdPrefix = (string) ($eshFormIdPrefix ?? '');
-$mPid = (int) ($patient->id ?? 0);
+$mPid = (string) ($patient->id ?? '');
 $mamaCesitSel = PatientCareHelper::normalizeMamaCesit($patient->mamacesit ?? 0);
 $mamaRaporYeriSel = PatientCareHelper::normalizeMamaRaporYeri($patient->mamaraporyeri ?? 0);
-$bPid = (int) ($patient->id ?? 0);
+$bPid = (string) ($patient->id ?? '');
 $bezRaporSel = !empty($patient->bezrapor) ? 1 : 0;
-$pPid = (int) ($patient->id ?? 0);
+$pPid = (string) ($patient->id ?? '');
 $pgSecili = PatientCareHelper::parsePgunleriToInts($patient->pgunleri ?? '');
 $pgSeciliMap = array_fill_keys($pgSecili, true);
 $pzSel = ZamanDilimiHelper::SABAH;
@@ -100,7 +100,7 @@ if (isset($patient->pzaman) && $patient->pzaman !== '' && is_numeric($patient->p
                     <input type="checkbox" class="btn-check pansuman-edit-check" name="pgunleri[]" value="<?= (int) $gVal ?>"
                            id="<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>"
                            <?= $checked ? 'checked' : '' ?>
-                           onclick="toggleBtnColor(this)" autocomplete="off">
+                           data-esh-call="toggleBtnColor" data-esh-call-self="1" autocomplete="off">
                     <label class="btn <?= $checked ? 'btn-primary' : 'btn-outline-secondary' ?> pansuman-edit-gun-label mb-1"
                            for="<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($gLabel, ENT_QUOTES, 'UTF-8') ?></label>
                 <?php endforeach; ?>

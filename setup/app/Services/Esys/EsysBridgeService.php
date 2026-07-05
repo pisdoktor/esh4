@@ -3,11 +3,20 @@ declare(strict_types=1);
 
 namespace App\Services\Esys;
 
+use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Core\Database;
+use App\Helpers\AuditLogHelper;
+use App\Helpers\BridgeLookupResolver;
 use App\Helpers\EsysBridgeHelper;
+use App\Helpers\EsysComplianceHelper;
+use App\Helpers\OperationalSettings;
+use App\Helpers\SkrsMapHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
 use App\Helpers\ValidationHelper;
+use App\Helpers\VisitIslemHelper;
+use App\Models\Erapor;
 use App\Models\EsysSyncLog;
 use App\Models\Patient;
 use App\Models\PlannedVisit;
@@ -20,7 +29,7 @@ final class EsysBridgeService
 {
     public function pushCurrentBundle(): array
     {
-        $mode = \App\Helpers\OperationalSettings::esysBridgeApiMode();
+        $mode = OperationalSettings::esysBridgeApiMode();
         if ($mode === 'file') {
             return ['ok' => false, 'error' => 'API modu file'];
         }
@@ -52,15 +61,48 @@ final class EsysBridgeService
         return $count;
     }
 
+    public function queueVisitOnSave(string $visitId): void
+    {
+        if (!EsysBridgeHelper::isReady() || !OperationalSettings::esysAutoQueueOnVisitSave()) {
+            return;
+        }
+        if (!EsysComplianceHelper::enabled()) {
+            return;
+        }
+        if (IdHelper::isEmptyEntityId($visitId)) {
+            return;
+        }
+        $visit = new Visit();
+        if (!$visit->load($visitId)) {
+            return;
+        }
+        if ((int) ($visit->yapildimi ?? 0) !== 1) {
+            return;
+        }
+        $ref = EsysBridgeHelper::normalizeRef((string) ($visit->esys_izlem_ref ?? ''));
+        if ($ref !== null && $ref !== '') {
+            return;
+        }
+        AuditLogHelper::log('esys.visit.queued', 'esys', 'visit', $visitId, [
+            'tckimlik' => (string) ($visit->hastatckimlik ?? ''),
+            'izlemtarihi' => (string) ($visit->izlemtarihi ?? ''),
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function exportBundle(): array
     {
+        BridgeLookupResolver::resetCache();
+
         $kurumId = TenantContext::filterKurumId();
-        $patientLimit = \App\Helpers\OperationalSettings::esysBridgeExportPatientLimit();
-        $visitDays = \App\Helpers\OperationalSettings::esysBridgeExportVisitDays();
-        $onlyMissing = \App\Helpers\OperationalSettings::esysBridgeExportOnlyMissingRefs();
+        $patientLimit = OperationalSettings::esysBridgeExportPatientLimit();
+        $visitDays = OperationalSettings::esysBridgeExportVisitDays();
+        $onlyMissing = OperationalSettings::esysBridgeExportOnlyMissingRefs();
+        $onlyMissingVisits = OperationalSettings::esysBridgeExportOnlyMissingVisitRefs();
+        $eraporLimit = OperationalSettings::esysBridgeExportEraporLimit();
+        $konsultasyonIslemId = VisitIslemHelper::konsultasyonIslemId();
 
         $db = Database::getInstance();
         $patientSql = 'SELECT * FROM #__hastalar WHERE pasif = ?'
@@ -78,20 +120,24 @@ final class EsysBridgeService
         $patientsOut = [];
         foreach ($patientRows as $row) {
             $patientsOut[] = [
-                'esh_id' => (int) ($row->id ?? 0),
+                'esh_id' => (string) ($row->id ?? ''),
                 'tckimlik' => (string) ($row->tckimlik ?? ''),
                 'refs' => [
                     'esys_hasta_ref' => EsysBridgeHelper::normalizeRef((string) ($row->esys_hasta_ref ?? '')),
                     'esys_basvuru_ref' => EsysBridgeHelper::normalizeRef((string) ($row->esys_basvuru_ref ?? '')),
                 ],
                 'esys_payload' => EsysBridgeHelper::mapRowToEsysPayload($row, 'patient'),
+                'basvuru_payload' => EsysBridgeHelper::mapRowToEsysPayload($row, 'basvuru', 'patient'),
             ];
         }
 
         $visitSince = date('Y-m-d', strtotime('-' . $visitDays . ' days'));
         $visitSql = 'SELECT * FROM #__izlemler WHERE izlemtarihi >= ?'
-            . TenantSqlHelper::andBare('kurum_id')
-            . ' ORDER BY izlemtarihi DESC, id DESC LIMIT 2000';
+            . TenantSqlHelper::andBare('kurum_id');
+        if ($onlyMissingVisits) {
+            $visitSql .= " AND TRIM(COALESCE(esys_izlem_ref, '')) = ''";
+        }
+        $visitSql .= ' ORDER BY izlemtarihi DESC, id DESC LIMIT 2000';
         $visitRows = $db->fetchObjectListPrepared($visitSql, [$visitSince]);
         if (!is_array($visitRows)) {
             $visitRows = [];
@@ -99,8 +145,8 @@ final class EsysBridgeService
 
         $visitsOut = [];
         foreach ($visitRows as $row) {
-            $visitsOut[] = [
-                'esh_id' => (int) ($row->id ?? 0),
+            $visitItem = [
+                'esh_id' => (string) ($row->id ?? ''),
                 'tckimlik' => (string) ($row->hastatckimlik ?? ''),
                 'refs' => [
                     'esys_izlem_ref' => EsysBridgeHelper::normalizeRef((string) ($row->esys_izlem_ref ?? '')),
@@ -108,6 +154,11 @@ final class EsysBridgeService
                 ],
                 'esys_payload' => EsysBridgeHelper::mapRowToEsysPayload($row, 'visit'),
             ];
+            if ($konsultasyonIslemId > 0
+                && VisitIslemHelper::yapilanCsvContainsIslem((string) ($row->yapilan ?? ''), $konsultasyonIslemId)) {
+                $visitItem['konsultasyon_payload'] = EsysBridgeHelper::mapRowToEsysPayload($row, 'konsultasyon');
+            }
+            $visitsOut[] = $visitItem;
         }
 
         $planSql = 'SELECT * FROM #__pizlemler WHERE COALESCE(durum, 0) = 0 AND planlanantarih >= CURDATE()'
@@ -121,12 +172,32 @@ final class EsysBridgeService
         $plansOut = [];
         foreach ($planRows as $row) {
             $plansOut[] = [
-                'esh_id' => (int) ($row->id ?? 0),
+                'esh_id' => (string) ($row->id ?? ''),
                 'tckimlik' => (string) ($row->hastatckimlik ?? ''),
                 'refs' => [
                     'esys_plan_ref' => EsysBridgeHelper::normalizeRef((string) ($row->esys_plan_ref ?? '')),
                 ],
                 'esys_payload' => EsysBridgeHelper::mapRowToEsysPayload($row, 'planned_visit'),
+            ];
+        }
+
+        $eraporSql = 'SELECT * FROM #__erapor WHERE 1=1'
+            . TenantSqlHelper::andBare('kurum_id')
+            . ' ORDER BY basvurutarihi DESC, id DESC LIMIT ' . (int) $eraporLimit;
+        $eraporRows = $db->fetchObjectListPrepared($eraporSql, []);
+        if (!is_array($eraporRows)) {
+            $eraporRows = [];
+        }
+
+        $eraporlarOut = [];
+        foreach ($eraporRows as $row) {
+            $eraporlarOut[] = [
+                'esh_id' => (string) ($row->id ?? ''),
+                'tckimlik' => (string) ($row->hastatckimlik ?? ''),
+                'refs' => [
+                    'esys_erapor_ref' => EsysBridgeHelper::normalizeRef((string) ($row->esys_erapor_ref ?? '')),
+                ],
+                'esys_payload' => EsysBridgeHelper::mapRowToEsysPayload($row, 'basvuru', 'erapor'),
             ];
         }
 
@@ -141,12 +212,17 @@ final class EsysBridgeService
                 'patient_count' => count($patientsOut),
                 'visit_count' => count($visitsOut),
                 'plan_count' => count($plansOut),
+                'erapor_count' => count($eraporlarOut),
                 'visit_since' => $visitSince,
                 'only_missing_refs' => $onlyMissing,
+                'only_missing_visit_refs' => $onlyMissingVisits,
+                'lookup_resolved' => true,
+                'skrs_context' => SkrsMapHelper::exportContextForKurum($kurumId),
             ],
             'patients' => $patientsOut,
             'visits' => $visitsOut,
             'plans' => $plansOut,
+            'eraporlar' => $eraporlarOut,
         ];
     }
 
@@ -169,9 +245,11 @@ final class EsysBridgeService
             'patients_updated' => 0,
             'visits_updated' => 0,
             'plans_updated' => 0,
+            'eraporlar_updated' => 0,
             'patients_skipped' => 0,
             'visits_skipped' => 0,
             'plans_skipped' => 0,
+            'eraporlar_skipped' => 0,
         ];
         $errors = [];
 
@@ -220,8 +298,26 @@ final class EsysBridgeService
             }
         }
 
-        $updatedTotal = $stats['patients_updated'] + $stats['visits_updated'] + $stats['plans_updated'];
-        $ok = $updatedTotal > 0 || ($stats['patients_skipped'] + $stats['visits_skipped'] + $stats['plans_skipped']) > 0;
+        $eraporlar = is_array($bundle['eraporlar'] ?? null) ? $bundle['eraporlar'] : [];
+        foreach ($eraporlar as $idx => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $result = $this->importEraporItem($item);
+            if ($result === true) {
+                $stats['eraporlar_updated']++;
+            } elseif ($result === false) {
+                $stats['eraporlar_skipped']++;
+            } else {
+                $errors[] = 'e-Rapor satır ' . ($idx + 1) . ': ' . $result;
+            }
+        }
+
+        $updatedTotal = $stats['patients_updated'] + $stats['visits_updated']
+            + $stats['plans_updated'] + $stats['eraporlar_updated'];
+        $skippedTotal = $stats['patients_skipped'] + $stats['visits_skipped']
+            + $stats['plans_skipped'] + $stats['eraporlar_skipped'];
+        $ok = $updatedTotal > 0 || $skippedTotal > 0;
 
         return [
             'ok' => $ok,
@@ -331,12 +427,33 @@ final class EsysBridgeService
 
     /**
      * @param array<string, mixed> $item
+     * @return true|false|string
+     */
+    private function importEraporItem(array $item)
+    {
+        $ref = EsysBridgeHelper::extractEraporRef($item);
+        if ($ref === null || $ref === '') {
+            return false;
+        }
+
+        $erapor = $this->resolveErapor($item);
+        if ($erapor === null) {
+            return 'Kayıt bulunamadı';
+        }
+
+        $erapor->bind(['esys_erapor_ref' => $ref], true);
+
+        return $erapor->store() ? true : 'Kaydedilemedi';
+    }
+
+    /**
+     * @param array<string, mixed> $item
      */
     private function resolvePatient(array $item): ?Patient
     {
         $model = new Patient();
-        $eshId = (int) ($item['esh_id'] ?? 0);
-        if ($eshId > 0 && $model->load($eshId)) {
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
             return $model;
         }
         $tc = ValidationHelper::tcDigitsOnly((string) ($item['tckimlik'] ?? ''));
@@ -347,7 +464,8 @@ final class EsysBridgeService
         if (!$row || empty($row->id)) {
             return null;
         }
-        if (!$model->load((int) $row->id)) {
+        $rowId = IdHelper::normalizeRequestId($row->id);
+        if ($rowId === null || !$model->load($rowId)) {
             return null;
         }
 
@@ -360,8 +478,8 @@ final class EsysBridgeService
     private function resolveVisit(array $item): ?Visit
     {
         $model = new Visit();
-        $eshId = (int) ($item['esh_id'] ?? 0);
-        if ($eshId > 0 && $model->load($eshId)) {
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
             return $model;
         }
         $tc = ValidationHelper::tcDigitsOnly((string) ($item['tckimlik'] ?? ''));
@@ -371,8 +489,8 @@ final class EsysBridgeService
             $sql = 'SELECT id FROM #__izlemler WHERE esys_izlem_ref = ?'
                 . TenantSqlHelper::andBare('kurum_id')
                 . ' LIMIT 1';
-            $id = (int) $db->loadResultPrepared($sql, [$esysRef]);
-            if ($id > 0 && $model->load($id)) {
+            $id = IdHelper::normalizeRequestId($db->loadResultPrepared($sql, [$esysRef]));
+            if ($id !== null && $model->load($id)) {
                 return $model;
             }
         }
@@ -389,8 +507,34 @@ final class EsysBridgeService
     private function resolvePlan(array $item): ?PlannedVisit
     {
         $model = new PlannedVisit();
-        $eshId = (int) ($item['esh_id'] ?? 0);
-        if ($eshId > 0 && $model->load($eshId)) {
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
+            return $model;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function resolveErapor(array $item): ?Erapor
+    {
+        $model = new Erapor();
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
+            return $model;
+        }
+        $tc = ValidationHelper::tcDigitsOnly((string) ($item['tckimlik'] ?? ''));
+        if (!ValidationHelper::isTcLength11($tc)) {
+            return null;
+        }
+        $db = Database::getInstance();
+        $sql = 'SELECT id FROM #__erapor WHERE hastatckimlik = ?'
+            . TenantSqlHelper::andBare('kurum_id')
+            . ' ORDER BY id DESC LIMIT 1';
+        $id = IdHelper::normalizeRequestId($db->loadResultPrepared($sql, [$tc]));
+        if ($id !== null && $model->load($id)) {
             return $model;
         }
 
@@ -408,12 +552,12 @@ final class EsysBridgeService
         ?string $errorMessage = null
     ): void {
         $kurumId = TenantContext::filterKurumId();
-        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+        $userId = AuthHelper::sessionUserId();
         (new EsysSyncLog())->record(
             $direction,
             $status,
             $kurumId,
-            $userId,
+            IdHelper::isEmptyEntityId($userId) ? null : $userId,
             $fileName,
             $stats,
             $errorMessage
@@ -426,7 +570,7 @@ final class EsysBridgeService
             return new StubEsysApiClient();
         }
         if ($mode === 'http') {
-            $base = \App\Helpers\OperationalSettings::esysBridgeApiBaseUrl();
+            $base = OperationalSettings::esysBridgeApiBaseUrl();
             if ($base === '') {
                 return null;
             }

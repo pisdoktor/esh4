@@ -33,7 +33,7 @@ foreach ($items as $row) {
                 <i class="fas fa-pen"></i>
             </a>
             <?php if ($mevcut <= 0): ?>
-            <form action="<?= htmlspecialchars(esh_url('Stok', 'malzemeDelete'), ENT_QUOTES, 'UTF-8') ?>" method="POST" class="d-inline" onsubmit="return confirm('Bu malzeme kaydını silmek istediğinize emin misiniz?');">
+            <form action="<?= htmlspecialchars(esh_url('Stok', 'malzemeDelete'), ENT_QUOTES, 'UTF-8') ?>" method="POST" class="d-inline" data-esh-confirm="Bu malzeme kaydını silmek istediğinize emin misiniz?">
                 <?= esh_csrf_field() ?>
                 <input type="hidden" name="id" value="<?= $id ?>">
                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="fas fa-trash"></i></button>

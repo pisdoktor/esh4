@@ -8,7 +8,7 @@ namespace App\Helpers;
  */
 final class UhdsTelehealthHelper
 {
-  private const TOKEN_VERSION = 1;
+    private const TOKEN_VERSION = 1;
 
     public static function isEnabled(): bool
     {
@@ -36,14 +36,14 @@ final class UhdsTelehealthHelper
             return $existing;
         }
 
-        $id = (int) ($appointment->id ?? 0);
+        $id = IdHelper::normalizeRequestId($appointment->id ?? null) ?? '';
         $kurumId = max(1, (int) ($appointment->kurum_id ?? 1));
         $prefix = self::sanitizeRoomPrefix(OperationalSettings::string('uhds_telehealth', 'room_prefix', 'esh-uhds'));
         $suffix = substr(hash('sha256', $id . '|' . ($appointment->hastatckimlik ?? '') . '|' . ($appointment->randevu_tarihi ?? '')), 0, 8);
-        $room = $prefix . '-k' . $kurumId . '-r' . $id . '-' . $suffix;
+        $room = $prefix . '-k' . $kurumId . '-r' . preg_replace('/[^a-zA-Z0-9]/', '', $id) . '-' . $suffix;
         $room = self::sanitizeRoomName($room);
 
-        if ($id > 0) {
+        if ($id !== '') {
             $model = new \App\Models\Uhds();
             if ($model->load($id)) {
                 $model->bind(['video_room_id' => $room], true);
@@ -86,13 +86,17 @@ final class UhdsTelehealthHelper
     /**
      * Hasta / misafir katılım jetonu (HMAC imzalı).
      */
-    public static function createPatientJoinToken(int $appointmentId, string $appointmentDateYmd): string
+    public static function createPatientJoinToken(int|string $appointmentId, string $appointmentDateYmd): string
     {
+        $aid = IdHelper::normalizeRequestId($appointmentId);
+        if ($aid === null) {
+            return '';
+        }
         $hours = OperationalSettings::uhdsTelehealthPatientJoinHours();
         $exp = time() + ($hours * 3600);
         $payload = [
             'v' => self::TOKEN_VERSION,
-            'id' => $appointmentId,
+            'id' => $aid,
             'exp' => $exp,
             'role' => 'patient',
             'd' => $appointmentDateYmd,
@@ -108,7 +112,7 @@ final class UhdsTelehealthHelper
     }
 
     /**
-     * @return array{id:int,exp:int,role:string,d:string}|null
+     * @return array{id:string,exp:int,role:string,d:string}|null
      */
     public static function verifyPatientJoinToken(string $token): ?array
     {
@@ -132,9 +136,9 @@ final class UhdsTelehealthHelper
         if (!is_array($data) || (int) ($data['v'] ?? 0) !== self::TOKEN_VERSION) {
             return null;
         }
-        $id = (int) ($data['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($data['id'] ?? null);
         $exp = (int) ($data['exp'] ?? 0);
-        if ($id <= 0 || $exp < time()) {
+        if ($id === null || $exp < time()) {
             return null;
         }
         $role = (string) ($data['role'] ?? '');
@@ -150,7 +154,7 @@ final class UhdsTelehealthHelper
         ];
     }
 
-    public static function patientJoinUrl(int $appointmentId, string $appointmentDateYmd): string
+    public static function patientJoinUrl(int|string $appointmentId, string $appointmentDateYmd): string
     {
         $token = self::createPatientJoinToken($appointmentId, $appointmentDateYmd);
         if ($token === '') {
@@ -223,8 +227,8 @@ final class UhdsTelehealthHelper
         if ($note !== '') {
             $params['aciklama'] = $note;
         }
-        $uhdsId = (int) ($appointment->id ?? 0);
-        if ($uhdsId > 0) {
+        $uhdsId = IdHelper::normalizeRequestId($appointment->id ?? null);
+        if ($uhdsId !== null) {
             $params['uhds_id'] = $uhdsId;
         }
 

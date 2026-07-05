@@ -7,7 +7,7 @@
                             <select class="form-select form-select-sm" name="personel_id" required>
                                 <option value="">Personel seçiniz</option>
                                 <?php foreach ($personeller as $p): ?>
-                                    <option value="<?= (int) $p->id ?>"><?= htmlspecialchars((string) $p->name) ?> (<?= htmlspecialchars((string) $p->unvan) ?>)</option>
+                                    <option value="<?= htmlspecialchars((string) $p->id, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) $p->name) ?> (<?= htmlspecialchars((string) $p->unvan) ?>)</option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

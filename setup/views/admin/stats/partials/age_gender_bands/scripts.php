@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     if (typeof Chart === 'undefined') return;
     new Chart(document.getElementById('statsAgeGenderChart'), {
@@ -6,8 +6,8 @@
         data: {
             labels: <?= json_encode($labels, JSON_UNESCAPED_UNICODE) ?>,
             datasets: [
-                { label: 'Erkek', data: <?= json_encode(array_values($stats['E'])) ?>, backgroundColor: '#0d6efd', borderRadius: 6 },
-                { label: 'Kadın', data: <?= json_encode(array_values($stats['K'])) ?>, backgroundColor: '#dc3545', borderRadius: 6 }
+                { label: 'Erkek', data: <?= json_encode(array_values($stats[\App\Helpers\CinsiyetHelper::ERKEK])) ?>, backgroundColor: '#0d6efd', borderRadius: 6 },
+                { label: 'Kadın', data: <?= json_encode(array_values($stats[\App\Helpers\CinsiyetHelper::KADIN])) ?>, backgroundColor: '#dc3545', borderRadius: 6 }
             ]
         },
         options: {

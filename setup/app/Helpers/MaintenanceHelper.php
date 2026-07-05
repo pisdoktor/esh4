@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 /**
- * Site geneli bakım modu — süper yönetici dışı erişimi engeller.
+ * Site geneli bakım modu — yalnızca sistem yöneticisi (platform owner) erişebilir.
  */
 final class MaintenanceHelper
 {
@@ -21,7 +21,7 @@ final class MaintenanceHelper
 
     public static function userMayBypass(): bool
     {
-        return AuthHelper::sessionIsSuperAdmin();
+        return AuthHelper::sessionIsPlatformOwner();
     }
 
     public static function shouldBlock(string $controller, string $action): bool
@@ -68,14 +68,14 @@ final class MaintenanceHelper
     }
 
     /**
-     * Giriş sırasında bakım modu: yalnızca süper yönetici oturum açabilir.
+     * Giriş sırasında bakım modu: yalnızca sistem yöneticisi oturum açabilir.
      */
     public static function rejectLoginIfBlocked(int $adminLevel): ?string
     {
         if (!self::isActive()) {
             return null;
         }
-        if ($adminLevel >= AuthHelper::ROLE_SUPERADMIN) {
+        if ($adminLevel >= AuthHelper::ROLE_PLATFORM_OWNER) {
             return null;
         }
 

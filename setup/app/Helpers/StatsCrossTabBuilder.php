@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 use App\Models\Stats;
+use App\Models\Patient;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 
 /**
@@ -288,9 +290,7 @@ final class StatsCrossTabBuilder {
         $rows = $stats->db->fetchObjectListPrepared("SELECT hastaliklar, dogumtarihi FROM #__hastalar h WHERE h.pasif = '0'" . self::k('h')
         ) ?: [];
         foreach ($rows as $r) {
-            $raw = trim((string) ($r->hastaliklar ?? ''));
-            $ids = $raw === '' ? [] : array_filter(array_map('trim', explode(',', $raw)));
-            $n = count($ids);
+            $n = count(Patient::parseHastalikCsvToIcds($r->hastaliklar ?? null));
             $rk = $n >= 4 ? '4p' : (string) min(3, $n);
             StatsCrossTabMatrix::add($pack, $rk, self::ageBandKey($r->dogumtarihi ?? null));
         }
@@ -496,7 +496,7 @@ final class StatsCrossTabBuilder {
             if (!in_array($mk, $colKeys, true)) {
                 continue;
             }
-            foreach (self::personnelCsvToIntIds($r->izlemiyapan ?? null) as $uid) {
+            foreach (IdHelper::csvToEntityIds($r->izlemiyapan ?? null) as $uid) {
                 $key = (string) $uid;
                 $cellCounts[$key][$mk] = ($cellCounts[$key][$mk] ?? 0) + 1;
                 $rowTotals[$key] = ($rowTotals[$key] ?? 0) + 1;
@@ -565,23 +565,6 @@ final class StatsCrossTabBuilder {
         $pack['row_unvan'] = $rowUnvan;
 
         return $pack;
-    }
-
-    /** @return list<int> */
-    private static function personnelCsvToIntIds(mixed $csv): array {
-        $csv = trim((string) $csv);
-        if ($csv === '') {
-            return [];
-        }
-        $out = [];
-        foreach (preg_split('/\s*,\s*/', str_replace(' ', '', $csv), -1, PREG_SPLIT_NO_EMPTY) as $p) {
-            $id = (int) $p;
-            if ($id > 0) {
-                $out[] = $id;
-            }
-        }
-
-        return $out;
     }
 
     private static function personnelUnvanSortIndex(string $unvanCode): int {

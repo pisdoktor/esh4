@@ -23,9 +23,9 @@ $eshEraporPatientLocked = $isEdit && (int) ($item->kayitlimi ?? 0) === 1;
         <div class="card-body p-4">
             <form action="<?= htmlspecialchars(esh_url('Erapor', 'store'), ENT_QUOTES, 'UTF-8') ?>" method="POST" id="erapor-create-form"
                   data-erapor-patient-locked="<?= $eshEraporPatientLocked ? '1' : '0' ?>"
-                  data-erapor-edit-id="<?= $isEdit ? (int) $item->id : '' ?>">
+                  data-erapor-edit-id="<?= $isEdit ? htmlspecialchars((string) $item->id, ENT_QUOTES, 'UTF-8') : '' ?>">
                 <?php if ($isEdit): ?>
-                    <input type="hidden" name="id" value="<?= (int) $item->id ?>">
+                    <input type="hidden" name="id" value="<?= htmlspecialchars((string) $item->id, ENT_QUOTES, 'UTF-8') ?>">
                 <?php endif; ?>
 
                 <div class="row mb-3">

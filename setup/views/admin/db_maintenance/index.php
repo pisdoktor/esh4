@@ -34,7 +34,7 @@ $backupGroups = $backupGroups ?? [];
         <?php include __DIR__ . '/partials/backup_restore_card.php'; ?>
     <?php endif; ?>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_DB_MAINT = {
     mysqlAvailable: <?= !empty($summary['mysql_available']) ? 'true' : 'false' ?>,
     restoreLimitBytes: 52428800

@@ -21,7 +21,7 @@ if (!empty($plans)) {
             $__ppActs = [];
             if ((int) ($p->durum ?? 0) === 0) {
                 $__ppActs[] = [
-                    'href' => esh_url('Visit', 'create', ['tc' => (string) $tc, 'plan_id' => (int) $p->id]),
+                    'href' => esh_url('Visit', 'create', ['tc' => (string) $tc, 'plan_id' => (string) ($p->id ?? '')]),
                     'title' => 'Gerçekleşen izlem kaydı',
                     'icon' => 'fa-solid fa-check text-success',
                 ];
@@ -33,14 +33,14 @@ if (!empty($plans)) {
             ];
             if (AuthHelper::sessionIsAdmin()) {
                 $__ppActs[] = [
-                    'href' => esh_url('PlannedVisit', 'edit', ['id' => (int) $p->id, 'tc' => (string) $tc]),
+                    'href' => esh_url('PlannedVisit', 'edit', ['id' => (string) ($p->id ?? ''), 'tc' => (string) $tc]),
                     'title' => 'Planlı izlem düzenle',
                     'icon' => 'fa-solid fa-pen-to-square text-primary',
                 ];
                 $__ppActs[] = [
                     'action' => esh_url('PlannedVisit', 'delete'),
                     'hidden' => [
-                        'id' => (int) $p->id,
+                        'id' => (string) ($p->id ?? ''),
                         'tc' => (string) $tc,
                     ],
                     'title' => 'Planı sil',

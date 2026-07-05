@@ -37,7 +37,7 @@ if (empty($patients)): ?>
             <div class="dropdown">
                 <a class="patient-link dropdown-toggle d-inline-block text-decoration-none fw-bold"
                    href="#" role="button" data-bs-toggle="dropdown" data-bs-display="static"
-                   style="color:<?= (($patient->cinsiyet ?? '') === '1' || ($patient->cinsiyet ?? '') === 'E') ? '#0d6efd' : '#dc3545' ?>; font-size: 0.82rem;">
+                   style="color:<?= \App\Helpers\CinsiyetHelper::nameColor($patient->cinsiyet ?? null) ?>; font-size: 0.82rem;">
                     <?= htmlspecialchars($patient->isim . ' ' . $patient->soyisim) ?>
                 </a>
                 <?php
