@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip
+
+      - name: Build install archives
+        run: |
+          php tools/build_distribution_zip.php --zip-only --out=dist
+          VER=$(php -r "require 'config/version.php'; echo ESH_APP_VERSION;")
+          PKG="esh-${VER}"
+          unzip -q "dist/${PKG}-install.zip" -d dist/_pkg
+          tar -czf "dist/${PKG}-install.tar.gz" -C "dist/_pkg" "$PKG"
+          rm -rf dist/_pkg
+          ls -lh dist/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## Kurulum
+
+            1. **esh-*-install.zip** veya **esh-*-install.tar.gz** dosyasını indirin.
+            2. Arşivi sunucuda açın; `esh-*/` klasörünün **içeriğini** web köküne kopyalayın.
+            3. Tarayıcıdan `public/install.php` kurulum sihirbazını çalıştırın.
+            4. Kurulum sonrası `public/install.php` dosyasını kaldırın veya erişimi kilitleyin.
+
+            Ayrıntılar: [README.md](https://github.com/${{ github.repository }}/blob/master/README.md)

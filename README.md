@@ -4,6 +4,25 @@ Türkiye'de evde sağlık hizmetleri yönetimi için geliştirilmiş web uygulam
 
 Bu depo, sıfır sunucu kurulumu için hazırlanmış temiz dağıtım paketidir (geliştirme artıkları, yerel config ve log yedekleri dahil değildir).
 
+## İndir (ZIP / tar.gz)
+
+GitHub **Releases** sayfasından hazır kurulum arşivini indirebilirsiniz:
+
+**[github.com/pisdoktor/esh4/releases](https://github.com/pisdoktor/esh4/releases)**
+
+| Dosya | Açıklama |
+|-------|----------|
+| `esh-*-install.zip` | Windows / genel kullanım |
+| `esh-*-install.tar.gz` | Linux / sunucu (gzip) |
+
+Kurulum adımları:
+
+1. Arşivi indirip sunucuda açın.
+2. `esh-4.0.0/` (sürüm numarası değişebilir) klasörünün **içeriğini** web köküne taşıyın.
+3. `public/install.php` sihirbazını tarayıcıdan çalıştırın.
+
+Yerel arşiv üretmek için: `php tools/build_distribution_zip.php` → çıktı `dist/` altında.
+
 ## Depo yapısı
 
 | Dizin | Açıklama |
