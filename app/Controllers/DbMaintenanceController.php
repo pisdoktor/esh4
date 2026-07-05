@@ -60,6 +60,8 @@ class DbMaintenanceController {
         $backups = $svc->listBackups();
         $tables = $svc->getEnrichedTableOverview();
         $summary = $svc->getDatabaseSummary();
+        $tableGroupSummary = $svc->getTableGroupSummary($tables);
+        $groupFilterLabels = $svc->orderedGroupLabels(array_column($tableGroupSummary, 'label'));
         $backupGroups = $svc->getBackupGroups();
         $token = $this->ensureToken();
         $maintResults = $_SESSION['db_maint_results'] ?? null;

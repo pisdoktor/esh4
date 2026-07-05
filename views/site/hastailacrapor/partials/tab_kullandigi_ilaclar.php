@@ -14,10 +14,10 @@
                             </div>
                             <div class="col-12 col-md-2">
                                 <label class="form-label small fw-semibold mb-1" for="ilacTaniQuick">İlgili tanı</label>
-                                <select class="form-select form-select-sm" id="ilacTaniQuick" name="hastalikid">
+                                <select class="form-select form-select-sm" id="ilacTaniQuick" name="hastalik_icd">
                                     <option value="">— Seçilmedi —</option>
-                                    <?php foreach ($hastalikOptions as $optId => $optAd): ?>
-                                        <option value="<?= (int) $optId ?>"><?= htmlspecialchars($optAd, ENT_QUOTES, 'UTF-8') ?></option>
+                                    <?php foreach ($hastalikOptions as $optIcd => $optAd): ?>
+                                        <option value="<?= htmlspecialchars((string) $optIcd, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($optAd, ENT_QUOTES, 'UTF-8') ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

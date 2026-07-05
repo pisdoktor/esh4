@@ -14,9 +14,9 @@ if ($historyPatient) {
     $patientLabel = trim((string) ($historyPatient->isim ?? '') . ' ' . (string) ($historyPatient->soyisim ?? ''));
 }
 $histErkek = $historyPatient
-    ? (($historyPatient->cinsiyet ?? '') === 'E' || ($historyPatient->cinsiyet ?? '') === '1')
+    ? \App\Helpers\CinsiyetHelper::isErkek($historyPatient->cinsiyet ?? null)
     : false;
-$histNameColor = $histErkek ? '#0d6efd' : '#dc3545';
+$histNameColor = \App\Helpers\CinsiyetHelper::nameColor($historyPatient->cinsiyet ?? null);
 $historyPagelinkParams = ['tc' => $tc];
 if (($status ?? '') !== '') {
     $historyPagelinkParams['status'] = (string) $status;
@@ -146,7 +146,7 @@ $historyPagelink = esh_url('Visit', 'history', $historyPagelinkParams);
 $ek3OpenVisitId = (int) ($ek3OpenVisitId ?? 0);
 include __DIR__ . '/partials/ek3_open_modal.php';
 ?>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/visit-history.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/visit-history.js') ?>
 <?php if ($articleClass !== ''): ?>
 </article>
 <?php endif; ?>

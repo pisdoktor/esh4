@@ -139,16 +139,16 @@ $eshPassiveSortCfg = ['mode' => 'ordering', 'base' => $eshPassiveSortBase];
                 <div class="d-flex flex-wrap gap-2 justify-content-end">
                     <button type="submit" class="btn btn-warning btn-sm rounded-pill"
                             formaction="<?= htmlspecialchars(esh_url('PlannedVisit', 'markPassivePendingMissedBulk'), ENT_QUOTES, 'UTF-8') ?>"
-                            onclick="return confirm('Seçili planlar (pasif tarihinden önce olanlar) yapılmadı izlem kaydı ile kapatılacak. Devam edilsin mi?');">
+                            data-esh-confirm="Seçili planlar (pasif tarihinden önce olanlar) yapılmadı izlem kaydı ile kapatılacak. Devam edilsin mi?">
                         <i class="fa-solid fa-hourglass-half me-1"></i>Seçilenleri yapılmadı işaretle
                     </button>
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill"
                             formaction="<?= htmlspecialchars(esh_url('PlannedVisit', 'deletePassivePendingAfterBulk'), ENT_QUOTES, 'UTF-8') ?>"
-                            onclick="return confirm('Seçili planlar (pasif tarihinden sonra olanlar) kalıcı olarak silinecek. Devam edilsin mi?');">
+                            data-esh-confirm="Seçili planlar (pasif tarihinden sonra olanlar) kalıcı olarak silinecek. Devam edilsin mi?">
                         <i class="fa-solid fa-trash-can me-1"></i>Sonrakileri sil
                     </button>
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill"
-                            onclick="return confirm('Seçili planlı izlem kayıtları kalıcı olarak silinecek (tarih ayrımı yapılmaz). Devam edilsin mi?');">
+                            data-esh-confirm="Seçili planlı izlem kayıtları kalıcı olarak silinecek (tarih ayrımı yapılmaz). Devam edilsin mi?">
                         <i class="fa-solid fa-trash me-1"></i>Seçilenleri sil (tümü)
                     </button>
                 </div>
@@ -207,7 +207,7 @@ $eshPassiveSortCfg = ['mode' => 'ordering', 'base' => $eshPassiveSortBase];
         </div>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     function setChecksBySplit(split) {
         document.querySelectorAll('.passive-plan-check').forEach(function (cb) {

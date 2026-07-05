@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Admin kullanıcı listesi — sistem sahibi bölge süzgeci.
+ * Admin kullanıcı listesi — sistem yöneticisi bölge süzgeci.
  * Controller: $eshUserListBolge
  */
 use App\Helpers\AuthHelper;

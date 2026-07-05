@@ -18,7 +18,12 @@
             <form action="<?= htmlspecialchars(esh_url('Nobet', 'rebuild'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-flex gap-2">
             <input type="hidden" name="ay" value="<?= (int) $ay ?>">
             <input type="hidden" name="yil" value="<?= (int) $yil ?>">
-            <button class="btn btn-sm btn-warning" onclick="return confirm('Bu ayın nöbetleri yeniden oluşturulsun mu?')"><i class="fa-solid fa-rotate me-1"></i>Otomatik Dağıtım</button>
+            <button type="submit"
+                    class="btn btn-sm btn-warning"
+                    <?= !empty($nobetHavuzBos) ? 'disabled title="Personel havuzu boş — önce ünvan ve personel kayıtlarını kontrol edin"' : '' ?>
+                    <?= empty($nobetHavuzBos) ? ' data-esh-confirm="Bu ayın nöbetleri yeniden oluşturulsun mu?"' : '' ?>>
+                <i class="fa-solid fa-rotate me-1"></i>Otomatik Dağıtım
+            </button>
             </form>
         </div>
     </div>

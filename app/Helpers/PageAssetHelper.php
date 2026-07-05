@@ -71,6 +71,9 @@ final class PageAssetHelper
         'harita' => [
             'index' => ['harita-index.css'],
         ],
+        'manuelkoordinat' => [
+            'index' => ['manuelkoordinat-index.css'],
+        ],
         'pansuman' => [
             'index' => ['pansuman-index.css'],
         ],

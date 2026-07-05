@@ -6,7 +6,7 @@
                 <p class="small text-muted mb-0">Gün sütunları × bölge; mahalle ve aktif hasta sayısı (eski <code>planlama&amp;task=table</code>).</p>
             </div>
             <div class="no-print d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-dark" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Yazdır</button>
+                <button type="button" class="btn btn-sm btn-outline-dark" data-esh-action="window-print"><i class="fa-solid fa-print me-1"></i> Yazdır</button>
                 <a href="<?= htmlspecialchars(esh_url('Planning', 'index'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-primary">Planlama listesi</a>
             </div>
         </div>

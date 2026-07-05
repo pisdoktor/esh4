@@ -9,6 +9,7 @@
     "ilac_rehber": true,
     "harita": true,
     "adres_koordinat": true,
+    "manuel_koordinat": true,
     "eimza_login": true,
     "archive": true,
     "ekip": true,
@@ -18,6 +19,7 @@
     "mesajlasma": true,
     "sms_bildirim": true,
     "stok": true,
-    "rest_api": false
+    "rest_api": false,
+    "patient_portal": true
   }
 }

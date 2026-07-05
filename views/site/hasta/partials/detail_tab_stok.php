@@ -9,7 +9,7 @@ use App\Models\StokHareket;
 use App\Services\Stok\StokService;
 
 /** @var object $hasta */
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $stokRows = [];
 $stokModuleOk = $hastaId > 0
     && AppSettings::isModuleEnabled('stok')

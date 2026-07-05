@@ -35,9 +35,11 @@
                 <?php if (empty($rows)): ?>
                     <tr><td colspan="8" class="text-center text-muted py-4">Henüz SMS gönderimi yok.</td></tr>
                 <?php else: ?>
-                    <?php foreach ($rows as $g): ?>
+                    <?php foreach ($rows as $g):
+                        $gid = (string) ($g->id ?? '');
+                        ?>
                     <tr>
-                        <td><?= (int) ($g->id ?? 0) ?></td>
+                        <td class="small font-monospace"><?= htmlspecialchars(substr($gid, 0, 8), ENT_QUOTES, 'UTF-8') ?>…</td>
                         <td class="small"><?= htmlspecialchars((string) ($g->created_at ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars(\App\Helpers\SmsSettings::segmentLabel((string) ($g->segment_tipi ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><span class="badge bg-secondary"><?= htmlspecialchars((string) ($g->durum ?? ''), ENT_QUOTES, 'UTF-8') ?></span></td>
@@ -45,7 +47,7 @@
                         <td class="text-end"><?= (int) ($g->toplam ?? 0) ?></td>
                         <td class="small"><?= htmlspecialchars((string) ($g->olusturan_adi ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="text-end">
-                            <a href="<?= htmlspecialchars(esh_url('Sms', 'historyDetail', ['id' => (int) ($g->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Detay</a>
+                            <a href="<?= htmlspecialchars(esh_url('Sms', 'historyDetail', ['id' => $gid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Detay</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

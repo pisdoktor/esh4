@@ -67,4 +67,4 @@ $showKota = !empty($catalogPickerShuttleShowKota);
         <span class="ms-2">Liste yükleniyor…</span>
     </div>
 </div>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/catalog-picker-shuttle.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/catalog-picker-shuttle.js') ?>

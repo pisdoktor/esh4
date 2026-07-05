@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 /**
  * Modern frontend pilot — Vue ESM (CDN veya derlenmiş bundle), dashboard / plan ekranı.
  */
@@ -97,8 +99,8 @@ final class ModernFrontendHelper
         if ($pct <= 0) {
             return false;
         }
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($userId <= 0) {
+        $userId = AuthHelper::sessionUserId();
+        if ($userId === null) {
             return false;
         }
         $bucket = abs(crc32('modern:' . $userId)) % 100;

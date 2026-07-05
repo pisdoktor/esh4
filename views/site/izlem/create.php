@@ -26,7 +26,7 @@
                         <i class="fa-solid fa-link me-1"></i>Planlı izlemden geldiniz; kayıt sonrası ilgili plan yapıldı olarak işaretlenir.
                     </div>
                 <?php endif; ?>
-                <?php if (!empty($uhdsId) && (int) $uhdsId > 0): ?>
+                <?php if (!empty($uhdsId) && trim((string) $uhdsId) !== ''): ?>
                     <div class="alert alert-info border-0 shadow-sm mb-0 mt-3 py-2 small">
                         <i class="fa-solid fa-video me-1"></i>UHDS görüntülü görüşmeden geldiniz; kayıt sonrası randevuya bağlanır.
                     </div>
@@ -52,10 +52,10 @@
                 <input type="hidden" name="checkin_at" value="">
                 <input type="hidden" name="checkin_accuracy" value="">
                 <?php if (!empty($plan) && !empty($plan->id)): ?>
-                    <input type="hidden" name="plan_id" value="<?= (int) $plan->id ?>">
+                    <input type="hidden" name="plan_id" value="<?= (string) $plan->id ?>">
                 <?php endif; ?>
-                <?php if (!empty($uhdsId) && (int) $uhdsId > 0): ?>
-                    <input type="hidden" name="uhds_id" value="<?= (int) $uhdsId ?>">
+                <?php if (!empty($uhdsId) && trim((string) $uhdsId) !== ''): ?>
+                    <input type="hidden" name="uhds_id" value="<?= htmlspecialchars((string) $uhdsId, ENT_QUOTES, 'UTF-8') ?>">
                 <?php endif; ?>
 
                 <?php include __DIR__ . '/partials/checkin_panel.php'; ?>
@@ -146,13 +146,13 @@
                 </div>
 
                 <div class="mt-4 pt-3 border-top d-none d-lg-flex flex-wrap justify-content-between gap-2 align-items-center izlem-desktop-actions">
-                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" onclick="history.back()">Vazgeç</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" data-esh-action="history-back">Vazgeç</button>
                     <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm fw-semibold">
                         <i class="fa-solid fa-floppy-disk me-2"></i>Kaydet
                     </button>
                 </div>
                 <div class="izlem-mobile-actions d-lg-none d-flex flex-wrap gap-2 justify-content-between align-items-stretch">
-                    <button type="button" class="btn btn-outline-secondary flex-grow-1 rounded-pill" onclick="history.back()">Vazgeç</button>
+                    <button type="button" class="btn btn-outline-secondary flex-grow-1 rounded-pill" data-esh-action="history-back">Vazgeç</button>
                     <button type="submit" class="btn btn-success flex-grow-1 rounded-pill shadow-sm fw-semibold">
                         <i class="fa-solid fa-floppy-disk me-2"></i>Kaydet
                     </button>

@@ -29,7 +29,7 @@ class FederationSyncLog extends BaseModel
     public function record(
         string $direction,
         string $status,
-        ?int $userId,
+        ?string $userId,
         ?string $fileName,
         array $stats = [],
         ?string $errorMessage = null

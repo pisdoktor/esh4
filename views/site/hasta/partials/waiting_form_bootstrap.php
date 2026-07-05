@@ -6,13 +6,7 @@ $dogumYmd = (string) ($hasta->dogumtarihi ?? '');
 $hasta->dtarihi = \App\Helpers\DateHelper::toTrOrEmpty($dogumYmd);
 $hasta->yas = \App\Helpers\DateHelper::calculateAge($dogumYmd);
 
-$rawCinsiyet = strtoupper(trim((string) ($hasta->cinsiyet ?? '')));
-if ($rawCinsiyet === '1') {
-    $rawCinsiyet = 'E';
-} elseif ($rawCinsiyet === '2') {
-    $rawCinsiyet = 'K';
-}
-$hasta->cinsiyetText = ($rawCinsiyet === 'E') ? 'Erkek' : 'Kadın';
+$hasta->cinsiyetText = \App\Helpers\CinsiyetHelper::label($hasta->cinsiyet ?? null);
 
 $ikinciAdresMetni = '';
 $decodedDigerAdres = json_decode((string) ($hasta->diger_adres ?? ''), true);

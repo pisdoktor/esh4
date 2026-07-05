@@ -12,7 +12,7 @@ use App\Helpers\DateHelper;
 /** @var list<object> $eshPortalPlanned */
 /** @var list<object> $eshPortalVisits */
 /** @var list<object> $eshPortalUhds */
-/** @var array<int,string> $eshPortalUhdsJoinUrls */
+/** @var array<string,string> $eshPortalUhdsJoinUrls */
 /** @var list<object> $eshPortalAppointmentRequests */
 /** @var bool $eshPortalSmsOnay */
 /** @var bool $eshPortalTelehealthEnabled */
@@ -93,6 +93,7 @@ $hastaAd = trim((string) ($eshPortalPatient->isim ?? '') . ' ' . (string) ($eshP
                 <?php foreach ($eshPortalUhds as $row):
                     $tarih = (string) ($row->randevu_tarihi ?? '');
                     $tarihTr = $tarih !== '' ? DateHelper::toTr($tarih) : '—';
+                    $uhdsRowId = (string) ($row->id ?? '');
                     ?>
                 <div class="list-group-item">
                     <div class="d-flex flex-wrap justify-content-between gap-2">
@@ -104,7 +105,7 @@ $hastaAd = trim((string) ($eshPortalPatient->isim ?? '') . ' ' . (string) ($eshP
                     </div>
                     <div class="small text-muted mt-1">Durum: <?= htmlspecialchars(PatientPortalHelper::uhdsStatusLabel($row->hasta_geldi ?? null), ENT_QUOTES, 'UTF-8') ?></div>
                     <?php if ($eshPortalTelehealthEnabled): ?>
-                        <?php $joinUrl = (string) ($eshPortalUhdsJoinUrls[(int) ($row->id ?? 0)] ?? ''); ?>
+                        <?php $joinUrl = (string) ($eshPortalUhdsJoinUrls[$uhdsRowId] ?? ''); ?>
                         <?php if ($joinUrl !== ''): ?>
                             <a class="btn btn-sm btn-outline-primary rounded-pill mt-2"
                                href="<?= htmlspecialchars($joinUrl, ENT_QUOTES, 'UTF-8') ?>"
@@ -119,7 +120,7 @@ $hastaAd = trim((string) ($eshPortalPatient->isim ?? '') . ' ' . (string) ($eshP
                         <summary class="small text-primary" style="cursor:pointer;">Randevu değişiklik talebi</summary>
                         <form method="post" action="<?= htmlspecialchars(esh_url('PatientPortal', 'requestAppointmentChange', [], true), ENT_QUOTES, 'UTF-8') ?>" class="mt-2">
                             <?= esh_csrf_field() ?>
-                            <input type="hidden" name="uhds_id" value="<?= (int) ($row->id ?? 0) ?>">
+                            <input type="hidden" name="uhds_id" value="<?= htmlspecialchars($uhdsRowId, ENT_QUOTES, 'UTF-8') ?>">
                             <div class="row g-2">
                                 <div class="col-12 col-md-4">
                                     <input type="date" class="form-control form-control-sm" name="talep_tarih" required>

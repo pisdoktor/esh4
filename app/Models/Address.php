@@ -421,7 +421,7 @@ class Address extends BaseModel {
                 LEFT JOIN #__adrestablosu AS s ON s.id=h.sokak AND s.ust_id=h.mahalle
                 LEFT JOIN #__adrestablosu AS k ON k.id=h.kapino AND k.ust_id=h.sokak
                 WHERE h.id = ?";
-        return $this->db->fetchObjectPrepared($sql, [(int) $userid]);
+        return $this->db->fetchObjectPrepared($sql, [(string) $userid]);
     }
     
     public function getAdresListeleri($patient) {
@@ -586,12 +586,12 @@ class Address extends BaseModel {
         $idStr = (string) $id;
         $ustTrim = $ustId !== null ? trim((string) $ustId) : '';
         if ($ustTrim !== '') {
-            $sql = 'SELECT id, adi, tip, ust_id FROM ' . $this->_tbl
+            $sql = 'SELECT id, adi, tip, ust_id, coords, has_coords FROM ' . $this->_tbl
                 . ' WHERE id = ? AND ust_id = ? LIMIT 1';
             $row = $this->db->fetchObjectPrepared($sql, [$idStr, $ustTrim]);
             return is_object($row) ? $row : null;
         }
-        $sql = 'SELECT id, adi, tip, ust_id FROM ' . $this->_tbl . ' WHERE id = ? LIMIT 2';
+        $sql = 'SELECT id, adi, tip, ust_id, coords, has_coords FROM ' . $this->_tbl . ' WHERE id = ? LIMIT 2';
         $rows = $this->db->fetchObjectListPrepared($sql, [$idStr]);
         if (!is_array($rows) || $rows === []) {
             return null;
@@ -789,14 +789,20 @@ class Address extends BaseModel {
         }
         if ($tip === 'ilce') {
             $ustId = trim((string) $ustId);
+            $allBolgeler = $ustId === '*';
             $sql = 'SELECT ' . $cols . ' FROM ' . $this->_tbl . ' AS a'
-                . ' WHERE a.tip = ? AND a.ust_id = ?';
+                . ' WHERE a.tip = ?';
+            $params = ['ilce'];
+            if (!$allBolgeler) {
+                $sql .= ' AND a.ust_id = ?';
+                $params[] = $ustId;
+            }
             if ($kid !== null) {
                 $sql .= KurumAdresScope::sqlFilterForTip('ilce', 'a', $kid);
             }
             $sql .= ' ORDER BY a.adi ASC';
 
-            return $this->db->fetchAllPrepared($sql, ['ilce', $ustId]);
+            return $this->db->fetchAllPrepared($sql, $params);
         }
         $ustId = trim((string) $ustId);
         $sql = 'SELECT ' . $cols . ' FROM ' . $this->_tbl . ' AS a'
@@ -1210,15 +1216,15 @@ class Address extends BaseModel {
     }
 
     /**
-     * SQL: kapı koordinatı öncelikli, yoksa hasta.coords (geriye dönük).
+     * SQL: kapı koordinatı — yalnızca esh_adrestablosu.coords (tip=kapino).
      */
     public static function effectiveCoordsExpr(string $hAlias = 'h', string $kAlias = 'k'): string {
-        return 'COALESCE(NULLIF(TRIM(' . $kAlias . '.coords), \'\'), NULLIF(TRIM(' . $hAlias . '.coords), \'\'))';
+        return 'NULLIF(TRIM(' . $kAlias . '.coords), \'\')';
     }
 
+    /** Kapı kaydında has_coords=1 (esh_hastalar.coords kullanılmaz). */
     public static function effectiveCoordsWhereClause(string $hAlias = 'h', string $kAlias = 'k'): string {
-        return '(' . $kAlias . '.has_coords = 1'
-            . ' OR (' . $hAlias . '.coords IS NOT NULL AND TRIM(' . $hAlias . '.coords) <> \'\'))';
+        return $kAlias . '.has_coords = 1';
     }
 
     /** Kapı kaydı: koordinat boş (has_coords indeksi; TRIM taraması yok). */
@@ -1233,20 +1239,30 @@ class Address extends BaseModel {
     }
 
     /**
-     * Hasta için gösterim / harita: kapı coords, yoksa eski hasta alanı.
+     * Hasta için gösterim / harita: bağlı kapı kaydının coords değeri.
      */
     public static function resolveCoordsForPatient(object $patient): string {
         $kapinoId = trim((string) ($patient->kapino ?? ''));
-        if ($kapinoId !== '') {
-            $row = (new self())->getRowById($kapinoId);
-            if ($row) {
-                $kc = trim((string) ($row->coords ?? ''));
-                if ($kc !== '') {
-                    return $kc;
-                }
+        if ($kapinoId === '') {
+            return '';
+        }
+        $row = (new self())->getRowById($kapinoId);
+        if (!$row) {
+            return '';
+        }
+
+        return trim((string) ($row->coords ?? ''));
+    }
+
+    /** Tam adres + kapı koordinatı dolu mu? */
+    public static function patientHasResolvableCoords(object $patient): bool {
+        foreach (['ilce', 'mahalle', 'sokak', 'kapino'] as $field) {
+            if (trim((string) ($patient->$field ?? '')) === '') {
+                return false;
             }
         }
-        return trim((string) ($patient->coords ?? ''));
+
+        return self::resolveCoordsForPatient($patient) !== '';
     }
 
     /**
@@ -1264,7 +1280,7 @@ class Address extends BaseModel {
         GeocodeQuotaHelper::recordKapinoCoordsPersisted();
     }
 
-    public function setKapinoCoords(string $kapinoId, string $coords): bool {
+    public function setKapinoCoords(string $kapinoId, string $coords, bool $recordQuota = true): bool {
         $kapinoId = trim($kapinoId);
         $coords = self::normalizeCoordsString($coords);
         if ($kapinoId === '') {
@@ -1288,7 +1304,7 @@ class Address extends BaseModel {
         }
         if ($ok) {
             $this->invalidateKapinoCoordStatsCache();
-            if ($coords !== '') {
+            if ($coords !== '' && $recordQuota) {
                 $this->recordTomtomQuotaOnKapinoCoordsPersist($prevCoords, $coords);
             }
         }
@@ -1386,7 +1402,7 @@ class Address extends BaseModel {
     }
 
     /**
-     * TomTom sonucu ile kayıtlı coords aynı mı (normalize edilmiş).
+     * Geocode sonucu ile kayıtlı coords aynı mı (normalize edilmiş).
      */
     public static function coordsAreEqual(?string $stored, ?string $fresh): bool
     {
@@ -1399,7 +1415,7 @@ class Address extends BaseModel {
     }
 
     /**
-     * Tek kapı: TomTom ile güncel konum; kayıtlı ile farklıysa veya boşsa yazar.
+     * Tek kapı: aktif harita sağlayıcısı ile güncel konum; kayıtlı ile farklıysa veya boşsa yazar.
      *
      * @return array{ok: bool, coords?: string, changed?: bool, was_empty?: bool, mesaj?: string}
      */
@@ -1420,8 +1436,8 @@ class Address extends BaseModel {
         if ($query === null) {
             return ['ok' => false, 'mesaj' => 'Adres metni oluşturulamadı.'];
         }
-        if (defined('TOMTOM_KEY') && trim((string) TOMTOM_KEY) === '') {
-            return ['ok' => false, 'mesaj' => 'TomTom API anahtarı tanımlı değil.'];
+        if (!MapRoutingGeocodeHelper::isActiveProviderConfigured()) {
+            return ['ok' => false, 'mesaj' => 'Aktif harita sağlayıcısı API anahtarı tanımlı değil.'];
         }
         $position = $this->tomtomGeocodeFirstResult($query);
         if ($position === null) {
@@ -1452,7 +1468,7 @@ class Address extends BaseModel {
     }
 
     /**
-     * Tek kapı için TomTom geocode; coords yazar.
+     * Tek kapı için geocode; coords yazar.
      *
      * @return array{ok: bool, coords?: string, mesaj?: string}
      */
@@ -1475,7 +1491,7 @@ class Address extends BaseModel {
     }
 
     /**
-     * Sokak altı tüm kapılar: TomTom ile karşılaştır; eksik veya değişmişse güncelle.
+     * Sokak altı tüm kapılar: geocode ile karşılaştır; eksik veya değişmişse güncelle.
      *
      * @return array{ok: bool, denenen: int, bulunan: int, guncellenen: int, ayni: int, kalan: int, last_id?: string}
      */
@@ -1643,7 +1659,7 @@ class Address extends BaseModel {
     {
         $this->kapinoCoordStatsCache = null;
         StatsQueryCache::forget('kapino_coord_stats');
-        StatsQueryCache::forget('harita_map_rows');
+        StatsQueryCache::forgetPrefix('harita_map_rows');
     }
 
     /**

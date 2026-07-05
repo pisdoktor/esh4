@@ -227,10 +227,13 @@ CREATE INDEX IF NOT EXISTS "idx_km_islem" ON "esh_kurum_islem" ("islem_id");
 CREATE TABLE IF NOT EXISTS "esh_kurum_hastalik" (
   "kurum_id" INTEGER NOT NULL,
   "hastalik_id" INTEGER NOT NULL,
+  "icd" VARCHAR(32) DEFAULT NULL,
   PRIMARY KEY ("kurum_id", "hastalik_id")
 );
 
 CREATE INDEX IF NOT EXISTS "idx_kh_hastalik" ON "esh_kurum_hastalik" ("hastalik_id");
+
+CREATE INDEX IF NOT EXISTS "idx_kh_kurum_icd" ON "esh_kurum_hastalik" ("kurum_id", "icd");
 
 CREATE TABLE IF NOT EXISTS "esh_hastalikcat" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -301,16 +304,16 @@ CREATE TABLE IF NOT EXISTS "esh_hastailacrapor" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   "kurum_id" INTEGER NOT NULL DEFAULT 1,
   "hastatckimlik" VARCHAR(11) NOT NULL,
-  "hastalikid" INTEGER NOT NULL,
+  "hastalikicd" VARCHAR(32) NOT NULL,
   "rapor" INTEGER(1) NOT NULL DEFAULT 0,
   "bitistarihi" DATE DEFAULT NULL,
   "brans" VARCHAR(512) NOT NULL DEFAULT '',
   "raporyeri" INTEGER(1) NOT NULL DEFAULT 0
 );
 
-CREATE INDEX IF NOT EXISTS "uk_tc_hastalik" ON "esh_hastailacrapor" ("hastatckimlik", "hastalikid");
+CREATE INDEX IF NOT EXISTS "uk_tc_hastalik_icd" ON "esh_hastailacrapor" ("hastatckimlik", "hastalikicd");
 CREATE INDEX IF NOT EXISTS "idx_tc" ON "esh_hastailacrapor" ("hastatckimlik");
-CREATE INDEX IF NOT EXISTS "idx_hastalik" ON "esh_hastailacrapor" ("hastalikid");
+CREATE INDEX IF NOT EXISTS "idx_hastalik_icd" ON "esh_hastailacrapor" ("hastalikicd");
 CREATE INDEX IF NOT EXISTS "idx_hastailacrapor_kurum" ON "esh_hastailacrapor" ("kurum_id");
 
 CREATE TABLE IF NOT EXISTS "esh_hasta_ilaclar" (
@@ -321,13 +324,14 @@ CREATE TABLE IF NOT EXISTS "esh_hasta_ilaclar" (
   "etken_madde" VARCHAR(512) NULL,
   "recete_turu" VARCHAR(128) NULL,
   "not" TEXT NULL,
-  "hastalikid" INTEGER NULL,
+  "hastalikicd" VARCHAR(32) NULL,
   "sira" INTEGER NOT NULL DEFAULT 0,
   "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS "idx_hasta" ON "esh_hasta_ilaclar" ("hasta_id");
+CREATE INDEX IF NOT EXISTS "idx_hasta_ilac_hastalik_icd" ON "esh_hasta_ilaclar" ("hastalikicd");
 CREATE INDEX IF NOT EXISTS "idx_hasta_ilaclar_kurum" ON "esh_hasta_ilaclar" ("kurum_id");
 
 CREATE TABLE IF NOT EXISTS "esh_users" (
@@ -387,7 +391,6 @@ CREATE TABLE IF NOT EXISTS "esh_hastalar" (
   "kapino" VARCHAR(64) DEFAULT NULL,
   "adres_aciklama" TEXT,
   "diger_adres" TEXT,
-  "coords" VARCHAR(255) DEFAULT NULL,
   "bagimlilik" VARCHAR(10) DEFAULT NULL,
   "pasif" VARCHAR(10) NOT NULL DEFAULT '0',
   "pasiftarihi" DATE DEFAULT NULL,
@@ -785,6 +788,7 @@ CREATE TABLE IF NOT EXISTS "esh_hasta_nakil" (
   "kaynak_hasta_id" INTEGER NOT NULL,
   "kaynak_kurum_id" INTEGER NOT NULL,
   "hedef_kurum_id" INTEGER NULL DEFAULT NULL,
+  "hedef_bolge_id" INTEGER NULL DEFAULT NULL,
   "hedef_hasta_id" INTEGER NULL DEFAULT NULL,
   "onceki_nakil_id" INTEGER NULL DEFAULT NULL,
   "orijinal_kaynak_hasta_id" INTEGER NULL DEFAULT NULL,
@@ -798,6 +802,7 @@ CREATE TABLE IF NOT EXISTS "esh_hasta_nakil" (
 );
 
 CREATE INDEX IF NOT EXISTS "idx_hedef_durum" ON "esh_hasta_nakil" ("hedef_kurum_id", "durum");
+CREATE INDEX IF NOT EXISTS "idx_hedef_bolge_durum" ON "esh_hasta_nakil" ("hedef_bolge_id", "durum");
 CREATE INDEX IF NOT EXISTS "idx_kaynak_hasta" ON "esh_hasta_nakil" ("kaynak_hasta_id");
 CREATE INDEX IF NOT EXISTS "idx_kaynak_kurum_durum" ON "esh_hasta_nakil" ("kaynak_kurum_id", "durum");
 

@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 var dd = {
     pageSize: 'A4',
     pageMargins: [30, 30, 30, 30],

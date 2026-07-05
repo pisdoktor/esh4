@@ -4,8 +4,8 @@ declare(strict_types=1);
 /**
  * CLI: REST API bearer token oluştur.
  *
- *   php tools/create_api_token.php --user=1 --label="Entegrasyon"
- *   php tools/create_api_token.php --user=1 --label="BI" --scopes=patients,visits
+ *   php tools/create_api_token.php --user=UUID --label="Entegrasyon"
+ *   php tools/create_api_token.php --user=UUID --label="BI" --scopes=patients,visits
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -28,12 +28,14 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
-$userId = 0;
+use App\Helpers\IdHelper;
+
+$userId = null;
 $label = '';
 $scopes = 'read';
 foreach (array_slice($argv, 1) as $arg) {
     if (str_starts_with($arg, '--user=')) {
-        $userId = (int) substr($arg, 7);
+        $userId = IdHelper::normalizeRequestId(substr($arg, 7));
     } elseif (str_starts_with($arg, '--label=')) {
         $label = substr($arg, 8);
     } elseif (str_starts_with($arg, '--scopes=')) {
@@ -41,8 +43,8 @@ foreach (array_slice($argv, 1) as $arg) {
     }
 }
 
-if ($userId <= 0) {
-    fwrite(STDERR, "Usage: php tools/create_api_token.php --user=ID [--label=...] [--scopes=read|patients,visits,plans]\n");
+if ($userId === null) {
+    fwrite(STDERR, "Usage: php tools/create_api_token.php --user=UUID [--label=...] [--scopes=read|patients,visits,plans]\n");
     exit(1);
 }
 

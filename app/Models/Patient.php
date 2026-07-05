@@ -1,7 +1,10 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\CatalogStoreHelper;
 use App\Helpers\PatientListSqlHelper;
+use App\Helpers\AuthHelper;
+use App\Helpers\FederationHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
 use App\Models\HastaNakil;
@@ -11,6 +14,8 @@ use App\Models\HastaNakil;
  * BaseModel'den miras alarak bind, store ve save yeteneklerini kullanır.
  */
 class Patient extends BaseModel {
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
     // Veritabanı tablo sütunları (Özellikler)
     // Kimlik Bilgileri
     public $id = null;
@@ -48,7 +53,6 @@ class Patient extends BaseModel {
     public $kapino = null;
     public $adres_aciklama = null;
     public $diger_adres = null;
-    public $coords = null;
 
     // Sağlık Durumu ve Bağımlılık
     public $bagimlilik = null;
@@ -184,7 +188,9 @@ class Patient extends BaseModel {
             $limit,
             $offset,
             $fullStats,
-            $planPendingOnly
+            $planPendingOnly,
+            true,
+            $useWaitingTenantScope
         );
     }
 
@@ -1012,7 +1018,7 @@ class Patient extends BaseModel {
                   LEFT JOIN #__adrestablosu AS a4 ON a4.id = h.kapino
                   WHERE h.id = ?";
 
-        return $this->db->fetchObjectPrepared($query, [(int) $id]);
+        return $this->db->fetchObjectPrepared($query, [(string) $id]);
     }
     
     //Hastayı pasife alma
@@ -1083,30 +1089,126 @@ class Patient extends BaseModel {
 }
     
     /**
-     * Virgüllü hastalık id listesini veya id dizisini pozitif tekil tamsayı dizisine çevirir.
-     *
-     * @return list<int>
+     * ICD-10 kodunu depolama/arama için normalize eder.
      */
-    public static function parseHastalikCsvToIntIds($csv): array {
+    public static function normalizeHastalikIcd(string $icd): string
+    {
+        return trim($icd);
+    }
+
+    /**
+     * @param list<string> $icds
+     */
+    public static function hastaliklarToStorageCsv(array $icds): string
+    {
+        $out = [];
+        foreach ($icds as $icd) {
+            $norm = self::normalizeHastalikIcd((string) $icd);
+            if ($norm !== '') {
+                $out[$norm] = $norm;
+            }
+        }
+
+        return implode(',', array_values($out));
+    }
+
+    /**
+     * Virgüllü hastalık listesini (ICD veya legacy id) tekil ICD dizisine çevirir.
+     *
+     * @return list<string>
+     */
+    public static function parseHastalikCsvToIcds($csv): array
+    {
+        $tokens = [];
         if (is_array($csv)) {
-            $out = [];
             foreach ($csv as $p) {
-                $n = (int) trim((string) $p);
-                if ($n > 0) {
-                    $out[$n] = $n;
+                $t = trim((string) $p);
+                if ($t !== '') {
+                    $tokens[] = $t;
                 }
             }
-
-            return array_values($out);
+        } else {
+            $csv = trim((string) $csv);
+            if ($csv === '') {
+                return [];
+            }
+            foreach (preg_split('/\s*,\s*/', $csv) as $p) {
+                $t = trim((string) $p);
+                if ($t !== '') {
+                    $tokens[] = $t;
+                }
+            }
         }
 
-        $csv = trim((string) $csv);
-        if ($csv === '') {
+        if ($tokens === []) {
             return [];
         }
+
+        $icds = [];
+        $legacyIds = [];
+        foreach ($tokens as $token) {
+            if (preg_match('/^\d+$/', $token)) {
+                $legacyIds[] = (int) $token;
+                continue;
+            }
+            $norm = self::normalizeHastalikIcd($token);
+            if ($norm !== '') {
+                $icds[$norm] = $norm;
+            }
+        }
+
+        if ($legacyIds !== []) {
+            $db = \App\Core\Database::getInstance();
+            $legacyIds = array_values(array_unique(array_filter($legacyIds, static fn ($v) => $v > 0)));
+            if ($legacyIds !== []) {
+                [$inSql, $inParams] = $db->whereInClause($legacyIds);
+                $rows = $db->fetchAllPrepared(
+                    "SELECT icd FROM #__hastaliklar WHERE id IN ({$inSql}) AND TRIM(COALESCE(icd, '')) <> ''",
+                    $inParams
+                );
+                foreach ($rows as $row) {
+                    $norm = self::normalizeHastalikIcd((string) ($row['icd'] ?? ''));
+                    if ($norm !== '') {
+                        $icds[$norm] = $norm;
+                    }
+                }
+            }
+        }
+
+        return array_values($icds);
+    }
+
+    /**
+     * Platform kataloğunda ICD → güncel hastalık id eşlemesi.
+     *
+     * @param list<string> $icds
+     * @return list<int>
+     */
+    public static function resolveHastalikIcdsToIds(array $icds): array
+    {
+        $icds = array_values(array_unique(array_filter(array_map(
+            static fn ($v) => self::normalizeHastalikIcd((string) $v),
+            $icds
+        ), static fn ($v) => $v !== '')));
+        if ($icds === []) {
+            return [];
+        }
+
+        $db = \App\Core\Database::getInstance();
+        [$inSql, $inParams] = $db->whereInClause($icds);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+        $rows = $db->fetchColumnListPrepared(
+            "SELECT id FROM #__hastaliklar WHERE kurum_id = ? AND icd IN ({$inSql}) ORDER BY id ASC",
+            $params,
+            0
+        );
+        if (!is_array($rows)) {
+            return [];
+        }
+
         $out = [];
-        foreach (preg_split('/\s*,\s*/', $csv) as $p) {
-            $n = (int) trim((string) $p);
+        foreach ($rows as $id) {
+            $n = (int) $id;
             if ($n > 0) {
                 $out[$n] = $n;
             }
@@ -1116,8 +1218,32 @@ class Patient extends BaseModel {
     }
 
     /**
-     * İlaç raporu ekranı için hasta `#__hastalar.hastaliklar` CSV listesini sayısal id dizisine çevirir.
+     * Virgüllü hastalık listesini pozitif tekil tamsayı id dizisine çevirir (ICD veya legacy id).
      *
+     * @return list<int>
+     */
+    public static function parseHastalikCsvToIntIds($csv): array
+    {
+        $icds = self::parseHastalikCsvToIcds($csv);
+
+        return self::resolveHastalikIcdsToIds($icds);
+    }
+
+    /**
+     * İlaç raporu ekranı için hasta tanı ICD listesi.
+     *
+     * @return list<string>
+     */
+    public static function mergedHastalikIcdsForIlacRapor(object $patient): array
+    {
+        $icds = self::parseHastalikCsvToIcds($patient->hastaliklar ?? null);
+        sort($icds);
+
+        return $icds;
+    }
+
+    /**
+     * @deprecated İlaç raporu artık ICD kullanır; {@see mergedHastalikIcdsForIlacRapor}
      * @return list<int>
      */
     public static function mergedHastalikIdsForIlacRapor(object $patient): array {
@@ -1128,28 +1254,32 @@ class Patient extends BaseModel {
     }
 
     /**
-     * Hastanın hastalık ID'lerini dizi (array) olarak döndürür
+     * Hastanın ICD-10 tanı kodlarını dizi olarak döndürür.
+     *
+     * @return list<string>
      */
-    public function getDiseaseArray() {
-        return !empty($this->hastaliklar) ? explode(',', $this->hastaliklar) : [];
+    public function getDiseaseArray(): array
+    {
+        return self::parseHastalikCsvToIcds($this->hastaliklar ?? null);
     }
 
     /**
      * Hastaya ait hastalık isimlerini veritabanından çekerek döndürür
      */
     public function getDiseaseNames() {
-        if (empty($this->hastaliklar)) return 'Belirtilmemiş';
-
-        $ids = array_filter(array_map('intval', explode(',', (string) $this->hastaliklar)));
-        if (empty($ids)) {
+        $icds = self::parseHastalikCsvToIcds($this->hastaliklar ?? null);
+        if ($icds === []) {
             return 'Belirtilmemiş';
         }
-        [$inSql, $inParams] = $this->db->whereInClause($ids);
+        [$inSql, $inParams] = $this->db->whereInClause($icds);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
         $query = "SELECT GROUP_CONCAT(hastalikadi SEPARATOR ', ') as isimler 
                   FROM #__hastaliklar 
-                  WHERE id IN ($inSql)";
+                  WHERE kurum_id = ? AND icd IN ($inSql)";
         
-        return $this->db->loadResultPrepared($query, $inParams);
+        $result = $this->db->loadResultPrepared($query, $params);
+
+        return $result !== null && trim((string) $result) !== '' ? $result : 'Belirtilmemiş';
     }
     
     /**
@@ -1273,9 +1403,9 @@ class Patient extends BaseModel {
     /**
      * EK-3 PDF için adres satırı adları ve güvence adı ile hasta.
      */
-    public function loadForEk3(int $patientId): ?object {
-        $patientId = (int) $patientId;
-        if ($patientId < 1) {
+    public function loadForEk3(string $patientId): ?object {
+        $patientId = IdHelper::normalizeRequestId($patientId);
+        if ($patientId === null) {
             return null;
         }
         $sql = 'SELECT h.*, i.adi AS ilceadi, m.adi AS mahalleadi, s.adi AS sokakadi, k.adi AS kapino_adi,
@@ -1291,21 +1421,22 @@ class Patient extends BaseModel {
     }
 
     /**
-     * @param string|null $csv hastaliklar sütunu (virgüllü id)
+     * @param string|null $csv hastaliklar sütunu (virgüllü ICD-10)
      */
     public function hastalikEtiketleriFromCsv(?string $csv): string {
-        $csv = trim((string) $csv);
-        if ($csv === '') {
+        $icds = self::parseHastalikCsvToIcds($csv);
+        if ($icds === []) {
             return '';
         }
-        $ids = array_values(array_unique(array_filter(array_map('intval', preg_split('/\s*,\s*/', $csv, -1, PREG_SPLIT_NO_EMPTY)))));
-        if ($ids === []) {
-            return '';
+        [$inSql, $inParams] = $this->db->whereInClause($icds);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+        $sql = 'SELECT CONCAT(COALESCE(icd, \'\'), \'.\', hastalikadi) FROM #__hastaliklar WHERE kurum_id = ? AND icd IN (' . $inSql . ') ORDER BY icd ASC';
+        $rows = $this->db->fetchColumnListPrepared($sql, $params, 0);
+        if ($rows) {
+            return implode(', ', $rows);
         }
-        [$inSql, $inParams] = $this->db->whereInClause($ids);
-        $sql = 'SELECT CONCAT(COALESCE(icd, \'\'), \'.\', hastalikadi) FROM #__hastaliklar WHERE id IN (' . $inSql . ') ORDER BY id ASC';
-        $rows = $this->db->fetchColumnListPrepared($sql, $inParams, 0);
-        return $rows ? implode(', ', $rows) : '';
+
+        return implode(', ', $icds);
     }
 
     /**
@@ -1316,7 +1447,16 @@ class Patient extends BaseModel {
     public function getActivePatientsWithCoordsForMap(): array {
         $eff = Address::effectiveCoordsExpr('h', 'a4');
         $effWhere = Address::effectiveCoordsWhereClause('h', 'a4');
-        $kapinoJoin = "LEFT JOIN #__adrestablosu AS a4 ON h.kapino = a4.id AND a4.tip = 'kapino'";
+        $kapinoJoin = Address::kapinoJoinSql('h', 'a4');
+
+        $tenantScope = TenantSqlHelper::andEqualsForHarita('h', 'kurum_id');
+        if ($tenantScope === ''
+            && AuthHelper::sessionIsSuperAdminOnly()
+            && FederationHelper::enabled()
+            && TenantContext::sessionAssignedBolgeId() === null
+            && TenantContext::sessionKurumFilter() === null) {
+            $tenantScope = ' AND 1=0';
+        }
 
         $sql = "SELECT h.id, h.tckimlik, h.isim, h.soyisim, h.cinsiyet, h.ceptel1, {$eff} AS coords,
             a1.adi AS ilce_adi, a2.adi AS mahalle_adi, a3.adi AS sokak_adi, a4.adi AS kapino
@@ -1326,7 +1466,8 @@ class Patient extends BaseModel {
             LEFT JOIN #__adrestablosu AS a3 ON h.sokak = a3.id
             {$kapinoJoin}
             WHERE h.pasif = '0'
-            AND {$effWhere}
+            AND {$effWhere}"
+            . $tenantScope . "
             ORDER BY h.isim ASC, h.soyisim ASC";
         $list = $this->db->fetchObjectListPrepared($sql);
         if (!is_array($list) || $list === []) {

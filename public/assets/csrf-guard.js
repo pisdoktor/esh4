@@ -37,6 +37,15 @@
         var nativeFetch = window.fetch.bind(window);
         window.fetch = function (input, init) {
             init = init || {};
+            var reqUrl = '';
+            if (typeof input === 'string') {
+                reqUrl = input;
+            } else if (input && typeof input === 'object' && typeof input.url === 'string') {
+                reqUrl = input.url;
+            }
+            if (reqUrl.indexOf('blob:') === 0 || reqUrl.indexOf('data:') === 0) {
+                return nativeFetch(input, init);
+            }
             var method = String(
                 init.method
                 || (input && typeof input === 'object' && input.method)

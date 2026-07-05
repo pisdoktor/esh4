@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * database/patch_rbac_permissions_extend.sql içeriğini uygular.
  * Kullanım: php tools/apply_rbac_permissions_extend.php
@@ -31,7 +31,7 @@ $rows = [
     ['patient', 'admin', 'patient.admin', 'Hasta — yönetici işlemleri'],
     ['user', 'admin', 'user.admin', 'Kullanıcı — yönetim'],
     ['ilac_rehber', 'admin', 'ilac_rehber.admin', 'İlaç rehberi — yönetim'],
-    ['ilac_rehber', 'superadmin', 'ilac_rehber.superadmin', 'İlaç rehberi — süper yönetici'],
+    ['ilac_rehber', 'superadmin', 'ilac_rehber.superadmin', 'İlaç rehberi — bölge yöneticisi'],
     ['mesajlasma', 'admin', 'mesajlasma.admin', 'Mesajlaşma — duyuru (broadcast)'],
     ['mesajlasma', 'update', 'mesajlasma.update', 'Mesajlaşma — güncelleme'],
     ['mesajlasma', 'delete', 'mesajlasma.delete', 'Mesajlaşma — kalıcı silme'],

@@ -11,7 +11,7 @@
             </div>
             <div class="col-12 col-md-auto d-flex gap-2">
                 <button type="submit" class="btn btn-sm btn-primary" id="dashboard-tc-lookup-btn">Ara</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="var i=document.getElementById('dashboard-tc-lookup-input'); if(i){i.value=''; i.focus();}">Temizle</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-esh-action="clear-focus" data-esh-clear-input="#dashboard-tc-lookup-input">Temizle</button>
             </div>
         </form>
         <div id="dashboard-tc-lookup-exact" class="mt-2 d-none"></div>

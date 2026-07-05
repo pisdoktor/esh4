@@ -85,7 +85,7 @@ $user_options = '';
 
 foreach ($users as $user) {
 
-    $user_options .= '<option value="' . (int) $user->id . '">' . htmlspecialchars((string) $user->name, ENT_QUOTES, 'UTF-8') . '</option>';
+    $user_options .= '<option value="' . htmlspecialchars((string) ($user->id ?? ''), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars((string) $user->name, ENT_QUOTES, 'UTF-8') . '</option>';
 
 }
 
@@ -93,7 +93,7 @@ foreach ($users as $user) {
 
 
 
-<div class="esh-page esh-page--form esh-page-ekip container-fluid py-4">
+<div class="esh-page esh-page--form esh-page-ekip container-fluid py-4" data-esh-tomselect-scope="manual">
 
     <div class="card shadow-sm border-0">
 
@@ -159,145 +159,4 @@ foreach ($users as $user) {
 
 
 
-<script>
-
-var userOptions = <?= json_encode($user_options, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
-
-
-
-function updateDisabledOptions(vardiyaId) {
-
-    var vardiyaGrubu = jQuery('.vardiya-grubu[data-vardiya-id="' + vardiyaId + '"]');
-
-    var allSelects = vardiyaGrubu.find('.ekip-select');
-
-    var selectedValues = [];
-
-    allSelects.each(function () {
-
-        var vals = jQuery(this).val();
-
-        if (vals) {
-
-            selectedValues = selectedValues.concat(vals);
-
-        }
-
-    });
-
-    allSelects.each(function () {
-
-        var currentSelect = jQuery(this);
-
-        var currentVals = currentSelect.val() || [];
-
-        currentSelect.find('option').each(function () {
-
-            var val = jQuery(this).val();
-
-            if (selectedValues.indexOf(val) !== -1 && currentVals.indexOf(val) === -1) {
-
-                jQuery(this).prop('disabled', true);
-
-            } else {
-
-                jQuery(this).prop('disabled', false);
-
-            }
-
-        });
-
-        if (window.eshRefreshTomSelect && currentSelect.length) {
-            window.eshRefreshTomSelect(currentSelect[0], { silent: true });
-        }
-
-    });
-
-}
-
-
-
-function ekipEkle(vKey) {
-
-    var container = jQuery('#vardiya-container-' + vKey + ' .ekip-listesi');
-
-    var nextNo = container.find('.ekip-box').length + 1;
-
-    var html = '<div class="ekip-box"><i class="fa fa-times remove-ekip" onclick="jQuery(this).closest(\'.ekip-box\').remove(); updateDisabledOptions(' + vKey + ');"></i>' +
-
-        '<div class="small fw-semibold mb-1">' + nextNo + '. Ekip</div>' +
-
-        '<select name="ekipler[' + vKey + '][' + nextNo + '][]" class="form-select form-select-sm esh-tomselect ekip-select" multiple>' + userOptions + '</select></div>';
-
-    container.append(html);
-
-    container.find('.esh-tomselect').last().each(function () {
-        if (typeof window.eshInitTomSelectElement === 'function') {
-            window.eshInitTomSelectElement(this);
-        }
-    });
-
-    updateDisabledOptions(vKey);
-
-}
-
-
-
-jQuery(document).ready(function ($) {
-
-    if (typeof window.eshInitTomSelectOnPage === 'function') {
-        window.eshInitTomSelectOnPage();
-    }
-
-    [0, 1, 2].forEach(function (v) {
-
-        updateDisabledOptions(v);
-
-    });
-
-    $(document).on('change', '.ekip-select', function () {
-
-        var vid = $(this).closest('.vardiya-grubu').data('vardiya-id');
-
-        updateDisabledOptions(vid);
-
-    });
-
-
-
-    $('#planTarihi').datepicker({
-
-        format: 'dd.mm.yyyy',
-
-        autoclose: true,
-
-        todayHighlight: true,
-
-        language: 'tr',
-
-        weekStart: 1
-
-    }).on('changeDate', function (e) {
-
-        var d = e.date;
-
-        var yil = d.getFullYear();
-
-        var ay = ('0' + (d.getMonth() + 1)).slice(-2);
-
-        var gun = ('0' + d.getDate()).slice(-2);
-
-        var urlTarih = yil + '-' + ay + '-' + gun;
-
-        window.location.href = (typeof window.eshUrl === 'function'
-
-            ? window.eshUrl('Ekip', 'edit', { tarih: urlTarih })
-
-            : 'index.php?controller=Ekip&action=edit&tarih=' + encodeURIComponent(urlTarih));
-
-    });
-
-});
-
-</script>
-
+<script<?= esh_csp_nonce_attr() ?>>window.eshEkipUserOptions = <?= json_encode($user_options, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;</script>

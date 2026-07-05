@@ -2,12 +2,15 @@
 namespace App\Models;
 use App\Core\Database;
 use App\Core\DbSqlHelper;
+use App\Helpers\IdHelper;
 
 class BaseModel {
     public $db;
     protected $_tbl = '';
     protected $_tbl_key = 'id';
     protected $_dirty = [];
+    /** @var bool CHAR(36) UUID PK tablolarında insert öncesi id üretir */
+    protected $uuidPrimaryKey = false;
 
     public function __construct($table, $key = 'id') {
         $this->db = Database::getInstance();
@@ -72,7 +75,8 @@ class BaseModel {
             if ($result) { $this->_dirty = []; }
             return $result;
         }
-        $id = $this->db->insertPrepared($this->_tbl, $this->_dirty);
+        $insertData = $this->buildInsertData();
+        $id = $this->db->insertPrepared($this->_tbl, $insertData);
         if ($id !== false) {
             $this->$k = $id;
             $this->_dirty = [];
@@ -80,6 +84,22 @@ class BaseModel {
         }
 
         return false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function buildInsertData(): array
+    {
+        $data = $this->_dirty;
+        $k = $this->_tbl_key;
+        if ($this->uuidPrimaryKey && empty($this->$k)) {
+            $newId = IdHelper::generateUuidV4();
+            $data[$k] = $newId;
+            $this->$k = $newId;
+        }
+
+        return $data;
     }
 
     /**
@@ -111,16 +131,17 @@ class BaseModel {
      * Mevcut kaydı siler.
      */
     public function delete($id = null) {
-        $id = ($id !== null) ? (int)$id : (isset($this->{$this->_tbl_key}) ? (int)$this->{$this->_tbl_key} : null);
+        $id = ($id !== null) ? $id : ($this->{$this->_tbl_key} ?? null);
+        if ($id === null || $id === '' || $id === 0 || $id === '0') {
+            return false;
+        }
 
-        if ($id) {
-            if ($this->db->executePrepared(
-                "DELETE FROM {$this->_tbl} WHERE {$this->_tbl_key} = ?",
-                [$id]
-            )) {
-                $this->reset(); // Nesneyi temizle
-                return true;
-            }
+        if ($this->db->executePrepared(
+            "DELETE FROM {$this->_tbl} WHERE {$this->_tbl_key} = ?",
+            [$id]
+        )) {
+            $this->reset();
+            return true;
         }
         return false;
     }

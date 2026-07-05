@@ -10,7 +10,7 @@
  */
 use App\Helpers\DateHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $rows = isset($fallRiskAssessments) && is_array($fallRiskAssessments) ? $fallRiskAssessments : [];
 $emptyLabel = str_contains($fallRiskDeleteAction, 'Itaki') || $fallRiskDeleteAction === 'deleteItaki'
     ? 'İTAKİ'
@@ -64,9 +64,9 @@ $emptyLabel = str_contains($fallRiskDeleteAction, 'Itaki') || $fallRiskDeleteAct
                         </td>
                         <td class="text-end">
                             <?php if (empty($pasifDosyaKapali)): ?>
-                                <form action="<?= htmlspecialchars(esh_url('Patient', $fallRiskDeleteAction), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" onsubmit="return confirm('Bu değerlendirmeyi silmek istediğinize emin misiniz?');">
+                                <form action="<?= htmlspecialchars(esh_url('Patient', $fallRiskDeleteAction), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" data-esh-confirm="Bu değerlendirmeyi silmek istediğinize emin misiniz?">
                                     <input type="hidden" name="id" value="<?= $hastaId ?>">
-                                    <input type="hidden" name="assessment_id" value="<?= (int) ($row->id ?? 0) ?>">
+                                    <input type="hidden" name="assessment_id" value="<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Sil">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>

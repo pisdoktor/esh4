@@ -23,7 +23,7 @@ $patientName = trim((string) (($patient->isim ?? '') . ' ' . ($patient->soyisim 
                     </div>
                     <form method="post" action="<?= htmlspecialchars(esh_url('Patient', 'storeKurum'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3">
                         <?= esh_csrf_field() ?>
-                        <input type="hidden" name="id" value="<?= (int) ($patient->id ?? 0) ?>">
+                        <input type="hidden" name="id" value="<?= (string) ($patient->id ?? '') ?>">
                         <?php
                         $eshChangeKurumOptions = [];
                         foreach ($kurumlar as $k) {
@@ -46,7 +46,7 @@ $patientName = trim((string) (($patient->isim ?? '') . ' ' . ($patient->soyisim 
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-floppy-disk me-1"></i>Kurumu kaydet
                             </button>
-                            <a href="<?= htmlspecialchars(esh_url('Patient', 'edit', ['id' => (int) ($patient->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Hasta düzenleme</a>
+                            <a href="<?= htmlspecialchars(esh_url('Patient', 'edit', ['id' => (string) ($patient->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Hasta düzenleme</a>
                             <a href="<?= htmlspecialchars(esh_url('Patient', 'unified', ['status' => 'active']), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Listeye dön</a>
                         </div>
                     </form>

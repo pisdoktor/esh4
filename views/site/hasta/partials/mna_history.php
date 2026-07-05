@@ -9,7 +9,7 @@
 use App\Helpers\DateHelper;
 use App\Helpers\MnaScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $rows = isset($mnaAssessments) && is_array($mnaAssessments) ? $mnaAssessments : [];
 $fieldLabels = [];
 foreach (MnaScaleHelper::getFieldDefinitions() as $key => $def) {
@@ -66,9 +66,9 @@ foreach (MnaScaleHelper::getFieldDefinitions() as $key => $def) {
                         </td>
                         <td class="text-end">
                             <?php if (empty($pasifDosyaKapali)): ?>
-                                <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteMna'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" onsubmit="return confirm('Bu MNA değerlendirmesini silmek istediğinize emin misiniz?');">
+                                <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteMna'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline" data-esh-confirm="Bu MNA değerlendirmesini silmek istediğinize emin misiniz?">
                                     <input type="hidden" name="id" value="<?= $hastaId ?>">
-                                    <input type="hidden" name="assessment_id" value="<?= (int) ($row->id ?? 0) ?>">
+                                    <input type="hidden" name="assessment_id" value="<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Sil">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>

@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 use App\Helpers\AuthHelper;
 use App\Helpers\BadgeHelper;
+use App\Helpers\FederationHelper;
 use App\Helpers\FormHelper;
 use App\Helpers\PatientCareHelper;
 use App\Helpers\PatientKurumTransfer;
@@ -17,7 +18,7 @@ use App\Models\Kurum;
 
 /** @var object $patient */
 
-$pnPasifPid = (int) ($patient->id ?? 0);
+$pnPasifPid = (string) ($patient->id ?? '');
 
 $pnSel = PatientCareHelper::normalizePasifNedeniForEdit($patient->pasifnedeni ?? '');
 
@@ -47,6 +48,8 @@ $eshGeriNakilKurumId = PatientNakilRequest::getReturnTargetKurumId($patient);
 
 $eshNakilKurumlar = [];
 
+$eshNakilBolgeler = [];
+
 $eshNakilHedefSelected = '';
 
 if ($eshIsAdmin && Kurum::tableExists()) {
@@ -65,13 +68,25 @@ if ($eshIsAdmin && Kurum::tableExists()) {
 
     }
 
+    if (FederationHelper::enabled()) {
+
+        $eshNakilBolgeler = PatientNakilRequest::bolgeListForNakilTarget($patient);
+
+    }
+
     $pendingNakil = PatientNakilRequest::findPendingForPatient($pnPasifPid);
 
     if ($pendingNakil !== null) {
 
         if ((string) ($pendingNakil->tip ?? '') === \App\Models\HastaNakil::TIP_IL_DISI) {
 
-            $eshNakilHedefSelected = PatientNakilRequest::NAKIL_HEDEF_IL_DISI;
+            $hedefBolgeId = (int) ($pendingNakil->hedef_bolge_id ?? 0);
+
+            $eshNakilHedefSelected = $hedefBolgeId > 0
+
+                ? PatientNakilRequest::buildBolgeHedef($hedefBolgeId)
+
+                : PatientNakilRequest::NAKIL_HEDEF_IL_DISI;
 
         } elseif (!empty($pendingNakil->hedef_kurum_id)) {
 
@@ -82,6 +97,8 @@ if ($eshIsAdmin && Kurum::tableExists()) {
     }
 
 }
+
+$eshNakilTargetsAvailable = $eshNakilKurumlar !== [] || $eshNakilBolgeler !== [];
 
 
 
@@ -119,7 +136,7 @@ if (!$eshInPartialModal): ?>
 
                                         <?= BadgeHelper::patientStatusBadgeHtml($patient) ?>
 
-                                        <span class="d-block mt-1">Bu durumu yalnızca yönetici değiştirebilir.</span>
+                                        <span class="d-block mt-1">Bu durumu yalnızca kurum yöneticisi değiştirebilir.</span>
 
                                     </p>
 
@@ -217,7 +234,7 @@ if (!$eshInPartialModal): ?>
 
                                         </div>
 
-                                        <?php if ($eshIsAdmin && $eshNakilAllowed && $eshNakilKurumlar !== []): ?>
+                                        <?php if ($eshIsAdmin && $eshNakilAllowed && $eshNakilTargetsAvailable): ?>
 
                                         <span class="d-none" data-esh-nakil-eligible="1" aria-hidden="true"></span>
 
@@ -227,21 +244,71 @@ if (!$eshInPartialModal): ?>
 
                                             <div class="border rounded bg-white px-2 py-1">
 
+                                                <?php if ($eshNakilBolgeler !== []): ?>
+
+                                                <div class="small fw-semibold text-muted px-1 pt-1 pb-0">İl dışı — hedef bölge</div>
+
+                                                <?php foreach ($eshNakilBolgeler as $nb):
+
+                                                    $nbId = (int) ($nb->id ?? 0);
+
+                                                    if ($nbId <= 0) {
+
+                                                        continue;
+
+                                                    }
+
+                                                    $nbVal = PatientNakilRequest::buildBolgeHedef($nbId);
+
+                                                    $nbRadioId = $eshFormIdPrefix . 'nakil-bolge-' . $pnPasifPid . '-' . $nbId;
+
+                                                    $nbLabel = trim((string) ($nb->ad ?? ''));
+
+                                                    if (!empty($nb->il_adi)) {
+
+                                                        $nbLabel = $nbLabel !== ''
+
+                                                            ? $nbLabel . ' — ' . (string) $nb->il_adi
+
+                                                            : (string) $nb->il_adi;
+
+                                                    }
+
+                                                    ?>
+
                                                 <div class="form-check py-1 mb-0 border-bottom border-light">
 
-                                                    <input class="form-check-input" type="radio" name="nakil_hedef" id="<?= htmlspecialchars($eshFormIdPrefix . 'nakil-il-disi-' . $pnPasifPid, ENT_QUOTES, 'UTF-8') ?>"
+                                                    <input class="form-check-input" type="radio" name="nakil_hedef" id="<?= htmlspecialchars($nbRadioId, ENT_QUOTES, 'UTF-8') ?>"
 
-                                                           value="<?= htmlspecialchars(PatientNakilRequest::NAKIL_HEDEF_IL_DISI, ENT_QUOTES, 'UTF-8') ?>"
+                                                           value="<?= htmlspecialchars($nbVal, ENT_QUOTES, 'UTF-8') ?>"
 
-                                                        <?= $eshNakilHedefSelected === PatientNakilRequest::NAKIL_HEDEF_IL_DISI ? ' checked' : '' ?>>
+                                                        <?= $eshNakilHedefSelected === $nbVal ? ' checked' : '' ?>>
 
-                                                    <label class="form-check-label small fw-semibold" for="<?= htmlspecialchars($eshFormIdPrefix . 'nakil-il-disi-' . $pnPasifPid, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <label class="form-check-label small fw-semibold" for="<?= htmlspecialchars($nbRadioId, ENT_QUOTES, 'UTF-8') ?>">
 
-                                                        İl dışı nakil
+                                                        <?= htmlspecialchars($nbLabel !== '' ? $nbLabel : ('Bölge #' . $nbId), ENT_QUOTES, 'UTF-8') ?>
+
+                                                        <?php if (!empty($nb->kod)): ?>
+
+                                                            <span class="text-muted">(<?= htmlspecialchars((string) $nb->kod, ENT_QUOTES, 'UTF-8') ?>)</span>
+
+                                                        <?php endif; ?>
 
                                                     </label>
 
                                                 </div>
+
+                                                <?php endforeach; ?>
+
+                                                <?php endif; ?>
+
+                                                <?php if ($eshNakilKurumlar !== []): ?>
+
+                                                <?php if ($eshNakilBolgeler !== []): ?>
+
+                                                <div class="small fw-semibold text-muted px-1 pt-2 pb-0">Kurum içi nakil</div>
+
+                                                <?php endif; ?>
 
                                                 <?php foreach ($eshNakilKurumlar as $nk):
 
@@ -281,11 +348,15 @@ if (!$eshInPartialModal): ?>
 
                                                 <?php endforeach; ?>
 
+                                                <?php endif; ?>
+
                                             </div>
 
                                             <div class="form-text"><?= $eshGeriNakilKurumId !== null
                                                 ? 'Önceki kurum seçilirse geri nakil talebi oluşur; onay sonrası hasta önceki kurumda bekleyen kayıt olarak açılır.'
-                                                : 'Kurum seçilirse hedef kurum onayı sonrası hasta kurumunuzda bekleyen (ön kayıt) olarak açılır. İzlem geçmişi kaynak kurumda kalır.' ?></div>
+                                                : ($eshNakilBolgeler !== []
+                                                    ? 'Bölge seçilirse hedef bölgenin bölge yöneticisi onaylar ve uygun kuruma bekleyen hasta olarak yönlendirir. Kurum seçilirse hedef kurum onayı sonrası hasta kurumunuzda bekleyen (ön kayıt) olarak açılır.'
+                                                    : 'Kurum seçilirse hedef kurum onayı sonrası hasta kurumunuzda bekleyen (ön kayıt) olarak açılır. İzlem geçmişi kaynak kurumda kalır.') ?></div>
 
                                         </div>
 
@@ -298,13 +369,13 @@ if (!$eshInPartialModal): ?>
                                                 <div class="alert alert-info border-0 small py-2 mt-2 mb-0">
                                                     <?= htmlspecialchars($nakilStatus, ENT_QUOTES, 'UTF-8') ?>
                                                     <?php if ($pendingNakil !== null
-                                                        && in_array((string) ($pendingNakil->tip ?? ''), [\App\Models\HastaNakil::TIP_KURUM_ICI, \App\Models\HastaNakil::TIP_GERI_NAKIL], true)
-                                                        && \App\Helpers\PatientNakilRequest::canCancelNakil((int) ($pendingNakil->id ?? 0), (int) ($_SESSION['user_id'] ?? 0))): ?>
+                                                        && (string) ($pendingNakil->durum ?? '') === \App\Models\HastaNakil::DURUM_BEKLEMEDE
+                                                        && \App\Helpers\PatientNakilRequest::canCancelNakil((string) ($pendingNakil->id ?? ''), (string) ($_SESSION['user_id'] ?? ''))): ?>
                                                         <form method="post" action="<?= htmlspecialchars(esh_url('PatientNakil', 'cancel'), ENT_QUOTES, 'UTF-8') ?>" class="mt-2 mb-0">
                                                             <?= esh_csrf_field() ?>
-                                                            <input type="hidden" name="id" value="<?= (int) ($pendingNakil->id ?? 0) ?>">
+                                                            <input type="hidden" name="id" value="<?= htmlspecialchars((string) ($pendingNakil->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                                             <input type="hidden" name="redirect" value="<?= htmlspecialchars(esh_url('Patient', 'edit', ['id' => $pnPasifPid]), ENT_QUOTES, 'UTF-8') ?>">
-                                                            <button type="submit" class="btn btn-outline-secondary btn-sm" onclick="return confirm('Bekleyen nakil talebi iptal edilsin mi?');">Talebi iptal et</button>
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm" data-esh-confirm="Bekleyen nakil talebi iptal edilsin mi?">Talebi iptal et</button>
                                                         </form>
                                                     <?php endif; ?>
                                                 </div>

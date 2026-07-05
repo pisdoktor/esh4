@@ -4,14 +4,32 @@
     var MOD = { CLUSTER: 'cluster', HEAT: 'heatmap', DOTS: 'dots', HYBRID: 'hybrid' };
     var PATIENT_LAYER_IDS = ['clusters', 'cluster-count', 'hasta-heatmap', 'hasta-dots'];
 
+    /** Cinsiyet: 1=erkek, 2=kadın */
+    function haritaErkekMi(cinsiyet) {
+        return String(cinsiyet) === '1';
+    }
+    function haritaKadinMi(cinsiyet) {
+        return String(cinsiyet) === '2';
+    }
+
     var cfg = window.ESH_HARITA;
-    if (!cfg || !window.EshMapRuntime) {
+    if (!cfg) {
+        if (window.toastr) {
+            toastr.error('Harita sayfa yapılandırması yüklenemedi.');
+        }
+        return;
+    }
+    if (!window.EshMapRuntime) {
+        if (window.toastr) {
+            toastr.error('Harita SDK yüklenemedi. Sayfayı yenileyin veya sağlayıcı ayarını kontrol edin.');
+        }
         return;
     }
     cfg.mahalleCombinedUrl = cfg.mahalleCombinedUrl || '';
     cfg.mahalleGeoNameAllowlist = Array.isArray(cfg.mahalleGeoNameAllowlist) ? cfg.mahalleGeoNameAllowlist : [];
 
     var mapConfigUrl = String(cfg.mapConfigUrl || cfg.mapKeyUrl || '');
+    var providerLabel = String(cfg.providerLabel || 'Harita');
     if (!mapConfigUrl) {
         if (window.toastr) {
             toastr.error('Harita yapılandırması eksik.');
@@ -26,17 +44,42 @@
         zoom: 11
     }).then(function (api) {
         bootHarita(api);
-    }).catch(function () {
+    }).catch(function (err) {
         if (window.toastr) {
-            toastr.error('Harita başlatılamadı.');
+            var detail = (err && err.message) ? String(err.message) : '';
+            var msg = cfg.providerConfigured === false
+                ? (providerLabel + ' API anahtarı tanımlı değil; harita başlatılamadı.')
+                : ('Harita başlatılamadı (' + providerLabel + ').' + (detail ? ' ' + detail : ''));
+            toastr.error(msg);
         }
     });
 
     function bootHarita(mapApi) {
     var map = mapApi.raw;
     var mapEngine = mapApi.engine || 'maplibre_like';
+    var tumHastalar = Array.isArray(cfg.patients) ? cfg.patients : [];
+    var gorunenHastalar = tumHastalar;
+    var merkezNoktasi = cfg.center;
+    var aktifPopup = null;
+    var markersOnTheMap = {};
+    var mapReady = false;
+    var currentMode = MOD.CLUSTER;
+    var dragListenerAttached = false;
+    var mahalleOverlayWanted = false;
+
     mapApi.addFullscreenControl();
     mapApi.addNavigationControl('top-right');
+
+    istatistikGuncelle(tumHastalar);
+
+    if (typeof map.on === 'function') {
+        map.on('error', function (evt) {
+            if (window.toastr) {
+                var errMsg = (evt && evt.error && evt.error.message) ? evt.error.message : 'Harita katmanı yüklenemedi.';
+                toastr.error(providerLabel + ': ' + errMsg);
+            }
+        });
+    }
 
     function mahalleGeoMatchKey(s) {
         if (!s || typeof s !== 'string') {
@@ -65,15 +108,6 @@
         return { type: 'FeatureCollection', features: feats };
     }
 
-    var tumHastalar = Array.isArray(cfg.patients) ? cfg.patients : [];
-    var gorunenHastalar = tumHastalar;
-    var merkezNoktasi = cfg.center;
-    var aktifPopup = null;
-    var markersOnTheMap = {};
-    var mapReady = false;
-    var currentMode = MOD.CLUSTER;
-    var dragListenerAttached = false;
-
     if (mapEngine === 'google' && window.toastr) {
         toastr.info('Google Maps modunda küme/ısı haritası sınırlıdır; nokta görünümü önerilir.');
     }
@@ -86,8 +120,6 @@
             maxWidth: '320px'
         });
     }
-
-    var mahalleOverlayWanted = false;
 
     function patientVizAnchorId() {
         var ids = ['hasta-heatmap', 'hasta-dots', 'clusters', 'cluster-count'];
@@ -267,8 +299,8 @@
             if (feature.properties && !feature.properties.cluster) {
                 var fid = feature.properties.id;
                 if (!markersOnTheMap[fid]) {
-                    var c = feature.properties.cinsiyet ? String(feature.properties.cinsiyet).toLowerCase() : '';
-                    var color = (c === 'e' || c === 'erkek') ? '#3498db' : (c === 'k' || c === 'kadın' || c === 'kadin' ? '#e91e63' : '#95a5a6');
+                    var c = feature.properties.cinsiyet;
+                    var color = haritaErkekMi(c) ? '#3498db' : (haritaKadinMi(c) ? '#e91e63' : '#95a5a6');
                     var m = createClusterMarker(feature.geometry.coordinates, color, feature.properties.html);
                     markersOnTheMap[fid] = m;
                 }
@@ -381,17 +413,8 @@
     function circleColorMatch() {
         return [
             'match', ['get', 'cinsiyet'],
-            'e', '#3498db',
-            'E', '#3498db',
-            'erkek', '#3498db',
-            'Erkek', '#3498db',
-            'ERKEK', '#3498db',
-            'k', '#e91e63',
-            'K', '#e91e63',
-            'kadın', '#e91e63',
-            'Kadın', '#e91e63',
-            'kadin', '#e91e63',
-            'KADIN', '#e91e63',
+            '1', '#3498db',
+            '2', '#e91e63',
             '#95a5a6'
         ];
     }
@@ -619,9 +642,9 @@
             })
             .catch(function () {
                 if (window.toastr) {
-                    toastr.error('Rota hesaplanamadı.');
+                    toastr.error('Rota hesaplanamadı (' + providerLabel + ').');
                 } else {
-                    window.alert('Rota hesaplanamadı.');
+                    window.alert('Rota hesaplanamadı (' + providerLabel + ').');
                 }
             });
     }
@@ -629,14 +652,11 @@
     window.ESH_HARITA_ROTA = rotaHesapla;
 
     function istatistikGuncelle(data) {
-        var e = data.filter(function (h) {
-            var c = h.cinsiyet ? String(h.cinsiyet).toLowerCase() : '';
-            return c === 'e' || c === 'erkek';
-        }).length;
-        var k = data.filter(function (h) {
-            var c = h.cinsiyet ? String(h.cinsiyet).toLowerCase() : '';
-            return c === 'k' || c === 'kadın' || c === 'kadin';
-        }).length;
+        if (!Array.isArray(data)) {
+            data = [];
+        }
+        var e = data.filter(function (h) { return haritaErkekMi(h.cinsiyet); }).length;
+        var k = data.filter(function (h) { return haritaKadinMi(h.cinsiyet); }).length;
         $('#count-erkek').text(e);
         $('#count-kadin').text(k);
         $('#count-all').text(data.length);
@@ -644,14 +664,13 @@
 
     function cinsiyetFiltrele(tip) {
         var res = (tip === 'all') ? tumHastalar : tumHastalar.filter(function (h) {
-            var c = h.cinsiyet ? String(h.cinsiyet).toLowerCase() : '';
-            return tip === 'erkek' ? (c === 'e' || c === 'erkek') : (c === 'k' || c === 'kadın' || c === 'kadin');
+            return tip === 'erkek' ? haritaErkekMi(h.cinsiyet) : haritaKadinMi(h.cinsiyet);
         });
         hastalariKaynagaUygula(res);
         popupKapat();
     }
 
-    map.on('load', function () {
+    function initHaritaLayers() {
         map.addSource('route-source', { type: 'geojson', data: null });
         map.addLayer({
             id: 'route-layer',
@@ -669,7 +688,15 @@
         }
 
         istatistikGuncelle(tumHastalar);
-    });
+    }
+
+    if (typeof mapApi.onLoad === 'function') {
+        mapApi.onLoad(initHaritaLayers);
+    } else if (typeof map.on === 'function') {
+        map.on('load', initHaritaLayers);
+    } else {
+        initHaritaLayers();
+    }
 
     $(document).ready(function () {
         (function initHaritaLegendPanel() {

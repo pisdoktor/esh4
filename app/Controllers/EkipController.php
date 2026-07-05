@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 use App\Helpers\TenantStoreHelper;
 use App\Helpers\ThemeViewHelper;
@@ -93,6 +94,9 @@ class EkipController {
         $date = $tarih_db;
         $userModel = new User();
         $users = $userModel->getList();
+        if (!is_array($users)) {
+            $users = [];
+        }
 
         $model = new Ekip();
         $mevcutlar = $model->getEkipler($tarih_db);
@@ -136,7 +140,7 @@ class EkipController {
                             'tarih' => $tarih,
                             'vardiya' => (int) $vID,
                             'ekip_no' => $eSayac,
-                            'user_ids' => implode(',', array_map('intval', (array) $userIDs)),
+                            'user_ids' => implode(',', IdHelper::csvToEntityIds(implode(',', array_map('strval', (array) $userIDs)))),
                             'baslangic_saati' => isset($gelen_saatler[$vID]) ? (string) $gelen_saatler[$vID] : '09:00',
                             'kayit_tarihi' => date('Y-m-d H:i:s'),
                         ]);
@@ -216,22 +220,17 @@ class EkipController {
 
         $data = [];
         foreach ($rows as $r) {
-            $ids = preg_replace('/[^0-9,]/', '', (string) $r->user_ids);
+            $idList = IdHelper::csvToEntityIds((string) $r->user_ids);
             $p_names = [];
-            if ($ids !== '') {
-                $idList = array_values(array_unique(array_filter(
-                    array_map('intval', explode(',', $ids))
-                )));
-                if ($idList !== []) {
-                    [$inSql, $inParams] = $db->whereInClause($idList);
-                    $p_names = $db->fetchColumnListPrepared(
-                        "SELECT name FROM #__users WHERE id IN ({$inSql})",
-                        $inParams
-                    );
-                }
-                if ($p_names === null) {
-                    $p_names = [];
-                }
+            if ($idList !== []) {
+                [$inSql, $inParams] = $db->whereInClause($idList);
+                $p_names = $db->fetchColumnListPrepared(
+                    "SELECT name FROM #__users WHERE id IN ({$inSql})",
+                    $inParams
+                );
+            }
+            if ($p_names === null) {
+                $p_names = [];
             }
             $vCode = \App\Helpers\ZamanDilimiHelper::fromVardiyaIndex((int) $r->vardiya);
             $v_ad = mb_strtoupper(\App\Helpers\ZamanDilimiHelper::label($vCode), 'UTF-8');

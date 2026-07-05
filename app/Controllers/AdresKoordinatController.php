@@ -4,8 +4,10 @@ namespace App\Controllers;
 use App\Helpers\AuthHelper;
 use App\Helpers\GeocodeQuotaHelper;
 use App\Helpers\MapRoutingGeocodeHelper;
+use App\Helpers\OperationalSettings;
 use App\Helpers\ThemeViewHelper;
 use App\Models\Address;
+use App\Services\MapRouting\MapRoutingProviderFactory;
 
 /**
  * Yönetim: coords boş kapı kayıtları için geocode (günlük kota ile).
@@ -23,8 +25,9 @@ class AdresKoordinatController {
         $missingCount = $kapinoStats->missing;
         $totalKapino = $kapinoStats->total;
         $hasCoordsCount = $kapinoStats->with_coords;
+        $activeMapProvider = OperationalSettings::activeMapProviderStatusForAdmin();
         $mapProviderConfigured = MapRoutingGeocodeHelper::isActiveProviderConfigured();
-        $tomtomConfigured = $mapProviderConfigured;
+        $keyStatus = MapRoutingProviderFactory::keyStatusForProvider($activeMapProvider['code']);
         $pageTitle = 'Adres koordinat bulma';
 
         include ThemeViewHelper::resolvePartial('header');

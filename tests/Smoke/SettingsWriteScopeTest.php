@@ -25,7 +25,7 @@ final class SettingsWriteScopeTest extends SessionTestCase
         self::assertIsString(SettingsWriteScope::resolveSaveTarget());
         self::assertFalse(SettingsWriteScope::canWritePlatformDefaults());
         self::assertFalse(SettingsWriteScope::canSaveTab('modules'));
-        self::assertFalse(SettingsWriteScope::canSaveTab('guvenlik'));
+        self::assertFalse(SettingsWriteScope::canSaveTab('bakim'));
     }
 
     public function test_superadmin_with_kurum_filter_targets_kurum(): void
@@ -58,9 +58,11 @@ final class SettingsWriteScopeTest extends SessionTestCase
         self::assertSame(4, $target['bolge_id']);
     }
 
-    public function test_platform_owner_can_save_guvenlik_tab(): void
+    public function test_platform_owner_can_save_bakim_tab(): void
     {
         $this->actAsPlatformOwner();
-        self::assertTrue(SettingsWriteScope::canSaveTab('guvenlik'));
+        self::assertTrue(SettingsWriteScope::canSaveTab('bakim'));
+        self::assertFalse(SettingsWriteScope::canSaveTab('overview'));
+        self::assertTrue(SettingsWriteScope::canSaveTab('eimza'));
     }
 }

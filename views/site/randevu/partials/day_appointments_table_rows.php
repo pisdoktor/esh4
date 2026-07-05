@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use App\Helpers\IdHelper;
 use App\Helpers\ValidationHelper;
 use App\Models\KonsRandevu;
 
@@ -17,12 +18,12 @@ if (empty($dayRows)): ?>
         $rawHg = $row->hasta_geldi ?? null;
         $hgSel = ($rawHg === null || $rawHg === '') ? null : (int) $rawHg;
         $hastaAdFull = trim((string) ($row->hasta_isim ?? '') . ' ' . (string) ($row->hasta_soyisim ?? ''));
-        $hastaIdRow = (int) ($row->hasta_id ?? 0);
+        $hastaIdRow = IdHelper::normalizeRequestId($row->hasta_id ?? null) ?? '';
         ?>
     <tr>
         <td class="small">
             <div class="fw-semibold">
-                <?php if ($hastaIdRow > 0): ?>
+                <?php if ($hastaIdRow !== ''): ?>
                     <a class="link-primary text-decoration-none" href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $hastaIdRow]), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($hastaAdFull, ENT_QUOTES, 'UTF-8') ?></a>
                 <?php else: ?>
                     <?= htmlspecialchars($hastaAdFull, ENT_QUOTES, 'UTF-8') ?>
@@ -38,15 +39,15 @@ if (empty($dayRows)): ?>
         <td class="small"><?= htmlspecialchars(KonsRandevu::zamanLabel((int) ($row->zaman ?? 0)), ENT_QUOTES, 'UTF-8') ?></td>
         <td class="small p-1">
             <form method="post" action="<?= htmlspecialchars(esh_url('Randevu', 'updateGeldi'), ENT_QUOTES, 'UTF-8') ?>" class="m-0">
-                <input type="hidden" name="id" value="<?= (int) ($row->id ?? 0) ?>">
+                <input type="hidden" name="id" value="<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="y" value="<?= (int) $y ?>">
                 <input type="hidden" name="m" value="<?= (int) $m ?>">
                 <input type="hidden" name="date" value="<?= htmlspecialchars($selectedDate, ENT_QUOTES, 'UTF-8') ?>">
                 <?php if ($prefillTc !== '' && preg_match('/^\d{11}$/', $prefillTc)): ?>
                     <input type="hidden" name="tc" value="<?= htmlspecialchars($prefillTc, ENT_QUOTES, 'UTF-8') ?>">
                 <?php endif; ?>
-                <label class="visually-hidden" for="esh-randevu-hg-<?= (int) ($row->id ?? 0) ?>">Katılım</label>
-                <select name="hasta_geldi" id="esh-randevu-hg-<?= (int) ($row->id ?? 0) ?>" class="form-select form-select-sm" title="<?= htmlspecialchars(KonsRandevu::hastaGeldiLabel($rawHg), ENT_QUOTES, 'UTF-8') ?>" onchange="this.form.submit()">
+                <label class="visually-hidden" for="esh-randevu-hg-<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">Katılım</label>
+                <select name="hasta_geldi" id="esh-randevu-hg-<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>" class="form-select form-select-sm" title="<?= htmlspecialchars(KonsRandevu::hastaGeldiLabel($rawHg), ENT_QUOTES, 'UTF-8') ?>" data-esh-auto-submit>
                     <option value=""<?= $hgSel === null ? ' selected' : '' ?>>—</option>
                     <option value="1"<?= $hgSel === 1 ? ' selected' : '' ?>>Geldi</option>
                     <option value="0"<?= $hgSel === 0 ? ' selected' : '' ?>>Gelmedi</option>
@@ -54,8 +55,8 @@ if (empty($dayRows)): ?>
             </form>
         </td>
         <td class="text-end">
-            <form method="post" action="<?= htmlspecialchars(esh_url('Randevu', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" onsubmit="return confirm('Bu randevuyu silmek istiyor musunuz?');">
-                <input type="hidden" name="id" value="<?= (int) ($row->id ?? 0) ?>">
+            <form method="post" action="<?= htmlspecialchars(esh_url('Randevu', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" data-esh-confirm="Bu randevuyu silmek istiyor musunuz?">
+                <input type="hidden" name="id" value="<?= htmlspecialchars((string) ($row->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="y" value="<?= (int) $y ?>">
                 <input type="hidden" name="m" value="<?= (int) $m ?>">
                 <input type="hidden" name="date" value="<?= htmlspecialchars($selectedDate, ENT_QUOTES, 'UTF-8') ?>">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 
 /**
@@ -68,8 +69,8 @@ class StokHareket extends BaseModel
             }
         }
 
-        $hastaId = (int) ($filters['hasta_id'] ?? 0);
-        if ($hastaId > 0) {
+        $hastaId = IdHelper::normalizeRequestId($filters['hasta_id'] ?? null);
+        if ($hastaId !== null) {
             $where[] = 'h.hasta_id = ?';
             $params[] = $hastaId;
         }

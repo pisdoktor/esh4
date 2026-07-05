@@ -15,7 +15,7 @@
             <button type="submit" class="btn btn-success">Seçimi Kaydet</button>
             <a href="<?= htmlspecialchars(esh_url('User', 'index'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary">İptal</a>
         </form>
-        <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::cropperJsHref(), ENT_QUOTES, 'UTF-8') ?>"></script>
+        <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::cropperJsHref()) ?>
 
     <?php else: ?>
         <div class="card fluent-layer-card fluent-hover-tilt p-5 shadow-sm mx-auto" style="max-width: 500px;">

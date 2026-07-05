@@ -3,7 +3,7 @@
             <div class="modal-content hastailacrapor-modal-content border-0 shadow">
                 <form action="<?= htmlspecialchars(esh_url('HastaIlacRapor', 'store'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="hastailacrapor-modal-form d-flex flex-column min-h-0">
                     <input type="hidden" name="patient_id" value="<?= $patientId ?>">
-                    <input type="hidden" name="hastalik_id" id="hastailacRaporHastalikId" value="">
+                    <input type="hidden" name="hastalik_icd" id="hastailacRaporHastalikIcd" value="">
                     <input type="hidden" name="hastatckimlik" value="<?= htmlspecialchars(preg_replace('/\D+/', '', $tcRaw), ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="rapor_id" id="hastailacRaporRowId" value="">
                     <div class="modal-header hastailacrapor-modal-header border-bottom-0 pb-0">

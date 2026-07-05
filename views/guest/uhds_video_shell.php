@@ -37,14 +37,14 @@ $__assets = rtrim((string) SITEURL, '/') . '/public/assets';
     <footer class="py-3 text-center text-muted small border-top bg-white">
         Kişisel verileriniz KVKK kapsamında işlenmektedir.
     </footer>
-    <script>
+    <script<?= esh_csp_nonce_attr() ?>>
     window.__eshUhdsVideo = window.__eshUhdsVideo || {
         configUrl: <?= json_encode($uhdsVideoConfigUrl ?? '', JSON_UNESCAPED_UNICODE) ?>,
         jitsiScriptUrl: <?= json_encode($uhdsJitsiScriptUrl ?? '', JSON_UNESCAPED_UNICODE) ?>,
-        appointmentId: <?= (int) ($uhdsAppointmentId ?? 0) ?>,
+        appointmentId: <?= json_encode((string) ($uhdsAppointmentId ?? ''), JSON_UNESCAPED_UNICODE) ?>,
         isPatientJoin: true
     };
     </script>
-    <script src="<?= htmlspecialchars($__assets . '/pages/js/uhds-video.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag($__assets . '/pages/js/uhds-video.js') ?>
 </body>
 </html>

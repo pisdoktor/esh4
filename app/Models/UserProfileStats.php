@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Core\Database;
+use App\Helpers\IdHelper;
 use App\Helpers\UserProfileStatsHelper;
 
 /**
@@ -13,18 +15,30 @@ class UserProfileStats extends BaseModel
         parent::__construct('#__users', 'id');
     }
 
-    public static function userInIzlemCondition(int $userId, string $alias = 'i'): string
+    private static function resolveUserId(int|string $userId): ?string
     {
-        $uid = (int) $userId;
-
-        return 'FIND_IN_SET(' . $uid . ', REPLACE(CAST(' . $alias . '.izlemiyapan AS CHAR), \' \', \'\'))';
+        return IdHelper::normalizeRequestId($userId);
     }
 
-    public static function userInPlanCondition(int $userId, string $alias = 'p'): string
+    private static function quotedFindInSet(int|string $userId, string $alias, string $column): string
     {
-        $uid = (int) $userId;
+        $uid = self::resolveUserId($userId);
+        if ($uid === null) {
+            return '1=0';
+        }
+        $quoted = Database::getInstance()->quote($uid);
 
-        return 'FIND_IN_SET(' . $uid . ', REPLACE(CAST(' . $alias . '.planiyapan AS CHAR), \' \', \'\'))';
+        return 'FIND_IN_SET(' . $quoted . ', REPLACE(CAST(' . $alias . '.' . $column . ' AS CHAR), \' \', \'\'))';
+    }
+
+    public static function userInIzlemCondition(int|string $userId, string $alias = 'i'): string
+    {
+        return self::quotedFindInSet($userId, $alias, 'izlemiyapan');
+    }
+
+    public static function userInPlanCondition(int|string $userId, string $alias = 'p'): string
+    {
+        return self::quotedFindInSet($userId, $alias, 'planiyapan');
     }
 
     /**
@@ -79,10 +93,11 @@ class UserProfileStats extends BaseModel
         }
     }
 
-    public function countDetail(int $userId, string $metricKey): int
+    public function countDetail(int|string $userId, string $metricKey): int
     {
+        $uid = self::resolveUserId($userId);
         $metric = UserProfileStatsHelper::metric($metricKey);
-        if ($metric === null || $userId <= 0) {
+        if ($metric === null || $uid === null) {
             return 0;
         }
 
@@ -90,33 +105,32 @@ class UserProfileStats extends BaseModel
 
         try {
             if ($listType === 'visit') {
-                $in = self::userInIzlemCondition($userId, 'i');
+                $in = self::userInIzlemCondition($uid, 'i');
                 $where = array_merge([$in], $this->metricExtraWhere($metricKey));
                 $sql = 'SELECT COUNT(*) FROM #__izlemler i WHERE ' . implode(' AND ', $where);
 
                 return (int) $this->db->loadResultPrepared($sql);
             }
             if ($listType === 'plan') {
-                $in = self::userInPlanCondition($userId, 'p');
+                $in = self::userInPlanCondition($uid, 'p');
                 $where = array_merge([$in], $this->metricExtraWhere($metricKey));
                 $sql = 'SELECT COUNT(*) FROM #__pizlemler p WHERE ' . implode(' AND ', $where);
 
                 return (int) $this->db->loadResultPrepared($sql);
             }
             if ($listType === 'patient_visit') {
-                $in = self::userInIzlemCondition($userId, 'i');
+                $in = self::userInIzlemCondition($uid, 'i');
                 $sql = "SELECT COUNT(DISTINCT i.hastatckimlik) FROM #__izlemler i WHERE {$in}";
 
                 return (int) $this->db->loadResultPrepared($sql);
             }
             if ($listType === 'patient_plan') {
-                $in = self::userInPlanCondition($userId, 'p');
+                $in = self::userInPlanCondition($uid, 'p');
                 $sql = "SELECT COUNT(DISTINCT p.hastatckimlik) FROM #__pizlemler p WHERE {$in}";
 
                 return (int) $this->db->loadResultPrepared($sql);
             }
             if ($listType === 'nobet') {
-                $uid = (int) $userId;
                 $where = ['n.personel_id = ?'];
                 $where = array_merge($where, $this->metricExtraWhere($metricKey));
                 $sql = 'SELECT COUNT(*) FROM #__personel_nobet n WHERE ' . implode(' AND ', $where);
@@ -126,26 +140,26 @@ class UserProfileStats extends BaseModel
             if ($listType === 'izin') {
                 return (int) $this->db->loadResultPrepared(
                     'SELECT COUNT(*) FROM #__personel_izin iz WHERE iz.personel_id = ?',
-                    [(int) $userId]
+                    [$uid]
                 );
             }
             if ($listType === 'istek') {
                 return (int) $this->db->loadResultPrepared(
                     'SELECT COUNT(*) FROM #__personel_istek ist WHERE ist.personel_id = ?',
-                    [(int) $userId]
+                    [$uid]
                 );
             }
             if ($listType === 'ekip') {
-                $uid = (int) $userId;
+                $quoted = $this->db->quote($uid);
                 $sql = 'SELECT COUNT(*) FROM #__ekipler e
-                    WHERE FIND_IN_SET(' . $uid . ', REPLACE(COALESCE(e.user_ids, \'\'), \' \', \'\'))';
+                    WHERE FIND_IN_SET(' . $quoted . ', REPLACE(COALESCE(e.user_ids, \'\'), \' \', \'\'))';
 
                 return (int) $this->db->loadResultPrepared($sql);
             }
             if ($listType === 'wound_photo') {
                 return (int) $this->db->loadResultPrepared(
                     'SELECT COUNT(*) FROM #__hasta_yara_fotolar wf WHERE wf.yukleyen_id = ?',
-                    [(int) $userId]
+                    [$uid]
                 );
             }
         } catch (\Throwable $e) {
@@ -158,10 +172,11 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    public function getDetailRows(int $userId, string $metricKey, int $limit, int $offset): array
+    public function getDetailRows(int|string $userId, string $metricKey, int $limit, int $offset): array
     {
+        $uid = self::resolveUserId($userId);
         $metric = UserProfileStatsHelper::metric($metricKey);
-        if ($metric === null || $userId <= 0) {
+        if ($metric === null || $uid === null) {
             return [];
         }
 
@@ -171,31 +186,31 @@ class UserProfileStats extends BaseModel
 
         try {
             if ($listType === 'visit') {
-                return $this->fetchVisitRows($userId, $metricKey, $limit, $offset);
+                return $this->fetchVisitRows($uid, $metricKey, $limit, $offset);
             }
             if ($listType === 'plan') {
-                return $this->fetchPlanRows($userId, $metricKey, $limit, $offset);
+                return $this->fetchPlanRows($uid, $metricKey, $limit, $offset);
             }
             if ($listType === 'patient_visit') {
-                return $this->fetchPatientVisitRows($userId, $limit, $offset);
+                return $this->fetchPatientVisitRows($uid, $limit, $offset);
             }
             if ($listType === 'patient_plan') {
-                return $this->fetchPatientPlanRows($userId, $limit, $offset);
+                return $this->fetchPatientPlanRows($uid, $limit, $offset);
             }
             if ($listType === 'nobet') {
-                return $this->fetchNobetRows($userId, $metricKey, $limit, $offset);
+                return $this->fetchNobetRows($uid, $metricKey, $limit, $offset);
             }
             if ($listType === 'izin') {
-                return $this->fetchIzinRows($userId, $limit, $offset);
+                return $this->fetchIzinRows($uid, $limit, $offset);
             }
             if ($listType === 'istek') {
-                return $this->fetchIstekRows($userId, $limit, $offset);
+                return $this->fetchIstekRows($uid, $limit, $offset);
             }
             if ($listType === 'ekip') {
-                return $this->fetchEkipRows($userId, $limit, $offset);
+                return $this->fetchEkipRows($uid, $limit, $offset);
             }
             if ($listType === 'wound_photo') {
-                return $this->fetchWoundPhotoRows($userId, $limit, $offset);
+                return $this->fetchWoundPhotoRows($uid, $limit, $offset);
             }
         } catch (\Throwable $e) {
             return [];
@@ -207,7 +222,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchVisitRows(int $userId, string $metricKey, int $limit, int $offset): array
+    private function fetchVisitRows(string $userId, string $metricKey, int $limit, int $offset): array
     {
         $in = self::userInIzlemCondition($userId, 'i');
         $where = array_merge([$in], $this->metricExtraWhere($metricKey));
@@ -230,7 +245,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchPlanRows(int $userId, string $metricKey, int $limit, int $offset): array
+    private function fetchPlanRows(string $userId, string $metricKey, int $limit, int $offset): array
     {
         $in = self::userInPlanCondition($userId, 'p');
         $where = array_merge([$in], $this->metricExtraWhere($metricKey));
@@ -253,7 +268,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchPatientVisitRows(int $userId, int $limit, int $offset): array
+    private function fetchPatientVisitRows(string $userId, int $limit, int $offset): array
     {
         $in = self::userInIzlemCondition($userId, 'i');
         $sql = "SELECT h.id AS hid, h.isim, h.soyisim, h.tckimlik,
@@ -273,7 +288,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchPatientPlanRows(int $userId, int $limit, int $offset): array
+    private function fetchPatientPlanRows(string $userId, int $limit, int $offset): array
     {
         $in = self::userInPlanCondition($userId, 'p');
         $sql = "SELECT h.id AS hid, h.isim, h.soyisim, h.tckimlik,
@@ -293,7 +308,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchNobetRows(int $userId, string $metricKey, int $limit, int $offset): array
+    private function fetchNobetRows(string $userId, string $metricKey, int $limit, int $offset): array
     {
         $where = ['n.personel_id = ?'];
         $where = array_merge($where, $this->metricExtraWhere($metricKey));
@@ -303,7 +318,7 @@ class UserProfileStats extends BaseModel
                 {$whereSql}
                 ORDER BY n.nobet_tarihi DESC, n.id DESC
                 LIMIT {$limit} OFFSET {$offset}";
-        $rows = $this->db->fetchObjectListPrepared($sql, [(int) $userId]);
+        $rows = $this->db->fetchObjectListPrepared($sql, [$userId]);
 
         return is_array($rows) ? $rows : [];
     }
@@ -311,14 +326,14 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchIzinRows(int $userId, int $limit, int $offset): array
+    private function fetchIzinRows(string $userId, int $limit, int $offset): array
     {
         $sql = 'SELECT iz.id, iz.baslangic_tarihi, iz.bitis_tarihi, iz.sebep
                 FROM #__personel_izin iz
                 WHERE iz.personel_id = ?
                 ORDER BY iz.baslangic_tarihi DESC, iz.id DESC
                 LIMIT ' . $limit . ' OFFSET ' . $offset;
-        $rows = $this->db->fetchObjectListPrepared($sql, [(int) $userId]);
+        $rows = $this->db->fetchObjectListPrepared($sql, [$userId]);
 
         return is_array($rows) ? $rows : [];
     }
@@ -326,14 +341,14 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchIstekRows(int $userId, int $limit, int $offset): array
+    private function fetchIstekRows(string $userId, int $limit, int $offset): array
     {
         $sql = 'SELECT ist.id, ist.baslangic_tarihi, ist.bitis_tarihi, ist.aciklama
                 FROM #__personel_istek ist
                 WHERE ist.personel_id = ?
                 ORDER BY ist.baslangic_tarihi DESC, ist.id DESC
                 LIMIT ' . $limit . ' OFFSET ' . $offset;
-        $rows = $this->db->fetchObjectListPrepared($sql, [(int) $userId]);
+        $rows = $this->db->fetchObjectListPrepared($sql, [$userId]);
 
         return is_array($rows) ? $rows : [];
     }
@@ -341,12 +356,12 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchEkipRows(int $userId, int $limit, int $offset): array
+    private function fetchEkipRows(string $userId, int $limit, int $offset): array
     {
-        $uid = (int) $userId;
+        $quoted = $this->db->quote($userId);
         $sql = "SELECT e.id, e.tarih, e.vardiya, e.ekip_no, e.baslangic_saati, e.user_ids
                 FROM #__ekipler e
-                WHERE FIND_IN_SET({$uid}, REPLACE(COALESCE(e.user_ids, ''), ' ', ''))
+                WHERE FIND_IN_SET({$quoted}, REPLACE(COALESCE(e.user_ids, ''), ' ', ''))
                 ORDER BY e.tarih DESC, e.id DESC
                 LIMIT {$limit} OFFSET {$offset}";
         $rows = $this->db->fetchObjectListPrepared($sql);
@@ -357,7 +372,7 @@ class UserProfileStats extends BaseModel
     /**
      * @return list<object>
      */
-    private function fetchWoundPhotoRows(int $userId, int $limit, int $offset): array
+    private function fetchWoundPhotoRows(string $userId, int $limit, int $offset): array
     {
         $sql = 'SELECT wf.id, wf.hasta_id, wf.cekim_tarihi, wf.created_at, wf.aciklama, wf.yara_bolgesi,
                        h.id AS hid, h.isim, h.soyisim
@@ -366,7 +381,7 @@ class UserProfileStats extends BaseModel
                 WHERE wf.yukleyen_id = ?
                 ORDER BY COALESCE(wf.cekim_tarihi, wf.created_at) DESC, wf.id DESC
                 LIMIT ' . $limit . ' OFFSET ' . $offset;
-        $rows = $this->db->fetchObjectListPrepared($sql, [(int) $userId]);
+        $rows = $this->db->fetchObjectListPrepared($sql, [$userId]);
 
         return is_array($rows) ? $rows : [];
     }

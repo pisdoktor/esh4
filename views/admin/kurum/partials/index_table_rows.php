@@ -32,7 +32,7 @@ if (!empty($items)) {
                     <i class="fa-solid fa-pen"></i>
                 </a>
                 <?php if ((int) ($row->id ?? 0) > 1): ?>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Kurum', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" onsubmit="return confirm('Bu kurumu silmek istediğinize emin misiniz?');">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Kurum', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" data-esh-confirm="Bu kurumu silmek istediğinize emin misiniz?">
                         <?= esh_csrf_field() ?>
                         <input type="hidden" name="id" value="<?= (int) $row->id ?>">
                         <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash"></i></button>

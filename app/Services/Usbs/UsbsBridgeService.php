@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Usbs;
 
+use App\Helpers\AuthHelper;
 use App\Core\Database;
+use App\Helpers\BridgeLookupResolver;
+use App\Helpers\IdHelper;
 use App\Helpers\OperationalSettings;
+use App\Helpers\SkrsMapHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
 use App\Helpers\UsbsBridgeHelper;
@@ -73,6 +77,8 @@ final class UsbsBridgeService
      */
     public function exportBundle(): array
     {
+        BridgeLookupResolver::resetCache();
+
         $kurumId = TenantContext::filterKurumId();
         $visitDays = OperationalSettings::usbsBridgeExportVisitDays();
         $onlyPending = OperationalSettings::usbsBridgeExportOnlyPending();
@@ -89,7 +95,7 @@ final class UsbsBridgeService
         $patientsOut = [];
         foreach ($patientRows as $row) {
             $patientsOut[] = [
-                'esh_id' => (int) ($row->id ?? 0),
+                'esh_id' => (string) ($row->id ?? ''),
                 'tckimlik' => (string) ($row->tckimlik ?? ''),
                 'refs' => [
                     'enabiz_hasta_ref' => UsbsComplianceHelper::normalizeRef((string) ($row->enabiz_hasta_ref ?? '')),
@@ -114,7 +120,7 @@ final class UsbsBridgeService
         $visitsOut = [];
         foreach ($visitRows as $row) {
             $visitsOut[] = [
-                'esh_id' => (int) ($row->id ?? 0),
+                'esh_id' => (string) ($row->id ?? ''),
                 'tckimlik' => (string) ($row->hastatckimlik ?? ''),
                 'refs' => [
                     'usbs_bildirim_ref' => UsbsComplianceHelper::normalizeRef((string) ($row->usbs_bildirim_ref ?? '')),
@@ -142,6 +148,8 @@ final class UsbsBridgeService
                 'visit_count' => count($visitsOut),
                 'visit_since' => $visitSince,
                 'only_pending_bildirim' => $onlyPending,
+                'lookup_resolved' => true,
+                'skrs_context' => SkrsMapHelper::exportContextForKurum($kurumId),
             ],
             'patients' => $patientsOut,
             'visits' => $visitsOut,
@@ -212,12 +220,15 @@ final class UsbsBridgeService
         ];
     }
 
-    public function queueVisitNotification(int $visitId): void
+    public function queueVisitNotification(string $visitId): void
     {
         if (!UsbsBridgeHelper::isReady() || !OperationalSettings::usbsAutoQueueOnVisitSave()) {
             return;
         }
         if (!UsbsComplianceHelper::enabled()) {
+            return;
+        }
+        if (IdHelper::isEmptyEntityId($visitId)) {
             return;
         }
         $visit = new Visit();
@@ -249,12 +260,12 @@ final class UsbsBridgeService
         ?string $errorMessage = null
     ): void {
         $kurumId = TenantContext::filterKurumId();
-        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+        $userId = AuthHelper::sessionUserId();
         (new UsbsSyncLog())->record(
             $direction,
             $status,
             $kurumId,
-            $userId > 0 ? $userId : null,
+            IdHelper::isEmptyEntityId((string) $userId) ? null : (string) $userId,
             $fileName,
             $stats,
             $errorMessage
@@ -357,8 +368,8 @@ final class UsbsBridgeService
     private function resolvePatient(array $item): ?Patient
     {
         $model = new Patient();
-        $eshId = (int) ($item['esh_id'] ?? 0);
-        if ($eshId > 0 && $model->load($eshId)) {
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
             return $model;
         }
         $tc = ValidationHelper::tcDigitsOnly((string) ($item['tckimlik'] ?? ''));
@@ -369,7 +380,8 @@ final class UsbsBridgeService
         if (!$row || empty($row->id)) {
             return null;
         }
-        if (!$model->load((int) $row->id)) {
+        $rowId = IdHelper::normalizeRequestId($row->id);
+        if ($rowId === null || !$model->load($rowId)) {
             return null;
         }
 
@@ -382,8 +394,8 @@ final class UsbsBridgeService
     private function resolveVisit(array $item): ?Visit
     {
         $model = new Visit();
-        $eshId = (int) ($item['esh_id'] ?? 0);
-        if ($eshId > 0 && $model->load($eshId)) {
+        $eshId = IdHelper::normalizeRequestId($item['esh_id'] ?? null);
+        if ($eshId !== null && $model->load($eshId)) {
             return $model;
         }
         $usbsRef = UsbsComplianceHelper::normalizeRef((string) ($item['usbs_bildirim_ref'] ?? ''));
@@ -393,7 +405,8 @@ final class UsbsBridgeService
                 'SELECT id FROM #__izlemler WHERE usbs_bildirim_ref = ? LIMIT 1',
                 [$usbsRef]
             );
-            if ($row && !empty($row->id) && $model->load((int) $row->id)) {
+            $visitId = ($row && !empty($row->id)) ? IdHelper::normalizeRequestId($row->id) : null;
+            if ($visitId !== null && $model->load($visitId)) {
                 return $model;
             }
         }

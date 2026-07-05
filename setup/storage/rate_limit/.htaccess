@@ -1,4 +1,0 @@
-# Rate limit sayaç dosyaları — web erişimi kapalı
-<IfModule mod_authz_core.c>
-    Require all denied
-</IfModule>

@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
 use App\Helpers\CsrfHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\SmsSettings;
 use App\Helpers\TenantContext;
 use App\Helpers\ThemeViewHelper;
@@ -29,8 +30,12 @@ class SmsController
             header('Location: ' . esh_url('Dashboard', 'index'));
             exit;
         }
-        if (!SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))) {
-            $_SESSION['error'] = 'SMS modülüne yalnızca yönetici ve süper yönetici erişebilir.';
+        if (!SmsService::canUseSms((AuthHelper::sessionUserId() ?? ''))) {
+            $_SESSION['error'] = 'SMS modülüne yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_ADMIN), 'UTF-8')
+                . ' ve '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' erişebilir.';
             header('Location: ' . esh_url('Dashboard', 'index'));
             exit;
         }
@@ -69,7 +74,7 @@ class SmsController
         $sablonlar = (new SmsSablon())->listForKurum($kurumId > 0 ? $kurumId : null);
         $defaultRoles = SmsSettings::defaultRoles();
         $segments = SmsSettings::SEGMENTS;
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null) ?? '';
         $presetSegment = trim((string) ($_GET['segment'] ?? ''));
         $presetGovde = self::normalizeUtf8Text(trim((string) ($_GET['govde'] ?? '')));
         if (strlen($presetGovde) > 1600) {
@@ -108,7 +113,7 @@ class SmsController
     public function saveTemplate(): void
     {
         $this->ensureModule();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !CsrfHelper::validateRequest()) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !CsrfHelper::validate()) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . esh_url('Sms', 'templates'));
             exit;
@@ -165,7 +170,7 @@ class SmsController
     public function send(): void
     {
         $this->ensureModule();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !CsrfHelper::validateRequest()) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !CsrfHelper::validate()) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . esh_url('Sms', 'compose'));
             exit;
@@ -176,7 +181,7 @@ class SmsController
         $sablonId = (int) ($_POST['sablon_id'] ?? 0);
         $params = $this->segmentParamsFromPost($segment, $_POST);
         $kurumId = $this->kurumId();
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userId = AuthHelper::sessionUserId();
         $result = $this->service->sendBatch(
             $kurumId,
             $userId,
@@ -189,11 +194,11 @@ class SmsController
         if ($result['ok'] ?? false) {
             \App\Helpers\AuditLogHelper::smsSend([
                 'segment' => $segment,
-                'gonderim_id' => (int) ($result['gonderim_id'] ?? 0),
+                'gonderim_id' => (string) ($result['gonderim_id'] ?? ''),
             ]);
             $_SESSION['success'] = (string) ($result['mesaj'] ?? 'SMS gönderildi.');
-            $gid = (int) ($result['gonderim_id'] ?? 0);
-            header('Location: ' . esh_url('Sms', 'historyDetail', $gid > 0 ? ['id' => $gid] : []));
+            $gid = IdHelper::normalizeRequestId($result['gonderim_id'] ?? null);
+            header('Location: ' . esh_url('Sms', 'historyDetail', $gid !== null ? ['id' => $gid] : []));
             exit;
         }
         $_SESSION['error'] = (string) ($result['mesaj'] ?? 'Gönderim başarısız.');
@@ -209,15 +214,15 @@ class SmsController
     public function historyDetail(): void
     {
         $this->ensureModule();
-        $id = (int) ($_GET['id'] ?? 0);
-        $gonderim = (new SmsGonderim())->findById($id);
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        $gonderim = $id !== null ? (new SmsGonderim())->findById($id) : null;
         if (!$gonderim) {
             $_SESSION['error'] = 'Gönderim bulunamadı.';
             header('Location: ' . esh_url('Sms', 'index'));
             exit;
         }
         $alicilar = (new \App\Models\SmsAlici())->listByGonderim($id);
-        $pageTitle = 'SMS Gönderim #' . $id;
+        $pageTitle = 'SMS Gönderim';
         $backUrl = esh_url('Sms', 'index');
         include ThemeViewHelper::resolvePartial('header');
         include ThemeViewHelper::resolveAreaView('site', 'sms/history_detail');
@@ -239,10 +244,10 @@ class SmsController
     public function quickFromPatient(): void
     {
         $this->ensureModule();
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null) ?? '';
         $url = esh_url('Sms', 'compose');
-        if ($hastaId > 0) {
-            $url .= (strpos($url, '?') !== false ? '&' : '?') . 'hasta_id=' . $hastaId;
+        if ($hastaId !== '') {
+            $url .= (strpos($url, '?') !== false ? '&' : '?') . 'hasta_id=' . rawurlencode($hastaId);
         }
         header('Location: ' . $url);
         exit;
@@ -309,8 +314,8 @@ class SmsController
     private function segmentParamsFromPost(string $segment, array $post): array
     {
         return match ($segment) {
-            'tek_hasta' => ['hasta_id' => (int) ($post['hasta_id'] ?? 0)],
-            'coklu_hasta' => ['hasta_ids' => array_map('intval', (array) ($post['hasta_ids'] ?? []))],
+            'tek_hasta' => ['hasta_id' => IdHelper::normalizeRequestId($post['hasta_id'] ?? null) ?? ''],
+            'coklu_hasta' => ['hasta_ids' => IdHelper::csvToEntityIds(implode(',', (array) ($post['hasta_ids'] ?? [])))],
             'gunun_plani', 'planli_izlem', 'ilk_ziyaret' => [
                 'tarih' => trim((string) ($post['tarih'] ?? date('Y-m-d'))),
                 'zaman' => (int) ($post['zaman'] ?? 0),

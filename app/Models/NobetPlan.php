@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 use App\Helpers\OperationalSettings;
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
@@ -18,7 +19,7 @@ class NobetPlan extends BaseModel
         $sql = [];
         $sql[] = "CREATE TABLE IF NOT EXISTS #__personel_izin (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            personel_id INT NOT NULL,
+            personel_id CHAR(36) NOT NULL,
             baslangic_tarihi DATE NOT NULL,
             bitis_tarihi DATE NOT NULL,
             sebep VARCHAR(255) NULL,
@@ -29,7 +30,7 @@ class NobetPlan extends BaseModel
 
         $sql[] = "CREATE TABLE IF NOT EXISTS #__personel_istek (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            personel_id INT NOT NULL,
+            personel_id CHAR(36) NOT NULL,
             baslangic_tarihi DATE NOT NULL,
             bitis_tarihi DATE NOT NULL,
             aciklama VARCHAR(255) NULL,
@@ -49,7 +50,7 @@ class NobetPlan extends BaseModel
 
         $sql[] = "CREATE TABLE IF NOT EXISTS #__personel_nobet (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            personel_id INT NOT NULL,
+            personel_id CHAR(36) NOT NULL,
             nobet_tarihi DATE NOT NULL,
             nobet_tipi VARCHAR(50) NOT NULL DEFAULT 'normal',
             durum TINYINT(1) NOT NULL DEFAULT 1,
@@ -149,23 +150,31 @@ class NobetPlan extends BaseModel
         );
     }
 
-    public function saveIzin(int $personelId, string $bas, string $bit, string $sebep): bool
+    public function saveIzin(int|string $personelId, string $bas, string $bit, string $sebep): bool
     {
+        $pid = IdHelper::normalizeRequestId($personelId);
+        if ($pid === null) {
+            return false;
+        }
         $kid = TenantContext::assignKurumIdForStore();
         return $this->db->executePrepared(
             'INSERT INTO #__personel_izin (personel_id, baslangic_tarihi, bitis_tarihi, sebep, kurum_id)
              VALUES (?, ?, ?, ?, ?)',
-            [(int) $personelId, $bas, $bit, $sebep, (int) $kid]
+            [$pid, $bas, $bit, $sebep, (int) $kid]
         );
     }
 
-    public function saveIstek(int $personelId, string $bas, string $bit, string $aciklama): bool
+    public function saveIstek(int|string $personelId, string $bas, string $bit, string $aciklama): bool
     {
+        $pid = IdHelper::normalizeRequestId($personelId);
+        if ($pid === null) {
+            return false;
+        }
         $kid = TenantContext::assignKurumIdForStore();
         return $this->db->executePrepared(
             'INSERT INTO #__personel_istek (personel_id, baslangic_tarihi, bitis_tarihi, aciklama, kurum_id)
              VALUES (?, ?, ?, ?, ?)',
-            [(int) $personelId, $bas, $bit, $aciklama, (int) $kid]
+            [$pid, $bas, $bit, $aciklama, (int) $kid]
         );
     }
 
@@ -199,23 +208,31 @@ class NobetPlan extends BaseModel
         return $this->db->executePrepared('DELETE FROM #__resmi_tatiller WHERE id = ?', [(int) $id]);
     }
 
-    public function getPersonelOwnIzin(int $uid): array
+    public function getPersonelOwnIzin(int|string $uid): array
     {
+        $pid = IdHelper::normalizeRequestId($uid);
+        if ($pid === null) {
+            return [];
+        }
         return $this->db->fetchObjectListPrepared(
             "SELECT * FROM #__personel_izin
              WHERE personel_id = ?" . TenantSqlHelper::andBare() . "
              ORDER BY baslangic_tarihi DESC",
-            [(int) $uid]
+            [$pid]
         );
     }
 
-    public function getPersonelOwnIstek(int $uid): array
+    public function getPersonelOwnIstek(int|string $uid): array
     {
+        $pid = IdHelper::normalizeRequestId($uid);
+        if ($pid === null) {
+            return [];
+        }
         return $this->db->fetchObjectListPrepared(
             "SELECT * FROM #__personel_istek
              WHERE personel_id = ?" . TenantSqlHelper::andBare() . "
              ORDER BY baslangic_tarihi DESC",
-            [(int) $uid]
+            [$pid]
         );
     }
 
@@ -263,7 +280,7 @@ class NobetPlan extends BaseModel
                 $adet = OperationalSettings::nobetRebuildSlotsForUnvan($unvan);
                 $secilen = $this->selectNobetci($tarih, $unvan, $adet, $ay);
                 foreach ($secilen as $person) {
-                    if ($this->insertNobet((int) $person->id, $tarih, $tip)) {
+                    if ($this->insertNobet((string) $person->id, $tarih, $tip)) {
                         $inserted++;
                     }
                 }
@@ -285,14 +302,18 @@ class NobetPlan extends BaseModel
 
         $out = [];
         foreach ($rows as $r) {
-            $out[(int) $r->personel_id] = (int) $r->adet;
+            $pid = IdHelper::normalizeRequestId($r->personel_id ?? null);
+            if ($pid !== null) {
+                $out[$pid] = (int) $r->adet;
+            }
         }
         return $out;
     }
 
-    public function addNobet(int $personelId, string $tarih): array
+    public function addNobet(int|string $personelId, string $tarih): array
     {
-        if ($personelId <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tarih)) {
+        $pid = IdHelper::normalizeRequestId($personelId);
+        if ($pid === null || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tarih)) {
             return ['status' => 'error', 'msg' => 'Geçersiz veri.'];
         }
         $oncekiGun = date('Y-m-d', strtotime($tarih . ' -1 day'));
@@ -302,7 +323,7 @@ class NobetPlan extends BaseModel
              WHERE personel_id = ?
                AND nobet_tarihi IN (?, ?)
                AND durum = 1" . TenantSqlHelper::andBare(),
-            [(int) $personelId, $oncekiGun, $sonrakiGun]
+            [$pid, $oncekiGun, $sonrakiGun]
         );
         if ($yakin > 0) {
             return ['status' => 'error', 'msg' => 'Nöbet ertesi çakışması var.'];
@@ -314,7 +335,7 @@ class NobetPlan extends BaseModel
                AND ? BETWEEN baslangic_tarihi AND bitis_tarihi"
              . TenantSqlHelper::andBare() . "
              LIMIT 1",
-            [(int) $personelId, $tarih]
+            [$pid, $tarih]
         );
         if (!empty($istek)) {
             return ['status' => 'error', 'msg' => 'Bu tarihte muafiyet isteği var: ' . (string) $istek];
@@ -334,7 +355,7 @@ class NobetPlan extends BaseModel
         $ok = $this->db->executePrepared(
             'INSERT IGNORE INTO #__personel_nobet (personel_id, nobet_tarihi, nobet_tipi, durum, kurum_id)
              VALUES (?, ?, ?, 1, ?)',
-            [(int) $personelId, $tarih, $tip, (int) TenantContext::assignKurumIdForStore()]
+            [$pid, $tarih, $tip, (int) TenantContext::assignKurumIdForStore()]
         );
         if (!$ok || (int) $this->db->affectedRows() === 0) {
             return ['status' => 'error', 'msg' => 'Bu personel bu tarihte zaten nöbetçi olabilir.'];
@@ -349,10 +370,13 @@ class NobetPlan extends BaseModel
             'SELECT id, personel_id FROM #__personel_nobet WHERE id = ?' . TenantSqlHelper::andBare(),
             [(int) $nobetId]
         );
-        if (!$nobet || empty($nobet->personel_id)) {
+        if (!$nobet || IdHelper::isEmptyEntityId($nobet->personel_id ?? null)) {
             return ['status' => 'error', 'msg' => 'Nöbet kaydı bulunamadı.'];
         }
-        $pid = (int) $nobet->personel_id;
+        $pid = IdHelper::normalizeRequestId($nobet->personel_id);
+        if ($pid === null) {
+            return ['status' => 'error', 'msg' => 'Nöbet kaydı bulunamadı.'];
+        }
         $oncekiGun = date('Y-m-d', strtotime($yeniTarih . ' -1 day'));
         $sonrakiGun = date('Y-m-d', strtotime($yeniTarih . ' +1 day'));
         $yakin = (int) $this->db->loadResultPrepared(
@@ -431,8 +455,8 @@ class NobetPlan extends BaseModel
 
         $ozet = [];
         foreach ($nobetler as $n) {
-            $pid = (int) ($n->personel_id ?? 0);
-            if ($pid <= 0) {
+            $pid = IdHelper::normalizeRequestId($n->personel_id ?? null);
+            if ($pid === null) {
                 continue;
             }
             if (!isset($ozet[$pid])) {
@@ -442,7 +466,7 @@ class NobetPlan extends BaseModel
 
                 $pNobetleri = [];
                 foreach ($nobetler as $x) {
-                    if ((int) ($x->personel_id ?? 0) === $pid) {
+                    if (IdHelper::idsMatch($x->personel_id ?? null, $pid)) {
                         $pNobetleri[(string) $x->nobet_tarihi] = true;
                     }
                 }
@@ -454,7 +478,7 @@ class NobetPlan extends BaseModel
                     $resmiTatil = in_array($dt, $tatilGunleri, true);
                     $izinli = false;
                     foreach ($izinler as $iz) {
-                        if ((int) ($iz->personel_id ?? 0) !== $pid) {
+                        if (!IdHelper::idsMatch($iz->personel_id ?? null, $pid)) {
                             continue;
                         }
                         $bas = strtotime((string) $iz->baslangic_tarihi);
@@ -542,7 +566,10 @@ class NobetPlan extends BaseModel
 
         $istatistik = [];
         foreach ($personeller as $p) {
-            $pid = (int) ($p->id ?? 0);
+            $pid = IdHelper::normalizeRequestId($p->id ?? null);
+            if ($pid === null) {
+                continue;
+            }
             $istatistik[$pid] = [
                 'ad' => (string) ($p->name ?? ''),
                 'unvan' => (string) ($p->unvan ?? ''),
@@ -554,8 +581,8 @@ class NobetPlan extends BaseModel
             ];
         }
         foreach ($nobetler as $n) {
-            $pid = (int) ($n->personel_id ?? 0);
-            if (!isset($istatistik[$pid])) {
+            $pid = IdHelper::normalizeRequestId($n->personel_id ?? null);
+            if ($pid === null || !isset($istatistik[$pid])) {
                 continue;
             }
             $ts = strtotime((string) $n->nobet_tarihi);
@@ -618,14 +645,18 @@ class NobetPlan extends BaseModel
         );
     }
 
-    private function insertNobet(int $pid, string $tarih, string $tip): bool
+    private function insertNobet(int|string $pid, string $tarih, string $tip): bool
     {
+        $personelId = IdHelper::normalizeRequestId($pid);
+        if ($personelId === null) {
+            return false;
+        }
         $kid = TenantContext::assignKurumIdForStore();
 
         return $this->db->executePrepared(
             'INSERT IGNORE INTO #__personel_nobet (personel_id, nobet_tarihi, nobet_tipi, durum, kurum_id)
              VALUES (?, ?, ?, 1, ?)',
-            [(int) $pid, $tarih, $tip, (int) $kid]
+            [$personelId, $tarih, $tip, (int) $kid]
         );
     }
 }

@@ -25,9 +25,9 @@ final class VisitResource
         ];
     }
 
-    public function show(int $id): ?object
+    public function show(string $id): ?object
     {
-        if ($id <= 0) {
+        if ($id === null) {
             return null;
         }
         $visit = new Visit();
@@ -39,7 +39,7 @@ final class VisitResource
             return null;
         }
         $patient = (new Patient())->findByTc($tc);
-        if (!$patient || !PatientAccessHelper::canAccessPatient((int) $patient->id, $patient)) {
+        if (!$patient || !PatientAccessHelper::canAccessPatient((string) $patient->id, $patient)) {
             return null;
         }
 
@@ -52,7 +52,7 @@ final class VisitResource
     public function serialize(object $row): array
     {
         return [
-            'id' => (int) ($row->id ?? 0),
+            'id' => (string) ($row->id ?? ''),
             'kurum_id' => (int) ($row->kurum_id ?? 0),
             'hastatckimlik' => (string) ($row->hastatckimlik ?? ''),
             'izlemtarihi' => (string) ($row->izlemtarihi ?? ''),
@@ -71,7 +71,7 @@ final class VisitResource
      * @param array<string, mixed> $payload
      * @return array{ok: bool, data?: array<string, mixed>, error?: string, status?: int}
      */
-    public function applyCheckin(int $visitId, array $payload): array
+    public function applyCheckin(string $visitId, array $payload): array
     {
         $visit = $this->show($visitId);
         if ($visit === null) {
@@ -101,7 +101,7 @@ final class VisitResource
      * @param array<string, mixed> $payload
      * @return array{ok: bool, data?: array<string, mixed>, error?: string, status?: int}
      */
-    public function patch(int $id, array $payload): array
+    public function patch(string $id, array $payload): array
     {
         $visit = $this->show($id);
         if ($visit === null) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Helpers\AuditLogHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\OperationalSettings;
 use App\Helpers\PatientPortalHelper;
 use App\Helpers\RateLimitHelper;
@@ -176,11 +177,13 @@ class PatientPortalController
             header('Location: ' . esh_url('PatientPortal', 'index', [], true), true, 303);
             exit;
         }
-        $uhdsId = (int) ($_POST['uhds_id'] ?? 0);
+        $uhdsId = IdHelper::normalizeRequestId($_POST['uhds_id'] ?? null);
         $talepTarih = trim((string) ($_POST['talep_tarih'] ?? ''));
         $talepZamanRaw = trim((string) ($_POST['talep_zaman'] ?? ''));
         $neden = trim((string) ($_POST['neden'] ?? ''));
-        $uhds = $this->loadOwnedUhdsAppointment((string) $patient->tckimlik, (int) $patient->kurum_id, $uhdsId);
+        $uhds = $uhdsId !== null
+            ? $this->loadOwnedUhdsAppointment((string) $patient->tckimlik, (int) $patient->kurum_id, $uhdsId)
+            : null;
         if ($uhds === null) {
             $_SESSION['portal_error'] = 'Randevu kaydı bulunamadı.';
             header('Location: ' . esh_url('PatientPortal', 'index', [], true), 303);
@@ -191,9 +194,9 @@ class PatientPortalController
             $talepZaman = (int) $talepZamanRaw;
         }
         $ok = PatientPortalHelper::createAppointmentRequest(
-            (int) $patient->id,
+            (string) ($patient->id ?? ''),
             (int) $patient->kurum_id,
-            (int) ($uhds->id ?? 0),
+            (string) ($uhds->id ?? ''),
             (string) ($uhds->randevu_tarihi ?? ''),
             $talepTarih,
             $talepZaman,
@@ -224,7 +227,7 @@ class PatientPortalController
             return false;
         }
         $_SESSION[self::OTP_SESSION_KEY] = [
-            'patient_id' => (int) ($patient->id ?? 0),
+            'patient_id' => IdHelper::normalizeRequestId($patient->id ?? null),
             'tc' => (string) ($patient->tckimlik ?? ''),
             'role' => $role === 'bakimveren' ? 'bakimveren' : 'hasta',
             'expires' => time() + 300,
@@ -240,7 +243,7 @@ class PatientPortalController
     {
         PatientPortalHelper::startSession($patient, $role);
 
-        AuditLogHelper::log('patient_portal.login', 'patient', (int) $patient->id, $tc, [
+        AuditLogHelper::log('patient_portal.login', 'patient', IdHelper::normalizeRequestId($patient->id ?? null), $tc, [
             'role' => $role,
         ]);
 
@@ -271,13 +274,13 @@ class PatientPortalController
         $planned = PatientPortalHelper::upcomingPlannedVisits($tc, $kurumId);
         $visits = PatientPortalHelper::recentVisitSummary($tc, $kurumId);
         $uhds = PatientPortalHelper::upcomingUhdsAppointments($tc, $kurumId);
-        $appointmentRequests = PatientPortalHelper::listAppointmentRequests((int) ($patient->id ?? 0), 12);
+        $appointmentRequests = PatientPortalHelper::listAppointmentRequests((string) ($patient->id ?? ''), 12);
         $uhdsJoinUrls = [];
         if (UhdsTelehealthHelper::isEnabled() && UhdsTelehealthHelper::provider() === 'jitsi') {
             foreach ($uhds as $row) {
-                $uhdsId = (int) ($row->id ?? 0);
+                $uhdsId = IdHelper::normalizeRequestId($row->id ?? null);
                 $date = (string) ($row->randevu_tarihi ?? '');
-                if ($uhdsId > 0 && $date !== '') {
+                if ($uhdsId !== null && $date !== '') {
                     $uhdsJoinUrls[$uhdsId] = UhdsTelehealthHelper::patientJoinUrl($uhdsId, $date);
                 }
             }
@@ -313,10 +316,10 @@ class PatientPortalController
         }
 
         $onay = isset($_POST['sms_bilgilendirme_onay']) && (string) $_POST['sms_bilgilendirme_onay'] === '1';
-        $ok = PatientPortalHelper::updateSmsConsent((int) $patient->id, $onay);
+        $ok = PatientPortalHelper::updateSmsConsent((string) ($patient->id ?? ''), $onay);
 
         if ($ok) {
-            AuditLogHelper::log('patient_portal.sms_consent', 'patient', (int) $patient->id, (string) $patient->tckimlik, [
+            AuditLogHelper::log('patient_portal.sms_consent', 'patient', IdHelper::normalizeRequestId($patient->id ?? null), (string) $patient->tckimlik, [
                 'onay' => $onay ? 1 : 0,
             ]);
             $_SESSION['portal_success'] = $onay
@@ -363,9 +366,10 @@ class PatientPortalController
         return str_repeat('*', max(0, strlen($digits) - 4)) . substr($digits, -4);
     }
 
-    private function loadOwnedUhdsAppointment(string $tc, int $kurumId, int $uhdsId): ?object
+    private function loadOwnedUhdsAppointment(string $tc, int $kurumId, int|string $uhdsId): ?object
     {
-        if ($uhdsId <= 0 || !preg_match('/^\d{11}$/', $tc)) {
+        $rid = IdHelper::normalizeRequestId($uhdsId);
+        if ($rid === null || !preg_match('/^\d{11}$/', $tc)) {
             return null;
         }
         $db = \App\Core\Database::getInstance();
@@ -374,7 +378,7 @@ class PatientPortalController
              FROM #__goruntulu_randevu
              WHERE id = ? AND hastatckimlik = ? AND kurum_id = ?
              LIMIT 1',
-            [$uhdsId, $tc, $kurumId]
+            [$rid, $tc, $kurumId]
         );
 
         return $row ?: null;

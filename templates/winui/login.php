@@ -18,9 +18,9 @@ $__lt = isset($GLOBALS['ESH_LOGIN_THEME']) && is_string($GLOBALS['ESH_LOGIN_THEM
 
     <?= \App\Helpers\CdnAssetHelper::minimalAuthLayoutStylesHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderLoginStylesheetsHtml($__lt); ?>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-input-uppercase.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-submit-guard.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/login-tabs.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-input-uppercase.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-submit-guard.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/login-tabs.js', 'defer') ?>
 </head>
 <body class="page-login fluent-login-winui page-login-theme-<?= htmlspecialchars($__lt, ENT_QUOTES, 'UTF-8'); ?> min-vh-100">
     <div class="fluent-login-backdrop" aria-hidden="true"></div>

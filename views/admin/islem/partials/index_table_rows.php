@@ -11,7 +11,7 @@ if (!empty($items)) {
             <td class="text-center">
                 <div class="btn-group btn-group-sm">
                     <a href="<?= htmlspecialchars(esh_url('Islem', 'edit', ["id" => (int) $row->id]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-outline-primary" title="Düzenle"><i class="fas fa-edit"></i></a>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Islem', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu işlemi silmek istediğinize emin misiniz?')">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Islem', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu işlemi silmek istediğinize emin misiniz?">
                         <input type="hidden" name="id" value="<?= (int) $row->id ?>">
                         <button type="submit" class="btn btn-outline-danger" title="Sil"><i class="fas fa-trash"></i></button>
                     </form>

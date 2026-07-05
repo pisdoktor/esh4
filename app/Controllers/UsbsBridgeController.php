@@ -20,7 +20,7 @@ class UsbsBridgeController
 {
     public function __construct()
     {
-        AuthHelper::requireAdmin();
+        AuthHelper::requirePlatformOwner();
         if (!UsbsComplianceHelper::enabled()) {
             $_SESSION['error'] = 'USBS referans sütunları kurulu değil. Önce migrate_esh_usbs_refs.sql çalıştırın.';
             header('Location: ' . esh_url('UsbsCompliance', 'index'));

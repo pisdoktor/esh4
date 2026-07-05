@@ -102,8 +102,8 @@ function genderNameClass(genderRaw) {
     const raw = String(genderRaw || '').trim();
     if (!raw) return 'text-dark';
     const g = raw.replace(/ı/g, 'i').replace(/İ/g, 'I').toUpperCase();
-    if (g === '1' || g === 'E' || g === 'ERKEK' || g === 'M') return 'text-primary';
-    if (g === '2' || g === 'K' || g === 'KADIN' || g === 'F') return 'text-danger';
+    if (g === '1') return 'text-primary';
+    if (g === '2') return 'text-danger';
     return 'text-dark';
 }
 
@@ -775,5 +775,5 @@ function runDailyPlanMernisScan(date, offset, deceasedAccum, originalBtnHtml) {
         });
 }
 
-/** Takvim hücresi `onclick="getDailyTasks(...)"` için global (inline handler) */
+/** Takvim hücresi `data-esh-call="getDailyTasks"` delegasyonu için global */
 window.getDailyTasks = getDailyTasks;

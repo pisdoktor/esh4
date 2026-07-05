@@ -19,7 +19,7 @@ $eshTargetIsPlatform = isset($user) && AuthHelper::isPlatformLevel((int) ($user-
     <label class="form-label fw-semibold" for="eshUserKurumSelect">Kurum</label>
     <select name="kurum_id" class="form-select" id="eshUserKurumSelect">
         <option value="0"<?= $eshUserKurumId <= 0 ? ' selected' : '' ?>>
-            — Platform (süper yönetici / sistem sahibi) —
+            — Platform (<?= htmlspecialchars(mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?> / <?= htmlspecialchars(mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>) —
         </option>
         <?php foreach ($eshKurumList as $k): ?>
             <option value="<?= (int) ($k->id ?? 0) ?>"<?= $eshUserKurumId === (int) ($k->id ?? 0) ? ' selected' : '' ?>>
@@ -31,10 +31,10 @@ $eshTargetIsPlatform = isset($user) && AuthHelper::isPlatformLevel((int) ($user-
         <?php endforeach; ?>
     </select>
     <div class="form-text" id="eshUserKurumHelp">
-        Personel ve yöneticiler bir kuruma bağlı olmalıdır. Süper yönetici veya sistem sahibi seçildiğinde kurum atanmaz.
+        Personel ve kurum yöneticileri bir kuruma bağlı olmalıdır. <?= htmlspecialchars(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), ENT_QUOTES, 'UTF-8') ?> veya <?= htmlspecialchars(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), ENT_QUOTES, 'UTF-8') ?> seçildiğinde kurum atanmaz.
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var levelSelect = document.getElementById('eshIsadminLevelSelect');
     var kurumWrap = document.getElementById('eshUserKurumFieldWrap');

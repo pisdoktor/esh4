@@ -8,7 +8,7 @@
  */
 use App\Helpers\BarthelScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $barthelUrl = esh_url('Patient', 'barthel', ['id' => $hastaId]);
 $count = (int) ($barthelCount ?? 0);
 $latest = $barthelLatest ?? null;

@@ -22,10 +22,10 @@
                         </div>
                         <div>
                             <label class="form-label fw-semibold" for="hastailacIlacTani">İlgili tanı</label>
-                            <select class="form-select" id="hastailacIlacTani" name="hastalikid">
+                            <select class="form-select" id="hastailacIlacTani" name="hastalik_icd">
                                 <option value="">— Seçilmedi —</option>
-                                <?php foreach ($hastalikOptions as $optId => $optAd): ?>
-                                    <option value="<?= (int) $optId ?>"><?= htmlspecialchars($optAd, ENT_QUOTES, 'UTF-8') ?></option>
+                                <?php foreach ($hastalikOptions as $optIcd => $optAd): ?>
+                                    <option value="<?= htmlspecialchars((string) $optIcd, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($optAd, ENT_QUOTES, 'UTF-8') ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

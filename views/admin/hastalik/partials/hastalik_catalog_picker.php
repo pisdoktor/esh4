@@ -88,4 +88,4 @@ $catVal = isset($eshHastalikListCat) ? (string) $eshHastalikListCat : '';
         <span class="ms-2">Kurum seçimleri yükleniyor…</span>
     </div>
 </div>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/hastalik-catalog-picker.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/hastalik-catalog-picker.js') ?>

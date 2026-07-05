@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Helpers\AuthHelper;
 use App\Helpers\CdnAssetHelper;
+use App\Helpers\OperationalSettings;
 use App\Helpers\ThemeViewHelper;
 
 /**
@@ -22,7 +23,13 @@ class CdnCheckController
         $probe = isset($_GET['probe']) && (string) $_GET['probe'] === '1';
 
         $compareRows = CdnAssetHelper::comparePinnedToRegistryLatest($timeout);
+        $comparePartitions = CdnAssetHelper::partitionCompareRowsByMapSdk($compareRows);
+        $generalCompareRows = $comparePartitions['general'];
+        $mapSdkCompareRows = $comparePartitions['map'];
         $suggested = CdnAssetHelper::suggestPinnedUpdatesFromRegistry($compareRows, true);
+
+        $activeMapProvider = OperationalSettings::activeMapProviderStatusForAdmin();
+        $mapProviderStatuses = OperationalSettings::mapProviderStatusesForAdmin();
 
         $probeReport = null;
         if ($probe) {

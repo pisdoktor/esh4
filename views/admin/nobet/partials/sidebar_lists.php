@@ -13,7 +13,7 @@
                                     -
                                     <?= \App\Helpers\DateHelper::toTr((string) $r->bitis_tarihi) ?>
                                 </td>
-                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteIzin'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Silinsin mi?')"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
+                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteIzin'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Silinsin mi?"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
@@ -35,7 +35,7 @@
                                     -
                                     <?= \App\Helpers\DateHelper::toTr((string) $r->bitis_tarihi) ?>
                                 </td>
-                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteIstek'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Silinsin mi?')"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
+                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteIstek'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Silinsin mi?"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
@@ -57,7 +57,7 @@
                                     -
                                     <?= \App\Helpers\DateHelper::toTr((string) $r->bitis_tarihi) ?>
                                 </td>
-                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteTatil'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Silinsin mi?')"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
+                                <td><form method="post" action="<?= htmlspecialchars(esh_url('Nobet', 'deleteTatil'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Silinsin mi?"><input type="hidden" name="id" value="<?= (int) $r->id ?>"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>

@@ -14,7 +14,7 @@ if (!empty($items)) {
                          class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;" alt="">
                     <div>
                         <div class="fw-bold"><?= htmlspecialchars((string) ($item->name ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
-                        <small class="text-muted">ID: #<?= (int) ($item->id ?? 0) ?></small>
+                        <small class="text-muted">ID: #<?= htmlspecialchars((string) ($item->id ?? ''), ENT_QUOTES, 'UTF-8') ?></small>
                     </div>
                 </div>
             </td>
@@ -45,19 +45,19 @@ if (!empty($items)) {
                 <?php endif; ?>
             </td>
             <td class="text-end pe-4">
-                <?php $eshCanManageRow = AuthHelper::canManageUser((int) ($item->id ?? 0)); ?>
+                <?php $eshCanManageRow = AuthHelper::canManageUser($item->id ?? null); ?>
                 <div class="btn-group">
-                    <a href="<?= htmlspecialchars(esh_url('User', 'stats', ['user_id' => (int) ($item->id ?? 0)]), ENT_QUOTES, "UTF-8") ?>"
+                    <a href="<?= htmlspecialchars(esh_url('User', 'stats', ['user_id' => (string) ($item->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>"
                        class="btn btn-sm btn-outline-primary" title="İş özeti istatistikleri">
                         <i class="fa-solid fa-chart-pie"></i>
                     </a>
                     <?php if ($eshCanManageRow): ?>
-                    <a href="<?= htmlspecialchars(esh_url('User', 'adminEdit', ["id" => (int) ($item->id ?? 0)]), ENT_QUOTES, "UTF-8") ?>"
+                    <a href="<?= htmlspecialchars(esh_url('User', 'adminEdit', ['id' => (string) ($item->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>"
                        class="btn btn-sm btn-outline-secondary" title="Düzenle">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </a>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('User', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')">
-                        <input type="hidden" name="id" value="<?= (int) ($item->id ?? 0) ?>">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('User', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu kullanıcıyı silmek istediğinize emin misiniz?">
+                        <input type="hidden" name="id" value="<?= htmlspecialchars((string) ($item->id ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="fa-solid fa-trash"></i></button>
                     </form>
                     <?php endif; ?>

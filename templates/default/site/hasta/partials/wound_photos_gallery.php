@@ -83,7 +83,7 @@ $visibleChunkSize = 12;
                                     <i class="fa-solid fa-arrow-right me-1"></i> Sonra
                                 </button>
                             </div>
-                            <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteWoundPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" onsubmit="return confirm('Bu fotoğrafı silmek istediğinize emin misiniz?');">
+                            <form action="<?= htmlspecialchars(esh_url('Patient', 'deleteWoundPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" data-esh-confirm="Bu fotoğrafı silmek istediğinize emin misiniz?">
                                 <input type="hidden" name="id" value="<?= $hastaId ?>">
                                 <input type="hidden" name="photo_id" value="<?= (int) $photo->id ?>">
                                 <button type="submit" class="btn btn-outline-danger btn-sm w-100">

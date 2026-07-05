@@ -40,11 +40,16 @@ final class TenantSqlHelper
 
      */
 
-    public static function izMatchesPatientKurumSql(string $alias = ''): string
+    public static function scopeIzlemToPatientKurum(bool $forceMatch = false): bool
+    {
+        return $forceMatch || self::izlemScopedToPatientKurum();
+    }
+
+    public static function izMatchesPatientKurumSql(string $alias = '', bool $forceMatch = false): string
 
     {
 
-        if (!self::izlemScopedToPatientKurum()) {
+        if (!$forceMatch && !self::izlemScopedToPatientKurum()) {
 
             return '';
 
@@ -67,11 +72,14 @@ final class TenantSqlHelper
      */
 
     public static function andEquals(string $tableAlias = 'h', string $column = 'kurum_id'): string
-
     {
-
         return self::scopeSql($tableAlias, $column, false);
+    }
 
+    /** Hasta haritası — TenantContext::filterKurumIdsForHarita() ile. */
+    public static function andEqualsForHarita(string $tableAlias = 'h', string $column = 'kurum_id'): string
+    {
+        return self::scopeSqlForIds(TenantContext::filterKurumIdsForHarita(), $tableAlias, $column, false);
     }
 
 
@@ -163,41 +171,33 @@ final class TenantSqlHelper
 
 
     private static function scopeSql(string $tableAlias, string $column, bool $wherePrefix): string
-
     {
+        return self::scopeSqlForIds(TenantContext::filterKurumIds(), $tableAlias, $column, $wherePrefix);
+    }
 
-        $ids = TenantContext::filterKurumIds();
-
+    /**
+     * @param list<int>|null $ids
+     */
+    private static function scopeSqlForIds(?array $ids, string $tableAlias, string $column, bool $wherePrefix): string
+    {
         if ($ids === null) {
-
             return '';
-
         }
 
         $col = $tableAlias !== ''
-
             ? self::qualify($tableAlias, $column)
-
             : '`' . preg_replace('/[^a-zA-Z0-9_]/', '', $column) . '`';
 
         $prefix = $wherePrefix ? ' WHERE ' : ' AND ';
 
         if ($ids === []) {
-
             return $prefix . '1=0';
-
         }
-
         if (count($ids) === 1) {
-
             return $prefix . $col . ' = ' . (int) $ids[0];
-
         }
-
-
 
         return $prefix . $col . ' IN (' . implode(',', array_map('intval', $ids)) . ')';
-
     }
 
 

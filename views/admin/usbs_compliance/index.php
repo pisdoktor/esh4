@@ -29,6 +29,63 @@ $columnsReady = (bool) ($columnsReady ?? false);
         <?php endif; ?>
     </header>
 
+    <?php if ($columnsReady): ?>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Ref eksik hasta</div>
+                    <div class="fs-4 fw-bold text-danger"><?= (int) ($kpis['patients_missing'] ?? 0) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Bildirim bekliyor</div>
+                    <div class="fs-4 fw-bold text-warning"><?= (int) ($kpis['bildirim_pending'] ?? 0) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Gönderildi</div>
+                    <div class="fs-4 fw-bold text-success"><?= (int) ($kpis['bildirim_sent'] ?? 0) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Başarısız</div>
+                    <div class="fs-4 fw-bold text-danger"><?= (int) ($kpis['bildirim_failed'] ?? 0) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Atlandı</div>
+                    <div class="fs-4 fw-bold text-secondary"><?= (int) ($kpis['bildirim_skipped'] ?? 0) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Ref eksik izlem</div>
+                    <div class="fs-4 fw-bold text-info"><?= (int) ($kpis['visits_missing_ref'] ?? 0) ?></div>
+                    <?php if (!empty($lastSyncRow)): ?>
+                    <div class="small text-muted mt-2">Son köprü: <?= htmlspecialchars((string) ($lastSyncRow->created_at ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                        (<?= htmlspecialchars((string) ($lastSyncRow->direction ?? ''), ENT_QUOTES, 'UTF-8') ?>)</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="alert alert-info border-0 shadow-sm mb-4" role="note">
         <strong>Manuel köprü:</strong> Hasta ve izlem formlarındaki
         <em>e-Nabız / USBS referans no</em> alanları, resmi entegrasyon gelene kadar çift kaydı azaltmak için kullanılır.

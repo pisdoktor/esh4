@@ -3,6 +3,7 @@
 /** @var object $patient */
 /** @var string $tc */
 use App\Helpers\FormHelper;
+use App\Helpers\CinsiyetHelper;
 
 /** @var string $durum */
 /** @var int $limit */
@@ -35,10 +36,10 @@ $articleClass = $patientPlansArticleClass ?? '';
 $tc = (string) ($tc ?? '');
 $tcQ = rawurlencode($tc);
 $patientPlansFiltersOpen = !empty($patientPlansFiltersOpen);
-$patientIdForHeader = (int) ($patient->id ?? 0);
+$patientIdForHeader = (string) ($patient->id ?? '');
 $patientLabel = trim((string) ($patient->isim ?? '') . ' ' . (string) ($patient->soyisim ?? ''));
-$histErkek = (($patient->cinsiyet ?? '') === 'E' || ($patient->cinsiyet ?? '') === '1');
-$histNameColor = $histErkek ? '#0d6efd' : '#dc3545';
+$histErkek = CinsiyetHelper::isErkek($patient->cinsiyet ?? null);
+$histNameColor = CinsiyetHelper::nameColor($patient->cinsiyet ?? null);
 $histAktif = \App\Models\Patient::isAktif($patient->pasif ?? null);
 $ppPagelink = \App\Helpers\UrlHelper::fromQueryString((string)($patientPlansQueryBase ?? '')) . '&ordering=' . rawurlencode($ordering);
 ?>

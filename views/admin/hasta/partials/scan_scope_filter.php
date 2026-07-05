@@ -19,7 +19,7 @@ $eshScanScopeUrls = [
         </select>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var sel = document.getElementById('esh-scan-scope-select');
     if (!sel) {

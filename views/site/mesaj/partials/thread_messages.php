@@ -11,10 +11,10 @@ if (empty($messages)): ?>
     <?php endif; ?>
 <?php else: ?>
     <?php foreach ($messages as $m):
-        $mid = (int) ($m->id ?? 0);
+        $mid = (string) ($m->id ?? '');
         $isSystem = (string) ($m->gonderen_tip ?? '') === 'system';
-        $senderId = (int) ($m->gonderen_id ?? 0);
-        $isMine = !$isSystem && $senderId === (int) $viewerId;
+        $senderId = (string) ($m->gonderen_id ?? '');
+        $isMine = !$isSystem && \App\Helpers\IdHelper::idsMatch($senderId, (string) $viewerId);
         $senderName = $isSystem
             ? 'Sistem'
             : (trim((string) ($m->gonderen_adi ?? '')) !== '' ? (string) $m->gonderen_adi : 'Kullanıcı');
@@ -24,7 +24,7 @@ if (empty($messages)): ?>
             : '';
         $bubbleClass = $isSystem ? 'esh-mesaj-bubble--system' : ($isMine ? 'esh-mesaj-bubble--mine' : 'esh-mesaj-bubble--other');
     ?>
-    <div class="esh-mesaj-bubble-wrap <?= $isMine ? 'esh-mesaj-bubble-wrap--mine' : '' ?>" data-message-id="<?= $mid ?>">
+    <div class="esh-mesaj-bubble-wrap <?= $isMine ? 'esh-mesaj-bubble-wrap--mine' : '' ?>" data-message-id="<?= htmlspecialchars($mid, ENT_QUOTES, 'UTF-8') ?>">
         <div class="esh-mesaj-bubble <?= htmlspecialchars($bubbleClass, ENT_QUOTES, 'UTF-8') ?>">
             <?php if (!$isMine): ?>
             <div class="esh-mesaj-bubble-sender small fw-semibold mb-1"><?= htmlspecialchars($senderName, ENT_QUOTES, 'UTF-8') ?></div>
@@ -36,4 +36,4 @@ if (empty($messages)): ?>
         </div>
     </div>
     <?php endforeach; ?>
-<?php endif; ?>
+<?php endif;

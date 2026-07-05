@@ -104,12 +104,12 @@ $scopeOptions = [
                                 <td class="small"><?= htmlspecialchars((string) ($t->label ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="small">
                                     <?= htmlspecialchars((string) ($t->user_name ?? $t->user_username ?? ''), ENT_QUOTES, 'UTF-8') ?>
-                                    <span class="text-muted">#<?= (int) ($t->user_id ?? 0) ?></span>
+                                    <span class="text-muted font-monospace small"><?= htmlspecialchars(substr((string) ($t->user_id ?? ''), 0, 8), ENT_QUOTES, 'UTF-8') ?>…</span>
                                 </td>
                                 <td class="small font-monospace"><?= htmlspecialchars((string) ($t->scopes ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="small text-muted"><?= htmlspecialchars((string) ($t->last_used_at ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="text-end">
-                                    <form method="post" action="<?= htmlspecialchars(esh_url('ApiToken', 'revoke'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" onsubmit="return confirm('Token iptal edilsin mi?');">
+                                    <form method="post" action="<?= htmlspecialchars(esh_url('ApiToken', 'revoke'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" data-esh-confirm="Token iptal edilsin mi?">
                                         <?= CsrfHelper::hiddenField() ?>
                                         <input type="hidden" name="id" value="<?= (int) ($t->id ?? 0) ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">İptal</button>

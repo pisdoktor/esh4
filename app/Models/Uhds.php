@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 /**
  * Uhds randevu takvimi (`#__goruntulu_randevu`).
  * Kurallar branş randevu ile aynı; veri ayrı tabloda tutulur.
@@ -38,22 +39,24 @@ class Uhds extends KonsRandevu
         };
     }
 
-    public function markVideoStarted(int $id): bool
+    public function markVideoStarted(int|string $id): bool
     {
-        if ($id <= 0) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
             return false;
         }
 
         return $this->db->executePrepared(
             'UPDATE ' . $this->_tbl . ' SET video_started_at = COALESCE(video_started_at, NOW()) WHERE id = ?'
                 . \App\Helpers\TenantSqlHelper::andBare('kurum_id'),
-            [$id]
+            [$rid]
         );
     }
 
-    public function completeTelehealthSession(int $id, ?string $summary, ?int $hastaGeldi, ?int $visitId = null): bool
+    public function completeTelehealthSession(int|string $id, ?string $summary, ?int $hastaGeldi, int|string|null $visitId = null): bool
     {
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($id);
+        if ($id === null) {
             return false;
         }
         $fields = ['video_ended_at = NOW()'];
@@ -66,9 +69,12 @@ class Uhds extends KonsRandevu
             $fields[] = 'hasta_geldi = ?';
             $params[] = $hastaGeldi;
         }
-        if ($visitId !== null && $visitId > 0) {
-            $fields[] = 'visit_id = ?';
-            $params[] = $visitId;
+        if ($visitId !== null) {
+            $visitId = IdHelper::normalizeRequestId($visitId);
+            if ($visitId !== null) {
+                $fields[] = 'visit_id = ?';
+                $params[] = $visitId;
+            }
         }
         $params[] = $id;
         $sql = 'UPDATE ' . $this->_tbl . ' SET ' . implode(', ', $fields)

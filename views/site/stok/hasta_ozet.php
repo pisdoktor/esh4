@@ -7,7 +7,7 @@ use App\Helpers\StokHelper;
 
 /** @var object $hasta */
 /** @var list<object> $items */
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $hastaAd = trim((string) ($hasta->isim ?? '') . ' ' . (string) ($hasta->soyisim ?? ''));
 $items = $items ?? [];
 ?>

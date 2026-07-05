@@ -34,7 +34,8 @@
                                             <?php else: ?>
                                                 <?php foreach ($rows as $hast):
                                                     $hid = (int) ($hast->id ?? 0);
-                                                    $count = (int) ($counts[$hid] ?? 0);
+                                                    $icdKey = \App\Models\Patient::normalizeHastalikIcd((string) ($hast->icd ?? ''));
+                                                    $count = (int) ($counts[$icdKey] ?? 0);
                                                     $oran = ($total_aktif > 0) ? round((100 * $count) / $total_aktif, 2) : 0.0;
                                                     $patUrl = esh_url('Stats', 'hastalikPatients', ['id' => $hid]);
                                                     ?>

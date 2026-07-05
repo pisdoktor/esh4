@@ -102,7 +102,7 @@ final class CatalogScopeSqlHelper
 
         return ' AND (' . $a . '.' . $c . ' IN (SELECT hastalik_id FROM #__kurum_hastalik WHERE kurum_id = ' . $kid . ')'
             . ' OR EXISTS (SELECT 1 FROM #__hastalar hp WHERE hp.pasif = \'0\' AND hp.kurum_id = ' . $kid
-            . ' AND FIND_IN_SET(' . $a . '.' . $c . ', REPLACE(hp.hastaliklar, \' \', \'\')) > 0))';
+            . ' AND FIND_IN_SET(' . $a . '.icd, REPLACE(hp.hastaliklar, \' \', \'\')) > 0))';
     }
 
     /** @return array<int, string> */

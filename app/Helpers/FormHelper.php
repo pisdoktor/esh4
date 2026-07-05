@@ -883,16 +883,7 @@ class FormHelper {
         $outline = array_key_exists('outline', $opts) ? (bool) $opts['outline'] : true;
         $btnVariant = $outline ? ('btn-outline-' . $variant) : ('btn-' . $variant);
 
-        $onclickJs = '';
-        if (!empty($opts['confirm'])) {
-            $q = json_encode((string) $opts['confirm'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
-            $onclickJs = 'return confirm(' . $q . ');';
-        } elseif (!empty($opts['onclick'])) {
-            $onclickJs = trim((string) $opts['onclick']);
-        }
-        $onclickAttr = $onclickJs !== '' ? ' onclick="' . htmlspecialchars($onclickJs, ENT_QUOTES, 'UTF-8') . '"' : '';
-
-        $extra = '';
+        $extra = self::cspConfirmAttr(!empty($opts['confirm']) ? (string) $opts['confirm'] : null);
         if (!empty($opts['extraAttrs']) && is_array($opts['extraAttrs'])) {
             foreach ($opts['extraAttrs'] as $ak => $av) {
                 $ak = preg_replace('/[^a-zA-Z0-9\-]/', '', (string) $ak);
@@ -905,7 +896,7 @@ class FormHelper {
 
         $titleAttr = $title !== '' ? ' title="' . $title . '"' : '';
 
-        return '<a class="btn ' . htmlspecialchars($btnVariant, ENT_QUOTES, 'UTF-8') . '" href="' . $href . '"' . $titleAttr . $onclickAttr . $extra
+        return '<a class="btn ' . htmlspecialchars($btnVariant, ENT_QUOTES, 'UTF-8') . '" href="' . $href . '"' . $titleAttr . $extra
             . '><i class="' . htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') . '" aria-hidden="true"></i></a>';
     }
 
@@ -928,11 +919,7 @@ class FormHelper {
         $outline = array_key_exists('outline', $opts) ? (bool) $opts['outline'] : true;
         $btnVariant = $outline ? ('btn-outline-' . $variant) : ('btn-' . $variant);
 
-        $onsubmit = '';
-        if (!empty($opts['confirm'])) {
-            $q = json_encode((string) $opts['confirm'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
-            $onsubmit = ' onsubmit="return confirm(' . $q . ');"';
-        }
+        $onsubmit = self::cspConfirmAttr(!empty($opts['confirm']) ? (string) $opts['confirm'] : null);
 
         $hiddenHtml = '';
         $hidden = $opts['hidden'] ?? [];
@@ -1015,16 +1002,7 @@ class FormHelper {
             $itemClass .= ' text-danger';
         }
 
-        $onclickJs = '';
-        if (!empty($opts['confirm'])) {
-            $q = json_encode((string) $opts['confirm'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
-            $onclickJs = 'return confirm(' . $q . ');';
-        } elseif (!empty($opts['onclick'])) {
-            $onclickJs = trim((string) $opts['onclick']);
-        }
-        $onclickAttr = $onclickJs !== '' ? ' onclick="' . htmlspecialchars($onclickJs, ENT_QUOTES, 'UTF-8') . '"' : '';
-
-        $extra = '';
+        $extra = self::cspConfirmAttr(!empty($opts['confirm']) ? (string) $opts['confirm'] : null);
         if (!empty($opts['extraAttrs']) && is_array($opts['extraAttrs'])) {
             foreach ($opts['extraAttrs'] as $ak => $av) {
                 $ak = preg_replace('/[^a-zA-Z0-9\-]/', '', (string) $ak);
@@ -1039,7 +1017,7 @@ class FormHelper {
             ? '<i class="' . htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') . ' me-2 opacity-75" aria-hidden="true"></i>'
             : '';
 
-        return '<li><a class="' . htmlspecialchars($itemClass, ENT_QUOTES, 'UTF-8') . '" href="' . $href . '"' . $onclickAttr . $extra . '>'
+        return '<li><a class="' . htmlspecialchars($itemClass, ENT_QUOTES, 'UTF-8') . '" href="' . $href . '"' . $extra . '>'
             . $iconHtml . $label . '</a></li>';
     }
 
@@ -1060,11 +1038,7 @@ class FormHelper {
             $itemClass .= ' text-danger';
         }
 
-        $onsubmit = '';
-        if (!empty($opts['confirm'])) {
-            $q = json_encode((string) $opts['confirm'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
-            $onsubmit = ' onsubmit="return confirm(' . $q . ');"';
-        }
+        $onsubmit = self::cspConfirmAttr(!empty($opts['confirm']) ? (string) $opts['confirm'] : null);
 
         $hiddenHtml = '';
         $hidden = $opts['hidden'] ?? [];
@@ -1153,5 +1127,14 @@ class FormHelper {
             . ' title="' . $toggleTitle . '">' . $dateEsc . '</a>'
             . '<ul class="' . htmlspecialchars($menuClass, ENT_QUOTES, 'UTF-8') . '">' . $items . '</ul>'
             . '</div>';
+    }
+
+    private static function cspConfirmAttr(?string $message): string
+    {
+        if ($message === null || $message === '') {
+            return '';
+        }
+
+        return ' data-esh-confirm="' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . '"';
     }
 }

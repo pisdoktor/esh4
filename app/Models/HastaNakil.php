@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 
 
 use App\Core\Database;
@@ -51,6 +52,8 @@ class HastaNakil extends BaseModel
     public $kaynak_kurum_id = null;
 
     public $hedef_kurum_id = null;
+
+    public $hedef_bolge_id = null;
 
     public $hedef_hasta_id = null;
 
@@ -130,11 +133,13 @@ class HastaNakil extends BaseModel
 
 
 
-    public function findPendingByHastaId(int $hastaId): ?object
+    public function findPendingByHastaId(int|string $hastaId): ?object
 
     {
 
-        if ($hastaId <= 0 || !self::tableExists()) {
+        $hastaId = IdHelper::normalizeRequestId($hastaId);
+
+        if ($hastaId === null || !self::tableExists()) {
 
             return null;
 
@@ -156,11 +161,13 @@ class HastaNakil extends BaseModel
 
 
 
-    public function findLatestByKaynakHastaId(int $hastaId): ?object
+    public function findLatestByKaynakHastaId(int|string $hastaId): ?object
 
     {
 
-        if ($hastaId <= 0 || !self::tableExists()) {
+        $hastaId = IdHelper::normalizeRequestId($hastaId);
+
+        if ($hastaId === null || !self::tableExists()) {
 
             return null;
 
@@ -182,11 +189,13 @@ class HastaNakil extends BaseModel
 
 
 
-    public function findApprovedInboundByHedefHastaId(int $hedefHastaId): ?object
+    public function findApprovedInboundByHedefHastaId(int|string $hedefHastaId): ?object
 
     {
 
-        if ($hedefHastaId <= 0 || !self::tableExists()) {
+        $hedefHastaId = IdHelper::normalizeRequestId($hedefHastaId);
+
+        if ($hedefHastaId === null || !self::tableExists()) {
 
             return null;
 
@@ -232,9 +241,65 @@ class HastaNakil extends BaseModel
 
 
 
+    public static function hedefBolgeColumnReady(): bool
+
+    {
+
+        try {
+
+            $db = Database::getInstance();
+
+            $row = $db->loadResultPrepared(
+
+                'SELECT 1 FROM information_schema.COLUMNS
+
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1',
+
+                [$db->replacePrefix('#__hasta_nakil'), 'hedef_bolge_id']
+
+            );
+
+
+
+            return $row !== null && $row !== false && $row !== '';
+
+        } catch (\Throwable) {
+
+            return false;
+
+        }
+
+    }
+
+
+
+    public function countPendingForTargetBolge(int $bolgeId): int
+
+    {
+
+        if ($bolgeId <= 0 || !self::tableExists() || !self::hedefBolgeColumnReady()) {
+
+            return 0;
+
+        }
+
+
+
+        return (int) $this->db->loadResultPrepared(
+
+            'SELECT COUNT(*) FROM #__hasta_nakil WHERE hedef_bolge_id = ? AND durum = ? AND tip = ?',
+
+            [$bolgeId, self::DURUM_BEKLEMEDE, self::TIP_IL_DISI]
+
+        );
+
+    }
+
+
+
     /** @return list<object> */
 
-    public function getIncomingForTargetKurum(?int $kurumId, bool $superAdminAll = false): array
+    public function getIncomingForTargetKurum(?int $kurumId, bool $superAdminAll = false, ?array $scopeKurumIds = null): array
 
     {
 
@@ -248,7 +313,9 @@ class HastaNakil extends BaseModel
 
         $sql = 'SELECT n.*, h.isim AS hasta_isim, h.soyisim AS hasta_soyisim, h.tckimlik AS hasta_tckimlik,
 
-                k.ad AS kaynak_kurum_ad
+                h.ceptel1 AS hasta_ceptel1, h.ceptel2 AS hasta_ceptel2,
+
+                k.ad AS kaynak_kurum_ad, NULL AS hedef_bolge_ad
 
                 FROM #__hasta_nakil n
 
@@ -258,7 +325,19 @@ class HastaNakil extends BaseModel
 
                 WHERE n.durum = ? AND n.tip IN (?, ?)';
 
-        if (!$superAdminAll && $kurumId !== null && $kurumId > 0) {
+        if ($scopeKurumIds !== null) {
+
+            if ($scopeKurumIds === []) {
+
+                return [];
+
+            }
+
+            $inList = implode(',', array_map('intval', $scopeKurumIds));
+
+            $sql .= ' AND n.hedef_kurum_id IN (' . $inList . ')';
+
+        } elseif (!$superAdminAll && $kurumId !== null && $kurumId > 0) {
 
             $sql .= ' AND n.hedef_kurum_id = ?';
 
@@ -282,11 +361,121 @@ class HastaNakil extends BaseModel
 
 
 
-    public function hasPendingInboundForHastaAtKurum(int $hastaId, int $kurumId): bool
+    /** @return list<object> */
+
+    public function getIncomingIlDisiForBolge(?int $bolgeId, bool $allBolgeler = false): array
 
     {
 
-        if ($hastaId <= 0 || $kurumId <= 0 || !self::tableExists()) {
+        if (!self::tableExists() || !self::hedefBolgeColumnReady()) {
+
+            return [];
+
+        }
+
+        $params = [self::DURUM_BEKLEMEDE, self::TIP_IL_DISI];
+
+        $sql = 'SELECT n.*, h.isim AS hasta_isim, h.soyisim AS hasta_soyisim, h.tckimlik AS hasta_tckimlik,
+
+                h.ceptel1 AS hasta_ceptel1, h.ceptel2 AS hasta_ceptel2,
+
+                k.ad AS kaynak_kurum_ad, fr.ad AS hedef_bolge_ad
+
+                FROM #__hasta_nakil n
+
+                INNER JOIN #__hastalar h ON h.id = n.kaynak_hasta_id
+
+                INNER JOIN #__kurumlar k ON k.id = n.kaynak_kurum_id
+
+                LEFT JOIN #__federation_regions fr ON fr.id = n.hedef_bolge_id
+
+                WHERE n.durum = ? AND n.tip = ?';
+
+        if (!$allBolgeler) {
+
+            if ($bolgeId === null || $bolgeId <= 0) {
+
+                return [];
+
+            }
+
+            $sql .= ' AND n.hedef_bolge_id = ?';
+
+            $params[] = $bolgeId;
+
+        }
+
+        $sql .= ' ORDER BY n.talep_tarihi ASC';
+
+        $list = $this->db->fetchObjectListPrepared($sql, $params);
+
+
+
+        return is_array($list) ? $list : [];
+
+    }
+
+
+
+    /** @return list<object> Detay ekranı için genişletilmiş nakil + hasta bilgisi. */
+
+    public function fetchReviewRowById(int|string $id): ?object
+
+    {
+
+        $rid = IdHelper::normalizeRequestId($id);
+
+        if ($rid === null || !self::tableExists()) {
+
+            return null;
+
+        }
+
+        $bolgeJoin = self::hedefBolgeColumnReady()
+
+            ? 'LEFT JOIN #__federation_regions fr ON fr.id = n.hedef_bolge_id'
+
+            : '';
+
+        $bolgeSel = self::hedefBolgeColumnReady() ? ', fr.ad AS hedef_bolge_ad, fr.kod AS hedef_bolge_kod' : '';
+
+        $row = $this->db->fetchObjectPrepared(
+
+            'SELECT n.*, h.isim AS hasta_isim, h.soyisim AS hasta_soyisim, h.tckimlik AS hasta_tckimlik,
+
+                h.ceptel1 AS hasta_ceptel1, h.ceptel2 AS hasta_ceptel2,
+
+                h.ilce AS hasta_ilce, h.mahalle AS hasta_mahalle, h.sokak AS hasta_sokak, h.kapino AS hasta_kapino,
+
+                k.ad AS kaynak_kurum_ad' . $bolgeSel . '
+
+                FROM #__hasta_nakil n
+
+                INNER JOIN #__hastalar h ON h.id = n.kaynak_hasta_id
+
+                INNER JOIN #__kurumlar k ON k.id = n.kaynak_kurum_id
+
+                ' . $bolgeJoin . '
+
+                WHERE n.id = ? LIMIT 1',
+
+            [$rid]
+
+        );
+
+        return $row ?: null;
+
+    }
+
+
+
+    public function hasPendingInboundForHastaAtKurum(int|string $hastaId, int $kurumId): bool
+
+    {
+
+        $hastaId = IdHelper::normalizeRequestId($hastaId);
+
+        if ($hastaId === null || $kurumId <= 0 || !self::tableExists()) {
 
             return false;
 
@@ -310,11 +499,13 @@ class HastaNakil extends BaseModel
 
 
 
-    public function loadPendingById(int $id): bool
+    public function loadPendingById(int|string $id): bool
 
     {
 
-        if ($id <= 0 || !self::tableExists()) {
+        $rid = IdHelper::normalizeRequestId($id);
+
+        if ($rid === null || !self::tableExists()) {
 
             return false;
 
@@ -324,7 +515,7 @@ class HastaNakil extends BaseModel
 
             'SELECT * FROM #__hasta_nakil WHERE id = ? AND durum = ? LIMIT 1',
 
-            [$id, self::DURUM_BEKLEMEDE]
+            [$rid, self::DURUM_BEKLEMEDE]
 
         );
 

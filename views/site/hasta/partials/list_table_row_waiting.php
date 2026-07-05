@@ -1,6 +1,7 @@
 <?php
 /** @var object $patient */
-$isMale = (($patient->cinsiyet ?? '') === '1' || ($patient->cinsiyet ?? '') === 'E');
+use App\Helpers\CinsiyetHelper;
+$isMale = CinsiyetHelper::isErkek($patient->cinsiyet ?? null);
 $genderClass = $isMale ? 'esh-patient-gender-male' : 'esh-patient-gender-female';
 ?>
 <tr class="esh-patient-row-hover">

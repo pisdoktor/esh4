@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 /**
@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  *   php database/ilac_rehber_scrape_worker.php --job={24_hex_id}
  *
- * Web arayüzü: IlacRehber/migration (süper yönetici).
+ * Web arayüzü: IlacRehber/migration (bölge yöneticisi).
  */
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php';

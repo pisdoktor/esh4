@@ -12,7 +12,7 @@
 </div>
 
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 pdfMake.createPdf(dd).getDataUrl().then(function (url) {
     document.getElementById('iframeContainer').setAttribute('src', url);
 });

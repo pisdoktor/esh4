@@ -116,7 +116,7 @@
                 </div>
 
                 <div class="mt-4 pt-3 border-top d-flex flex-wrap justify-content-between gap-2 align-items-center">
-                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" onclick="history.back()">Vazgeç</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" data-esh-action="history-back">Vazgeç</button>
                     <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm fw-semibold">
                         <i class="fa-solid fa-floppy-disk me-2"></i>Kaydet
                     </button>

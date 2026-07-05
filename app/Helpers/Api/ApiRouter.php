@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Helpers\Api;
 
+use App\Helpers\IdHelper;
 use App\Services\Api\V1\PatientResource;
 use App\Services\Api\V1\PlanResource;
 use App\Services\Api\V1\VisitResource;
@@ -28,9 +29,10 @@ final class ApiRouter
             return;
         }
 
-        if ($method === 'PATCH' && $parsed['resource'] === 'visits' && ($parsed['id'] ?? 0) > 0) {
+        $patchId = IdHelper::normalizeRequestId($parsed['id'] ?? null);
+        if ($method === 'PATCH' && $parsed['resource'] === 'visits' && $patchId !== null) {
             ApiAuth::requireWriteScope($tokenRow, 'visits');
-            self::handleVisitPatch((int) $parsed['id']);
+            self::handleVisitPatch($patchId);
             return;
         }
 
@@ -58,18 +60,18 @@ final class ApiRouter
     }
 
     /**
-     * @return array{resource: string, id: ?int, sub: ?string}|null
+     * @return array{resource: string, id: ?string, sub: ?string}|null
      */
     private static function parseRoute(): ?array
     {
         $resource = trim((string) ($_GET['resource'] ?? ''));
-        $id = isset($_GET['id']) && $_GET['id'] !== '' ? (int) $_GET['id'] : null;
+        $id = isset($_GET['id']) && $_GET['id'] !== '' ? IdHelper::normalizeRequestId($_GET['id'] ?? null) : null;
         $sub = trim((string) ($_GET['sub'] ?? ''));
 
         if ($resource !== '') {
             return [
                 'resource' => self::normalizeResource($resource),
-                'id' => $id !== null && $id > 0 ? $id : null,
+                'id' => $id,
                 'sub' => $sub !== '' ? $sub : null,
             ];
         }
@@ -79,10 +81,10 @@ final class ApiRouter
         if (preg_match('#/api(?:/index\.php)?/v1/visits/checkin/?$#i', $uri)) {
             return ['resource' => 'visits', 'id' => null, 'sub' => 'checkin'];
         }
-        if (preg_match('#/api(?:/index\.php)?/v1/(patients|visits|plans)(?:/(\d+))?/?$#i', $uri, $m)) {
+        if (preg_match('#/api(?:/index\.php)?/v1/(patients|visits|plans)(?:/([0-9a-fA-F-]{36}))?/?$#i', $uri, $m)) {
             return [
                 'resource' => strtolower($m[1]),
-                'id' => isset($m[2]) && $m[2] !== '' ? (int) $m[2] : null,
+                'id' => isset($m[2]) && $m[2] !== '' ? IdHelper::normalizeRequestId($m[2]) : null,
                 'sub' => null,
             ];
         }
@@ -106,7 +108,7 @@ final class ApiRouter
     /**
      * @param array{page: int, per_page: int, offset: int} $page
      */
-    private static function handlePatients(?int $id, array $page): void
+    private static function handlePatients(?string $id, array $page): void
     {
         $svc = new PatientResource();
         if ($id !== null) {
@@ -131,7 +133,7 @@ final class ApiRouter
     /**
      * @param array{page: int, per_page: int, offset: int} $page
      */
-    private static function handleVisits(?int $id, array $page): void
+    private static function handleVisits(?string $id, array $page): void
     {
         $svc = new VisitResource();
         if ($id !== null) {
@@ -157,7 +159,7 @@ final class ApiRouter
     /**
      * @param array{page: int, per_page: int, offset: int} $page
      */
-    private static function handlePlans(?int $id, array $page): void
+    private static function handlePlans(?string $id, array $page): void
     {
         $svc = new PlanResource();
         if ($id !== null) {
@@ -193,8 +195,8 @@ final class ApiRouter
     private static function handleVisitCheckin(): void
     {
         $body = self::readJsonBody();
-        $visitId = (int) ($body['visit_id'] ?? $body['id'] ?? 0);
-        if ($visitId < 1) {
+        $visitId = IdHelper::normalizeRequestId($body['visit_id'] ?? $body['id'] ?? null);
+        if ($visitId === null) {
             ApiResponse::error('visit_id gerekli.', 422);
         }
         $svc = new VisitResource();
@@ -205,7 +207,7 @@ final class ApiRouter
         ApiResponse::ok($result['data'] ?? []);
     }
 
-    private static function handleVisitPatch(int $id): void
+    private static function handleVisitPatch(string $id): void
     {
         $body = self::readJsonBody();
         $svc = new VisitResource();

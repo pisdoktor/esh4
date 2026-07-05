@@ -108,6 +108,27 @@ function printManualCrudChecklist(): void
     echo str_repeat('=', 70) . "\n";
 }
 
+function verifyStorageHardening(string $root): bool
+{
+    global $steps;
+    echo "\n=== Depolama sertleştirme (exports/backups) ===\n";
+    require_once $root . '/app/Helpers/StorageHardeningHelper.php';
+    \App\Helpers\StorageHardeningHelper::ensureExportsDirectory($root);
+    $issues = \App\Helpers\StorageHardeningHelper::verifyExportHardening($root);
+    if ($issues === []) {
+        echo "OK\n";
+        $steps[] = ['name' => 'Depolama sertleştirme', 'ok' => true, 'detail' => 'OK'];
+
+        return true;
+    }
+    foreach ($issues as $issue) {
+        echo "FAIL: {$issue}\n";
+    }
+    $steps[] = ['name' => 'Depolama sertleştirme', 'ok' => false, 'detail' => implode('; ', $issues)];
+
+    return false;
+}
+
 $allOk = true;
 
 if ($saveBaseline) {
@@ -115,8 +136,10 @@ if ($saveBaseline) {
 }
 
 $allOk = lintPhpTree($root) && $allOk;
-$allOk = runStep('Modül CRUD wiring', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_module_crud.php'), $root) && $allOk;
+$allOk = verifyStorageHardening($root) && $allOk;
+$allOk = runStep('Modül CRUD wiring', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_module_crud.php') . ' --check-registry', $root) && $allOk;
 $allOk = runStep('Modül SQL probu', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_module_queries.php'), $root) && $allOk;
+$allOk = runStep('UUID bütünlük', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_uuid_integrity.php') . ' --with-db', $root) && $allOk;
 $allOk = runStep('Faz migration', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_phase_migrations.php'), $root) && $allOk;
 $allOk = runStep('Faz rotalar', escapeshellarg($php) . ' ' . escapeshellarg($root . '/tools/verify_phase_routes.php'), $root) && $allOk;
 

@@ -13,8 +13,8 @@ $miss_card = $missedCardClass ?? 'card shadow-sm border-0 rounded-3';
                 <small class="text-muted font-monospace">TC: <?= htmlspecialchars($tc ?? '') ?></small>
             </div>
             <div class="d-flex flex-wrap gap-2">
-                <?php $hid = isset($patientIdForHeader) ? (int) $patientIdForHeader : 0; ?>
-                <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary rounded-pill <?= $hid < 1 ? 'disabled' : '' ?>">
+                <?php $hid = isset($patientIdForHeader) ? trim((string) $patientIdForHeader) : ''; ?>
+                <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary rounded-pill <?= $hid === '' ? 'disabled' : '' ?>">
                     <i class="fa-solid fa-id-card me-1"></i>Hasta kartı
                 </a>
                 <a href="<?= htmlspecialchars(esh_url('Visit', 'history', ['tc' => urlencode($tc ?? '')]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-secondary rounded-pill">

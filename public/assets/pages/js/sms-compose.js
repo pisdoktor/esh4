@@ -84,7 +84,7 @@
             var seg = selectedSegment();
             var params = {};
             if (seg === 'tek_hasta') {
-                params.hasta_id = parseInt(String(fd.get('hasta_id') || '0'), 10);
+                params.hasta_id = String(fd.get('hasta_id') || '').trim();
             }
             if (seg === 'gunun_plani' || seg === 'planli_izlem' || seg === 'ilk_ziyaret') {
                 params.tarih = fd.get('tarih') || '';

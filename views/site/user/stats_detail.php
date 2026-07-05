@@ -15,6 +15,7 @@
  * @var string $statsSubjectName
  */
 use App\Helpers\DateHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\PaginationHelper;
 use App\Helpers\ValidationHelper;
 
@@ -125,8 +126,8 @@ $patientName = static function ($row): string {
                         <?php foreach ($rows as $row): ?>
                             <?php if ($listType === 'visit'): ?>
                                 <?php
-                                $hid = (int) ($row->hid ?? 0);
-                                $vid = (int) ($row->id ?? 0);
+                                $hid = IdHelper::normalizeRequestId($row->hid ?? null);
+                                $vid = IdHelper::normalizeRequestId($row->id ?? null);
                                 $done = (int) ($row->yapildimi ?? 0) === 1;
                                 ?>
                                 <tr>
@@ -139,17 +140,17 @@ $patientName = static function ($row): string {
                                     </td>
                                     <td class="small"><?= htmlspecialchars((string) ($row->yapilanlar ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="text-end pe-3 text-nowrap">
-                                        <?php if ($vid > 0): ?>
-                                            <a href="<?= htmlspecialchars(esh_url('Visit', 'edit', ["id" => $vid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-success">İzlem</a>
+                                        <?php if ($vid !== null): ?>
+                                            <a href="<?= htmlspecialchars(esh_url('Visit', 'edit', ['id' => $vid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-success">İzlem</a>
                                         <?php endif; ?>
-                                        <?php if ($hid > 0): ?>
-                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
+                                        <?php if ($hid !== null): ?>
+                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $hid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php elseif ($listType === 'plan'): ?>
                                 <?php
-                                $hid = (int) ($row->hid ?? 0);
+                                $hid = IdHelper::normalizeRequestId($row->hid ?? null);
                                 $tc = (string) ($row->hastatckimlik ?? '');
                                 $open = (int) ($row->durum ?? 0) === 0;
                                 ?>
@@ -166,21 +167,21 @@ $patientName = static function ($row): string {
                                         <?php if ($tc !== ''): ?>
                                             <a href="<?= htmlspecialchars(esh_url('PlannedVisit', 'patient', ['tc' => rawurlencode($tc)]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary">Planlar</a>
                                         <?php endif; ?>
-                                        <?php if ($hid > 0): ?>
-                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-secondary">Hasta</a>
+                                        <?php if ($hid !== null): ?>
+                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $hid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-secondary">Hasta</a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php elseif ($listType === 'patient_visit' || $listType === 'patient_plan'): ?>
-                                <?php $hid = (int) ($row->hid ?? 0); ?>
+                                <?php $hid = IdHelper::normalizeRequestId($row->hid ?? null); ?>
                                 <tr>
                                     <td class="ps-3"><?= htmlspecialchars($patientName($row), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="small font-monospace"><?= htmlspecialchars(ValidationHelper::formatTc((string) ($row->tckimlik ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="text-end fw-semibold"><?= (int) ($row->kayit_sayisi ?? 0) ?></td>
                                     <td class="text-nowrap"><?= $fmtDate($listType === 'patient_visit' ? ($row->son_izlem_tarihi ?? null) : ($row->son_plan_tarihi ?? null)) ?></td>
                                     <td class="text-end pe-3">
-                                        <?php if ($hid > 0): ?>
-                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
+                                        <?php if ($hid !== null): ?>
+                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $hid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -222,14 +223,14 @@ $patientName = static function ($row): string {
                                     </td>
                                 </tr>
                             <?php elseif ($listType === 'wound_photo'): ?>
-                                <?php $hid = (int) ($row->hid ?? 0); ?>
+                                <?php $hid = IdHelper::normalizeRequestId($row->hid ?? null); ?>
                                 <tr>
                                     <td class="ps-3 text-nowrap"><?= $fmtDate($row->cekim_tarihi ?? $row->created_at ?? null, true) ?></td>
                                     <td><?= htmlspecialchars($patientName($row), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="small"><?= htmlspecialchars((string) ($row->yara_bolgesi ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="text-end pe-3">
-                                        <?php if ($hid > 0): ?>
-                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ["id" => $hid]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
+                                        <?php if ($hid !== null): ?>
+                                            <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => $hid]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Hasta</a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

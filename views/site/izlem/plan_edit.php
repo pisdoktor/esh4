@@ -1,6 +1,6 @@
 <div class="esh-page esh-page--list esh-page-izlem container-fluid py-4">
 <?php
-$pid = (int) ($plan->id ?? 0);
+$pid = (string) ($plan->id ?? '');
 $planDateTr = \App\Helpers\DateHelper::toTrOrEmpty((string) ($plan->planlanantarih ?? ''));
 if ($planDateTr === '') {
     $planDateTr = \App\Helpers\DateHelper::todayTr();
@@ -124,4 +124,4 @@ if ($zm < 0 || $zm > 2) {
     </div>
 </div>
 </div>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/plannedvisit-create.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/plannedvisit-create.js') ?>

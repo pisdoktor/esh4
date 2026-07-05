@@ -3,11 +3,12 @@ declare(strict_types=1);
 /** @var object|null $patient */
 /** @var array<string, string> $lists */
 use App\Helpers\FormHelper;
+use App\Models\Address;
 
 $eshBekleyenMode = (string) ($eshBekleyenMode ?? 'bedit');
 $patient = $patient ?? (object) [];
 $eshIsBedit = $eshBekleyenMode === 'bedit';
-$coordsValue = $eshIsBedit ? (string) ($patient->coords ?? '') : '';
+$kapinoCoordsDisplay = Address::resolveCoordsForPatient($patient);
 ?>
 <div id="address-container">
     <div class="p-3 border rounded bg-light mb-3 address-row js-address-cascade">
@@ -156,14 +157,16 @@ $coordsValue = $eshIsBedit ? (string) ($patient->coords ?? '') : '';
 </div>
 
 <div class="mt-2 p-3 bg-white border rounded shadow-sm">
-    <?= FormHelper::fieldInputGroup('coords', 'Otomatik Koordinat (Asıl Adres):', $coordsValue, [
-        'col' => '',
-        'id' => 'coords',
-        'labelClass' => 'form-label fw-bold small text-muted',
-        'inputGroupSm' => true,
-        'prefixIcon' => 'fa-solid fa-location-crosshairs text-danger',
-        'class' => 'bg-light',
-        'placeholder' => 'Enlem, Boylam',
-        'extraAttrs' => ['readonly' => 'readonly'],
-    ]) ?>
+    <label class="form-label fw-bold small text-muted" for="kapino-coords-display">Kapı koordinatı</label>
+    <div class="input-group input-group-sm">
+        <span class="input-group-text"><i class="fa-solid fa-location-crosshairs text-danger" aria-hidden="true"></i></span>
+        <input type="text"
+               id="kapino-coords-display"
+               class="form-control font-monospace bg-light"
+               value="<?= htmlspecialchars($kapinoCoordsDisplay, ENT_QUOTES, 'UTF-8') ?>"
+               placeholder="Enlem, Boylam"
+               readonly
+               tabindex="-1"
+               aria-readonly="true">
+    </div>
 </div>

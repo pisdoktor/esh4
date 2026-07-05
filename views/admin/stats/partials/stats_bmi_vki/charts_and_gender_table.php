@@ -45,7 +45,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach (['K', 'E', '?'] as $gk):
+                                <?php foreach ([\App\Helpers\CinsiyetHelper::KADIN, \App\Helpers\CinsiyetHelper::ERKEK, '?'] as $gk):
                                     $row = $byGender[$gk] ?? [];
                                     $rowTot = 0;
                                     foreach ($catKeys as $ck) {
@@ -56,7 +56,7 @@
                                     }
                                 ?>
                                     <tr>
-                                        <td class="ps-3 fw-medium <?= $gk === 'K' ? 'text-danger' : ($gk === 'E' ? 'text-primary' : 'text-muted') ?>">
+                                        <td class="ps-3 fw-medium <?= \App\Helpers\CinsiyetHelper::isKadin($gk) ? 'text-danger' : (\App\Helpers\CinsiyetHelper::isErkek($gk) ? 'text-primary' : 'text-muted') ?>">
                                             <?= htmlspecialchars(BmiHelper::genderLabel($gk), ENT_QUOTES, 'UTF-8') ?>
                                         </td>
                                         <?php foreach ($catKeys as $ck): ?>

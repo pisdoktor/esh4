@@ -47,15 +47,14 @@
     },
     "corporate": {
         "esh_app_name": "SONEV",
-        "ek3_form_baslik": "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nBAŞVURU FORMU / EK-3",
-        "hekim_degerlendirme_form_baslik": "T.C. SAĞLIK BAKANLIĞI\nDENİZLİ DEVLET HASTANESİ\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nHEKİM DEĞERLENDİRME FORMU"
+        "ek3_form_baslik": "T.C. SAĞLIK BAKANLIĞI\n{KURUMADI}\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nBAŞVURU FORMU / EK-3",
+        "hekim_degerlendirme_form_baslik": "T.C. SAĞLIK BAKANLIĞI\n{KURUMADI}\nEVDE SAĞLIK HİZMETLERİ POLİKLİNİĞİ\nHEKİM DEĞERLENDİRME FORMU"
     },
     "public_hastaarama": {
-        "enabled": true,
+        "enabled": false,
         "bilgilendirme_metni": "Bu sorgu yalnızca kurumumuzda kayıtlı hastalar için bilgilendirme amaçlıdır. Kişisel verileriniz KVKK kapsamında işlenmektedir."
     },
     "patient_portal": {
-        "enabled": true,
         "bilgilendirme_metni": "Hasta veya bakım veren olarak kayıtlı telefon numaranız ve TC kimlik numaranız ile giriş yapabilirsiniz. Kişisel verileriniz KVKK kapsamında işlenmektedir.",
         "session_hours": 4,
         "show_planned_visits": true,
@@ -65,11 +64,13 @@
     },
     "esys_bridge": {
         "enabled": true,
-        "mode": "file",
         "api_mode": "file",
         "export_patient_limit": 500,
         "export_visit_days": 90,
         "export_only_missing_refs": false,
+        "export_only_missing_visit_refs": false,
+        "export_erapor_limit": 500,
+        "auto_queue_on_visit_save": false,
         "api_enabled": false,
         "api_base_url": ""
     },

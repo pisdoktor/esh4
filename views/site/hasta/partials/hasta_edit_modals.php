@@ -22,7 +22,7 @@ $eshEditSections = [
 ];
 $eshPartialDir = __DIR__ . '/edit_sections';
 $eshStoreUrl = esh_url('Patient', 'store');
-$eshPatientId = (int) ($patient->id ?? 0);
+$eshPatientId = (string) ($patient->id ?? '');
 preg_match('/<select\b[^>]*>(.*)<\/select>/is', (string) ($lists['ilce'] ?? ''), $__modalMainIlce);
 $eshMainIlceOptionsInner = $__modalMainIlce[1] ?? '';
 ?>

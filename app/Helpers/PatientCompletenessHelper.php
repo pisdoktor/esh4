@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Models\Address;
 use App\Models\BarthelAssessment;
 use App\Models\BradenAssessment;
 use App\Models\Guvence;
@@ -457,6 +458,9 @@ class PatientCompletenessHelper
     {
         $key = (string) $fieldDef['key'];
         $type = (string) ($fieldDef['type'] ?? 'text');
+        if ($key === 'coords') {
+            return Address::patientHasResolvableCoords($patient);
+        }
         $value = $patient->$key ?? null;
 
         return match ($type) {
@@ -464,7 +468,7 @@ class PatientCompletenessHelper
             'text' => trim((string) $value) !== '',
             'parent_name' => self::isParentNameFilled($value),
             'date' => self::isDateFilled($value),
-            'gender' => self::normalizeGender($value) !== null,
+            'gender' => CinsiyetHelper::normalize($value) !== null,
             'guvence' => self::isGuvenceFilled($value),
             'phone_strict' => strlen(ValidationHelper::phoneDigits((string) $value)) === 11,
             'phone_loose' => self::isPhoneLooseFilled($value),
@@ -548,18 +552,7 @@ class PatientCompletenessHelper
 
     private static function normalizeGender(mixed $value): ?string
     {
-        $v = strtoupper(trim((string) $value));
-        if ($v === '' || $v === '0') {
-            return null;
-        }
-        if ($v === '1' || $v === 'E' || $v === 'ERKEK') {
-            return 'E';
-        }
-        if ($v === '2' || $v === 'K' || $v === 'KADIN') {
-            return 'K';
-        }
-
-        return null;
+        return CinsiyetHelper::normalize($value);
     }
 
     private static function isGuvenceFilled(mixed $value): bool
@@ -598,7 +591,7 @@ class PatientCompletenessHelper
 
     private static function isHastaliklarFilled(mixed $value): bool
     {
-        return Patient::parseHastalikCsvToIntIds($value) !== [];
+        return Patient::parseHastalikCsvToIcds($value) !== [];
     }
 
     private static function isZamanFilled(mixed $value): bool
@@ -625,8 +618,8 @@ class PatientCompletenessHelper
 
     private static function hasClinicalAssessment(object $patient, string $which): bool
     {
-        $hastaId = (int) ($patient->id ?? 0);
-        if ($hastaId <= 0 || $which === '') {
+        $hastaId = IdHelper::normalizeRequestId($patient->id ?? null);
+        if ($hastaId === null || $which === '') {
             return false;
         }
 

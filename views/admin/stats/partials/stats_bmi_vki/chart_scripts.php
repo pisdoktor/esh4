@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var labels = <?= json_encode($chartLabels, JSON_UNESCAPED_UNICODE) ?>;
     var values = <?= json_encode($chartValues) ?>;

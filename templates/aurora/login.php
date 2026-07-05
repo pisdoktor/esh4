@@ -18,9 +18,9 @@
 
     <?= \App\Helpers\CdnAssetHelper::minimalAuthLayoutStylesHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderLoginStylesheetsHtml('aurora'); ?>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-input-uppercase.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-submit-guard.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/login-tabs.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-input-uppercase.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-submit-guard.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/login-tabs.js', 'defer') ?>
 </head>
 <body class="page-login page-login-theme-aurora min-vh-100">
     <div class="aurora-login-backdrop" aria-hidden="true"></div>

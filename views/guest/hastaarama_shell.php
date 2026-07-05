@@ -64,13 +64,13 @@ $__phaWide = ($__phaScript === 'sonuc');
         <p class="mb-0">© <?= date('Y'); ?> <?= htmlspecialchars(esh_app_name(), ENT_QUOTES, 'UTF-8'); ?> · <a href="<?= htmlspecialchars($__loginUrl, ENT_QUOTES, 'UTF-8') ?>">Yönetim paneli</a></p>
     </footer>
 
-    <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::jqueryJsHref(), ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::jquery4LegacyShimJsHref(), ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script src="<?= htmlspecialchars(\App\Helpers\CdnAssetHelper::bootstrapBundleJsHref(), ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::jqueryJsHref()) ?>
+    <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::jquery4LegacyShimJsHref()) ?>
+    <?= esh_csp_script_src_tag(\App\Helpers\CdnAssetHelper::bootstrapBundleJsHref()) ?>
 <?php
 $__phaJs = ROOT_PATH . '/public/assets/pages/js/publichastaarama-' . $__phaScript . '.js';
 if (is_file($__phaJs)) {
-    echo '<script src="' . htmlspecialchars($__assets . '/pages/js/publichastaarama-' . $__phaScript . '.js', ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+    echo esh_csp_script_src_tag($__assets . '/pages/js/publichastaarama-' . $__phaScript . '.js');
 }
 unset($__phaJs);
 ?>

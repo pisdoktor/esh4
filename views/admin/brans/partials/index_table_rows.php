@@ -28,7 +28,7 @@ if (!empty($items)) {
 
                     </a>
 
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Brans', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu branşı silmek istediğinize emin misiniz?')">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Brans', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu branşı silmek istediğinize emin misiniz?">
 
                         <input type="hidden" name="id" value="<?= (int) ($row->id ?? 0) ?>">
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 /** @var list<array{id:int, slug:string, name:string, description:?string, is_system:int, sort_order:int, unvan_code?:?string}> $roles */
 
 if ($roles === []): ?>
-    <tr><td colspan="6" class="text-muted text-center py-4">Henüz rol tanımlı değil. patch_rbac.sql uygulayın.</td></tr>
+    <tr><td colspan="6" class="text-muted text-center py-4">Henüz rol tanımlı değil. Kurulum seed dosyalarını (seed_esh_rbac.sql) uygulayın.</td></tr>
 <?php else:
     foreach ($roles as $role): ?>
     <tr>

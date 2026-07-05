@@ -79,7 +79,7 @@ $isAdmin = !empty($_SESSION['isadmin']);
                         <i class="fa-solid fa-check-double me-1"></i>İşlendi olarak işaretle
                     </button>
                 </form>
-                <form action="<?= htmlspecialchars(esh_form_action('Erapor', 'delete'), ENT_QUOTES, 'UTF-8') ?>" method="get" class="m-0" onsubmit="return confirm('Bu kaydı havuzdan silmek istediğinize emin misiniz?');">
+                <form action="<?= htmlspecialchars(esh_form_action('Erapor', 'delete'), ENT_QUOTES, 'UTF-8') ?>" method="get" class="m-0" data-esh-confirm="Bu kaydı havuzdan silmek istediğinize emin misiniz?">
                 <?= esh_form_route_hiddens('Erapor', 'delete') ?>
                     <input type="hidden" name="id" value="<?= (int) ($item->id ?? 0) ?>">
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">

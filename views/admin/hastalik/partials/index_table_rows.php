@@ -12,7 +12,7 @@ if (!empty($items)) {
             <td class="text-end pe-4">
                 <div class="btn-group">
                     <a href="<?= htmlspecialchars(esh_url('Hastalik', 'edit', ["id" => (int) ($row->id ?? 0)]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-sm btn-outline-primary" title="Düzenle"><i class="fa-solid fa-pen-to-square"></i></a>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Hastalik', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu tanı silinsin mi?')">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Hastalik', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu tanı silinsin mi?">
                         <input type="hidden" name="id" value="<?= (int) ($row->id ?? 0) ?>">
                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="fa-solid fa-trash"></i></button>
                     </form>

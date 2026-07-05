@@ -1,8 +1,10 @@
 <?php
 namespace App\Models;
 
+use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
 use App\Helpers\FederationHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 use App\Models\Kurum;
 
@@ -11,6 +13,8 @@ class User extends BaseModel {
     public const ROLE_ADMIN = AuthHelper::ROLE_ADMIN;
     public const ROLE_SUPERADMIN = AuthHelper::ROLE_SUPERADMIN;
     public const ROLE_PLATFORM_OWNER = AuthHelper::ROLE_PLATFORM_OWNER;
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
     public $id = null;
     public $username = null;
     public $password = null;
@@ -262,10 +266,11 @@ class User extends BaseModel {
     }
 
     /** Oturumdaki üst menü avatar URL'sini günceller. */
-    public static function syncSessionAvatar(int $userId): void
+    public static function syncSessionAvatar(int|string $userId): void
     {
+        $userId = IdHelper::normalizeRequestId($userId);
         $user = new self();
-        if ($userId > 0 && $user->load($userId)) {
+        if ($userId !== null && $user->load($userId)) {
             $_SESSION['avatar'] = $user->profileImageWebUrl();
         } else {
             $_SESSION['avatar'] = self::defaultProfileImageWebUrl();
@@ -432,7 +437,7 @@ class User extends BaseModel {
     }
 
     public function getUserNames($user_ids) {
-        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $user_ids))));
+        $ids = IdHelper::csvToEntityIds((string) $user_ids);
         if ($ids === []) {
             return [];
         }
@@ -447,7 +452,7 @@ class User extends BaseModel {
      * @return list<string>
      */
     public function getUserUnvans($user_ids) {
-        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $user_ids))));
+        $ids = IdHelper::csvToEntityIds((string) $user_ids);
         if ($ids === []) {
             return [];
         }
@@ -461,17 +466,18 @@ class User extends BaseModel {
      *
      * @return array<string, int|string|null>
      */
-    public function getProfileStats(int $userId): array
+    public function getProfileStats(int|string $userId): array
     {
-        $uid = (int) $userId;
-        if ($uid <= 0) {
+        $uid = IdHelper::normalizeRequestId($userId);
+        if ($uid === null) {
             return [];
         }
 
-        $inIzlem = "FIND_IN_SET(" . $uid . ", REPLACE(CAST(i.izlemiyapan AS CHAR), ' ', ''))";
-        $inIzlemI2 = "FIND_IN_SET(" . $uid . ", REPLACE(CAST(i2.izlemiyapan AS CHAR), ' ', ''))";
-        $inPlan = "FIND_IN_SET(" . $uid . ", REPLACE(CAST(p.planiyapan AS CHAR), ' ', ''))";
-        $inPlanP2 = "FIND_IN_SET(" . $uid . ", REPLACE(CAST(p2.planiyapan AS CHAR), ' ', ''))";
+        $quoted = $this->db->quote($uid);
+        $inIzlem = "FIND_IN_SET({$quoted}, REPLACE(CAST(i.izlemiyapan AS CHAR), ' ', ''))";
+        $inIzlemI2 = "FIND_IN_SET({$quoted}, REPLACE(CAST(i2.izlemiyapan AS CHAR), ' ', ''))";
+        $inPlan = "FIND_IN_SET({$quoted}, REPLACE(CAST(p.planiyapan AS CHAR), ' ', ''))";
+        $inPlanP2 = "FIND_IN_SET({$quoted}, REPLACE(CAST(p2.planiyapan AS CHAR), ' ', ''))";
 
         $stats = [];
         $stats['visits_total'] = (int) $this->db->loadResultPrepared(
@@ -603,17 +609,18 @@ class User extends BaseModel {
     public static function kurumDisplayLabel(object $user): string
     {
         if ((int) ($user->isadmin ?? 0) === AuthHelper::ROLE_PLATFORM_OWNER) {
-            return 'Platform (sistem sahibi)';
+            return 'Platform (' . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8') . ')';
         }
         if ((int) ($user->isadmin ?? 0) === AuthHelper::ROLE_SUPERADMIN) {
             $bid = isset($user->bolge_id) && $user->bolge_id !== null ? (int) $user->bolge_id : 0;
+            $roleLabel = mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8');
             if ($bid > 0 && class_exists(\App\Helpers\FederationHelper::class)) {
                 $bolgeLabel = \App\Helpers\FederationHelper::kurumBolgeLabel($bid);
 
-                return 'Platform (süper yönetici — ' . $bolgeLabel . ')';
+                return 'Platform (' . $roleLabel . ' — ' . $bolgeLabel . ')';
             }
 
-            return 'Platform (süper yönetici)';
+            return 'Platform (' . $roleLabel . ')';
         }
 
         $kid = isset($user->kurum_id) && $user->kurum_id !== null ? (int) $user->kurum_id : 0;
@@ -673,7 +680,7 @@ class User extends BaseModel {
     }
 
     /**
-     * Nöbet «İzin/Mazeret» (Nobet::mine): OperationalSettings::nobetAllowedUnvanlar() içindeki ünvan.
+     * Nöbet «İzin/Mazeret» (Nobet::mine): nöbet modülü açık ve OperationalSettings::nobetAllowedUnvanlar() içindeki ünvan.
      * Oturumdaki kullanıcı için istek başına bir kez DB okur (static önbellek).
      */
     public static function canAccessNobetMine(): bool
@@ -684,12 +691,15 @@ class User extends BaseModel {
             return $allowed;
         }
         $resolved = true;
+        if (!AppSettings::isModuleEnabled('nobet')) {
+            return false;
+        }
         if (session_status() !== PHP_SESSION_ACTIVE || empty($_SESSION['user_id'])) {
             return false;
         }
         $u = new self();
-        $uid = (int) $_SESSION['user_id'];
-        if ($uid <= 0 || !$u->load($uid)) {
+        $uid = AuthHelper::sessionUserId();
+        if ($uid === null || !$u->load($uid)) {
             return false;
         }
         $code = trim((string) ($u->unvan ?? ''));

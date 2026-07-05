@@ -203,4 +203,92 @@ final class UsbsComplianceHelper
 
         return $map[$code] ?? '—';
     }
+
+    /**
+     * @return array{
+     *   patients_missing: int,
+     *   bildirim_pending: int,
+     *   bildirim_sent: int,
+     *   bildirim_failed: int,
+     *   bildirim_skipped: int,
+     *   visits_missing_ref: int,
+     *   kurum_id: ?int
+     * }
+     */
+    public static function complianceKpis(?int $kurumId = null): array
+    {
+        if (!self::columnsReady()) {
+            return [
+                'patients_missing' => 0,
+                'bildirim_pending' => 0,
+                'bildirim_sent' => 0,
+                'bildirim_failed' => 0,
+                'bildirim_skipped' => 0,
+                'visits_missing_ref' => 0,
+                'kurum_id' => $kurumId,
+            ];
+        }
+        try {
+            $db = \App\Core\Database::getInstance();
+            $params = [];
+            $kurumSql = '';
+            if ($kurumId !== null && $kurumId > 0) {
+                $kurumSql = ' AND kurum_id = ?';
+                $params[] = $kurumId;
+            }
+            $pMissing = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__hastalar WHERE pasif = 0'
+                    . ' AND (TRIM(COALESCE(enabiz_hasta_ref, \'\')) = \'\' OR TRIM(COALESCE(usbs_hasta_ref, \'\')) = \'\')'
+                    . $kurumSql,
+                $params
+            );
+            $pending = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__izlemler WHERE yapildimi = 1'
+                    . ' AND (TRIM(COALESCE(usbs_bildirim_durum, \'\')) = \'\' OR LOWER(usbs_bildirim_durum) = \'pending\')'
+                    . $kurumSql,
+                $params
+            );
+            $sent = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__izlemler WHERE yapildimi = 1 AND LOWER(usbs_bildirim_durum) = \'sent\''
+                    . $kurumSql,
+                $params
+            );
+            $failed = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__izlemler WHERE yapildimi = 1 AND LOWER(usbs_bildirim_durum) IN (\'failed\', \'hata\')'
+                    . $kurumSql,
+                $params
+            );
+            $skipped = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__izlemler WHERE yapildimi = 1 AND LOWER(usbs_bildirim_durum) = \'skipped\''
+                    . $kurumSql,
+                $params
+            );
+            $vMissing = (int) $db->loadResultPrepared(
+                'SELECT COUNT(*) FROM #__izlemler WHERE yapildimi = 1'
+                    . ' AND TRIM(COALESCE(usbs_bildirim_ref, \'\')) = \'\''
+                    . $kurumSql,
+                $params
+            );
+
+            return [
+                'patients_missing' => $pMissing,
+                'bildirim_pending' => $pending,
+                'bildirim_sent' => $sent,
+                'bildirim_failed' => $failed,
+                'bildirim_skipped' => $skipped,
+                'visits_missing_ref' => $vMissing,
+                'kurum_id' => $kurumId,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'patients_missing' => 0,
+                'bildirim_pending' => 0,
+                'bildirim_sent' => 0,
+                'bildirim_failed' => 0,
+                'bildirim_skipped' => 0,
+                'visits_missing_ref' => 0,
+                'kurum_id' => $kurumId,
+            ];
+        }
+    }
 }

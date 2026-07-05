@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Federation;
 
+use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Core\Database;
 use App\Helpers\FederationBridgeHelper;
 use App\Helpers\FederationHelper;
@@ -211,8 +213,15 @@ final class FederationBridgeService
      */
     public function logSync(string $direction, string $status, ?string $fileName, array $stats = [], ?string $error = null): void
     {
-        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
-        (new FederationSyncLog())->record($direction, $status, $userId > 0 ? $userId : null, $fileName, $stats, $error);
+        $userId = AuthHelper::sessionUserId();
+        (new FederationSyncLog())->record(
+            $direction,
+            $status,
+            IdHelper::isEmptyEntityId($userId) ? null : $userId,
+            $fileName,
+            $stats,
+            $error
+        );
     }
 
     /**

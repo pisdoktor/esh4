@@ -7,6 +7,7 @@ use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
 use App\Helpers\CsrfHelper;
 use App\Helpers\DateHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\StokHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\ThemeViewHelper;
@@ -347,7 +348,7 @@ class StokController
         );
         $tarih = DateHelper::trDateToYmd(trim((string) ($_POST['hareket_tarihi'] ?? ''))) ?? date('Y-m-d');
         $aciklama = trim((string) ($_POST['aciklama'] ?? ''));
-        $kullaniciId = (int) ($_SESSION['user_id'] ?? 0);
+        $kullaniciId = AuthHelper::sessionUserId() ?? '';
 
         $linesRaw = $_POST['lines'] ?? null;
         if (is_array($linesRaw) && $linesRaw !== []) {
@@ -413,8 +414,8 @@ class StokController
         $ekipler = (new StokHareket())->listRecentEkipler($kurumId);
 
         $preHasta = null;
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
-        if ($hastaId > 0) {
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null);
+        if ($hastaId !== null) {
             $pModel = new Patient();
             if ($pModel->load($hastaId)) {
                 TenantContext::assertRecordKurum((int) ($pModel->kurum_id ?? 0));
@@ -444,7 +445,7 @@ class StokController
         $malzemeId = (int) ($_POST['malzeme_id'] ?? 0);
         $miktar = (float) str_replace(',', '.', (string) ($_POST['miktar'] ?? '0'));
         $tarih = DateHelper::trDateToYmd(trim((string) ($_POST['hareket_tarihi'] ?? ''))) ?? date('Y-m-d');
-        $hastaId = (int) ($_POST['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_POST['hasta_id'] ?? null);
         $ekipId = (int) ($_POST['ekip_id'] ?? 0);
         $aciklama = trim((string) ($_POST['aciklama'] ?? ''));
 
@@ -454,8 +455,8 @@ class StokController
             'hareket_tipi' => 'cikis',
             'miktar' => $miktar,
             'hareket_tarihi' => $tarih,
-            'kullanici_id' => (int) ($_SESSION['user_id'] ?? 0),
-            'hasta_id' => $hastaId > 0 ? $hastaId : null,
+            'kullanici_id' => AuthHelper::sessionUserId(),
+            'hasta_id' => $hastaId,
             'ekip_id' => $ekipId > 0 ? $ekipId : null,
             'aciklama' => $aciklama !== '' ? $aciklama : null,
         ]);
@@ -479,8 +480,8 @@ class StokController
         $ekipler = (new StokHareket())->listRecentEkipler($kurumId);
 
         $preHasta = null;
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
-        if ($hastaId > 0) {
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null);
+        if ($hastaId !== null) {
             $pModel = new Patient();
             if ($pModel->load($hastaId)) {
                 TenantContext::assertRecordKurum((int) ($pModel->kurum_id ?? 0));
@@ -506,7 +507,7 @@ class StokController
         $malzemeId = (int) ($_POST['malzeme_id'] ?? 0);
         $miktar = (float) str_replace(',', '.', (string) ($_POST['miktar'] ?? '0'));
         $tarih = DateHelper::trDateToYmd(trim((string) ($_POST['hareket_tarihi'] ?? ''))) ?? date('Y-m-d');
-        $hastaId = (int) ($_POST['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_POST['hasta_id'] ?? null);
         $ekipId = (int) ($_POST['ekip_id'] ?? 0);
         $aciklama = trim((string) ($_POST['aciklama'] ?? ''));
 
@@ -516,8 +517,8 @@ class StokController
             'hareket_tipi' => 'iade',
             'miktar' => $miktar,
             'hareket_tarihi' => $tarih,
-            'kullanici_id' => (int) ($_SESSION['user_id'] ?? 0),
-            'hasta_id' => $hastaId > 0 ? $hastaId : null,
+            'kullanici_id' => AuthHelper::sessionUserId(),
+            'hasta_id' => $hastaId,
             'ekip_id' => $ekipId > 0 ? $ekipId : null,
             'aciklama' => $aciklama !== '' ? $aciklama : null,
         ]);
@@ -540,7 +541,7 @@ class StokController
     {
         $malzemeId = (int) ($_GET['malzeme_id'] ?? 0);
         $hareketTipi = trim((string) ($_GET['hareket_tipi'] ?? ''));
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null);
         $dateFromTr = trim((string) ($_GET['date_from'] ?? ''));
         $dateToTr = trim((string) ($_GET['date_to'] ?? ''));
         $page = max(1, (int) ($_GET['page'] ?? 1));
@@ -632,7 +633,7 @@ class StokController
                 : $patientModel->searchForDashboardLookup($qRaw, 10);
             foreach ($rows as $p) {
                 $suggestions[] = [
-                    'id' => (int) ($p->id ?? 0),
+                    'id' => (string) ($p->id ?? ''),
                     'tckimlik' => (string) ($p->tckimlik ?? ''),
                     'isim' => (string) ($p->isim ?? ''),
                     'soyisim' => (string) ($p->soyisim ?? ''),
@@ -648,7 +649,7 @@ class StokController
             $one = $patientModel->findByTcWithAddress($qDigits);
             if ($one && (!$onlyAktif || Patient::isAktif($one->pasif ?? null))) {
                 $exact = [
-                    'id' => (int) ($one->id ?? 0),
+                    'id' => (string) ($one->id ?? ''),
                     'tckimlik' => (string) ($one->tckimlik ?? ''),
                     'isim' => (string) ($one->isim ?? ''),
                     'soyisim' => (string) ($one->soyisim ?? ''),
@@ -664,9 +665,9 @@ class StokController
 
     public function hastaOzet(): void
     {
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null);
         $pModel = new Patient();
-        if ($hastaId < 1 || !$pModel->load($hastaId)) {
+        if ($hastaId === null || !$pModel->load($hastaId)) {
             $_SESSION['error'] = 'Hasta bulunamadı.';
             header('Location: ' . esh_url('Patient', 'unified', ['status' => 'active']));
             exit;
@@ -702,8 +703,8 @@ class StokController
     public function hastaOzetRows(): void
     {
         AuthHelper::requirePermissionJson('stok.read');
-        $hastaId = (int) ($_GET['hasta_id'] ?? 0);
-        if ($hastaId < 1) {
+        $hastaId = IdHelper::normalizeRequestId($_GET['hasta_id'] ?? null);
+        if ($hastaId === null) {
             $this->jsonOut(['ok' => false, 'error' => 'Hasta gerekli'], 400);
         }
         $pModel = new Patient();
@@ -756,7 +757,7 @@ class StokController
             'malzeme_id' => $malzemeId,
             'sayilan_miktar' => $sayilan,
             'hareket_tarihi' => $tarih,
-            'kullanici_id' => (int) ($_SESSION['user_id'] ?? 0),
+            'kullanici_id' => AuthHelper::sessionUserId(),
         ]);
 
         if ($result['ok'] ?? false) {

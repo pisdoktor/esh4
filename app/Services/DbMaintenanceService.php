@@ -25,17 +25,25 @@ class DbMaintenanceService {
     private const BACKUP_GROUPS = [
         'hasta' => ['label' => 'Hasta ve klinik verileri'],
         'izlem' => ['label' => 'İzlem ve e-rapor'],
+        'randevu' => ['label' => 'Randevu ve portal talepleri'],
         'referans' => ['label' => 'Kurum ve katalog tabloları'],
+        'stok' => ['label' => 'Stok ve malzeme'],
+        'mesaj' => ['label' => 'Dahili mesajlaşma'],
         'sms' => ['label' => 'SMS kayıtları'],
+        'entegrasyon' => ['label' => 'ESYS, USBS, SKRS ve köprü logları'],
     ];
 
     /** @var array<string, string> */
     private const TABLE_GROUP_LABELS = [
         'hasta' => 'Hasta',
         'izlem' => 'İzlem',
+        'randevu' => 'Randevu',
+        'referans' => 'Referans',
+        'stok' => 'Stok',
+        'mesaj' => 'Mesajlaşma',
         'sms' => 'SMS',
         'rehber' => 'İlaç rehberi',
-        'referans' => 'Referans',
+        'entegrasyon' => 'Entegrasyon',
         'cache' => 'Önbellek',
         'sistem' => 'Sistem',
         'diger' => 'Diğer',
@@ -155,11 +163,23 @@ class DbMaintenanceService {
         if (str_starts_with($table, 'esh_izlem') || str_starts_with($table, 'esh_pizlem') || $table === 'esh_erapor') {
             return 'izlem';
         }
+        if (in_array($table, ['esh_kons_randevu', 'esh_goruntulu_randevu', 'esh_portal_appointment_requests'], true)) {
+            return 'randevu';
+        }
+        if (str_starts_with($table, 'esh_stok_')) {
+            return 'stok';
+        }
+        if (str_starts_with($table, 'esh_mesaj')) {
+            return 'mesaj';
+        }
         if (str_starts_with($table, 'esh_sms_')) {
             return 'sms';
         }
         if (str_starts_with($table, 'esh_rehber_')) {
             return 'rehber';
+        }
+        if ($this->isEntegrasyonTable($table)) {
+            return 'entegrasyon';
         }
         $referansPrefixes = ['esh_kurum', 'esh_adres', 'esh_mahalle', 'esh_brans', 'esh_hastalik', 'esh_guvence', 'esh_islem', 'esh_istek', 'esh_arac', 'esh_unvan', 'esh_ekip', 'esh_personel', 'esh_resmi'];
         foreach ($referansPrefixes as $prefix) {
@@ -170,15 +190,71 @@ class DbMaintenanceService {
         if (in_array($table, ['esh_kurumlar', 'esh_adrestablosu', 'esh_branslar', 'esh_guvence', 'esh_islemler', 'esh_istekler', 'esh_hastaliklar', 'esh_hastalikcat', 'esh_araclar', 'esh_unvanlar'], true)) {
             return 'referans';
         }
-        $sistemTables = ['esh_users', 'esh_roles', 'esh_permissions', 'esh_role_permissions', 'esh_user_roles', 'esh_api_tokens', 'esh_audit_log', 'esh_eimza_challenges', 'esh_eimza_login_logs', 'esh_esys_sync_log'];
+        $sistemTables = ['esh_users', 'esh_roles', 'esh_permissions', 'esh_role_permissions', 'esh_user_roles', 'esh_api_tokens', 'esh_audit_log', 'esh_eimza_challenges', 'esh_eimza_login_logs'];
         if (in_array($table, $sistemTables, true) || str_starts_with($table, 'esh_eimza_')) {
             return 'sistem';
         }
         return 'diger';
     }
 
+    private function isEntegrasyonTable(string $table): bool {
+        if (str_starts_with($table, 'esh_skrs_') || str_starts_with($table, 'esh_federation_')) {
+            return true;
+        }
+        return in_array($table, ['esh_esys_sync_log', 'esh_usbs_sync_log', 'esh_cds_ack'], true);
+    }
+
     public function getTableGroupLabel(string $groupKey): string {
         return self::TABLE_GROUP_LABELS[$groupKey] ?? self::TABLE_GROUP_LABELS['diger'];
+    }
+
+    /**
+     * @param list<array{t:string,mb:string|float,est_rows:int,group:string,group_label:string}> $tables
+     * @return list<array{key:string,label:string,count:int,mb:float,rows:int}>
+     */
+    public function getTableGroupSummary(array $tables): array {
+        $buckets = [];
+        foreach (self::TABLE_GROUP_LABELS as $key => $label) {
+            $buckets[$key] = ['key' => $key, 'label' => $label, 'count' => 0, 'mb' => 0.0, 'rows' => 0];
+        }
+        foreach ($tables as $row) {
+            $key = (string) ($row['group'] ?? 'diger');
+            if (!isset($buckets[$key])) {
+                $key = 'diger';
+            }
+            $buckets[$key]['count']++;
+            $buckets[$key]['mb'] += (float) ($row['mb'] ?? 0);
+            $buckets[$key]['rows'] += (int) ($row['est_rows'] ?? 0);
+        }
+        $out = [];
+        foreach ($buckets as $bucket) {
+            if ($bucket['count'] === 0) {
+                continue;
+            }
+            $bucket['mb'] = round($bucket['mb'], 2);
+            $out[] = $bucket;
+        }
+        return $out;
+    }
+
+    /**
+     * @param list<string> $presentLabels
+     * @return list<string>
+     */
+    public function orderedGroupLabels(array $presentLabels): array {
+        $present = array_flip($presentLabels);
+        $out = [];
+        foreach (self::TABLE_GROUP_LABELS as $label) {
+            if (isset($present[$label])) {
+                $out[] = $label;
+            }
+        }
+        foreach ($presentLabels as $label) {
+            if (!in_array($label, $out, true)) {
+                $out[] = $label;
+            }
+        }
+        return $out;
     }
 
     /**

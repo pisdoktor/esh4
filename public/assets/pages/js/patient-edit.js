@@ -93,7 +93,7 @@ window.eshInitHastalikAjaxTomSelectElement = function (el, options) {
                 params.set('kurum_id', kurumId);
             }
             if (ensureIds.length) {
-                params.set('ensure_ids', ensureIds.join(','));
+                params.set('ensure_icds', ensureIds.join(','));
             }
             var url = searchUrl;
             var sep = url.indexOf('?') >= 0 ? '&' : '?';
@@ -270,7 +270,7 @@ function patientEditBindDotDecimalInputs($root) {
 $(document).ready(function () {
     patientEditBindDotDecimalInputs($('#patientForm'));
     const cfg = document.getElementById('patient-edit-config');
-    const cfgPatientId = cfg ? Number(cfg.getAttribute('data-patient-id') || 0) : 0;
+    const cfgPatientId = cfg ? String(cfg.getAttribute('data-patient-id') || '').trim() : '';
     const cfgMainIlce = cfg ? String(cfg.getAttribute('data-main-ilce-options') || '') : '';
     const yupasGuvenceIds = (function () {
         const raw = cfg ? String(cfg.getAttribute('data-yupas-guvence-ids') || '') : '';
@@ -839,7 +839,7 @@ $(document).ready(function () {
     let tcCheckTimer = null;
     let lastTcChecked = '';
     let lastWarnedTc = '';
-    const editPatientId = Number((window.ESH_PAGE && window.ESH_PAGE.editPatientId) || cfgPatientId || 0);
+    const editPatientId = String((window.ESH_PAGE && window.ESH_PAGE.editPatientId) || cfgPatientId || '').trim();
     const $tcInput = $('#tckimlik');
     const $tcResult = $('#sonuc');
 
@@ -965,7 +965,7 @@ $(document).ready(function () {
                 return 'Nakil işlemleri yalnızca aktif hasta dosyaları için yapılabilir.';
             }
             if ($form.find('input[name="nakil_hedef"]:checked').length === 0) {
-                return 'Başka kuruma nakil için il dışı veya hedef kurum seçin.';
+                return 'Başka kuruma nakil için hedef bölge veya hedef kurum seçin.';
             }
         }
         return null;
@@ -1097,7 +1097,7 @@ $(document).ready(function () {
             }
             if ($form.find('input[name="nakil_hedef"]:checked').length === 0) {
                 e.preventDefault();
-                alert('Başka kuruma nakil için il dışı veya hedef kurum seçin.');
+                alert('Başka kuruma nakil için hedef bölge veya hedef kurum seçin.');
                 return false;
             }
         }

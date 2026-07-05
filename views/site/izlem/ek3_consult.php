@@ -6,8 +6,9 @@
 /** @var int[] $selBrans */
 /** @var array<int, int[]> $selBransIstek */
 use App\Helpers\AuthHelper;
-$pid = (int) ($patient->id ?? 0);
-$vid = (int) ($visit->id ?? 0);
+use App\Helpers\CinsiyetHelper;
+$pid = (string) ($patient->id ?? '');
+$vid = \App\Helpers\IdHelper::normalizeRequestId($visit->id ?? null) ?? '';
 $tcRaw = (string) ($patient->tckimlik ?? '');
 $tc = $tcRaw;
 $tcQ = isset($tcQ) ? (string) $tcQ : rawurlencode($tcRaw);
@@ -15,14 +16,14 @@ $isAdmin = AuthHelper::sessionIsAdmin();
 $isSuperAdmin = \App\Helpers\AuthHelper::sessionIsSuperAdmin();
 $selBrans = $selBrans ?? [];
 $selBransIstek = $selBransIstek ?? [];
-$patientIdForHeader = (int) ($patientIdForHeader ?? $pid);
+$patientIdForHeader = (string) ($patientIdForHeader ?? $pid);
 $patientLabel = trim((string) ($patientLabel ?? ''));
 if ($patientLabel === '') {
     $patientLabel = trim((string) ($patient->isim ?? '') . ' ' . (string) ($patient->soyisim ?? ''));
 }
-$histErkek = isset($histErkek) ? (bool) $histErkek : (($patient->cinsiyet ?? '') === 'E' || ($patient->cinsiyet ?? '') === '1');
+$histErkek = isset($histErkek) ? (bool) $histErkek : CinsiyetHelper::isErkek($patient->cinsiyet ?? null);
 $histAktif = isset($histAktif) ? (bool) $histAktif : \App\Models\Patient::isAktif($patient->pasif ?? null);
-$histNameColor = $histErkek ? '#0d6efd' : '#dc3545';
+$histNameColor = CinsiyetHelper::nameColor($patient->cinsiyet ?? null);
 $izlemTarihiTr = \App\Helpers\DateHelper::toTrOrEmpty((string) ($visit->izlemtarihi ?? ''));
 $ek3ConsultWrapper = $ek3ConsultWrapper ?? 'div';
 $ek3ConsultWrapperClass = $ek3ConsultWrapperClass ?? 'container-fluid py-4 px-3 px-lg-4 izlem-form-page izlem-ek3-consult-page';

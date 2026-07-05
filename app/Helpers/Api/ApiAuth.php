@@ -68,12 +68,12 @@ final class ApiAuth
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-        $_SESSION['user_id'] = (int) $user->id;
+        $_SESSION['user_id'] = (string) $user->id;
         $_SESSION['name'] = (string) ($user->name ?? '');
         $_SESSION['username'] = (string) ($user->username ?? '');
         $adminLevel = AuthHelper::clampLevel((int) ($user->isadmin ?? 0));
         AuthHelper::syncSessionFromLevel($adminLevel);
-        PermissionService::syncSessionPermissions((int) $user->id, $adminLevel);
+        PermissionService::syncSessionPermissions((string) $user->id, $adminLevel);
         TenantContext::syncSessionFromUser(
             isset($user->kurum_id) ? (int) $user->kurum_id : null,
             $adminLevel,

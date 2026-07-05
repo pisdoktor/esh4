@@ -424,7 +424,7 @@ final class StatsReportPdfExports {
         $raw = $m->getAgeGroups() ?: [];
         $rows = [];
         foreach ($raw as $r) {
-            $cinsiyet = ($r->cinsiyet ?? '') === '1' || ($r->cinsiyet ?? '') === 'K' ? 'Kadın' : 'Erkek';
+            $cinsiyet = CinsiyetHelper::label($r->cinsiyet ?? null);
             $line = [$cinsiyet];
             foreach ((array) $r as $k => $v) {
                 if ($k === 'cinsiyet') {

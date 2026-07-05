@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Helpers\AuthHelper;
 use App\Helpers\CsrfHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\ThemeViewHelper;
 use App\Models\ApiToken;
 use App\Services\Api\ApiTokenService;
@@ -39,7 +40,13 @@ class ApiTokenController
             exit;
         }
 
-        $userId = (int) ($_POST['user_id'] ?? 0);
+        $userId = IdHelper::normalizeRequestId($_POST['user_id'] ?? null);
+        if ($userId === null) {
+            $_SESSION['error'] = 'Geçersiz kullanıcı.';
+            header('Location: ' . esh_url('ApiToken', 'index'));
+            exit;
+        }
+
         $label = trim((string) ($_POST['label'] ?? ''));
         $scopes = trim((string) ($_POST['scopes'] ?? 'read'));
         $expires = trim((string) ($_POST['expires_at'] ?? ''));

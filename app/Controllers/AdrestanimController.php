@@ -4,9 +4,12 @@ namespace App\Controllers;
 use App\Helpers\AuthHelper;
 use App\Helpers\FederationAdresBolgeSync;
 use App\Helpers\KurumAdresScope;
+use App\Helpers\MapRoutingAjaxHelper;
+use App\Helpers\MapRoutingGeocodeHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\ThemeViewHelper;
 use App\Models\Address;
+use App\Services\MapRouting\MapRoutingProviderFactory;
 
 /**
  * Admin: #__adrestablosu — hiyerarşik bölge → ilçe → mahalle → sokak → kapı.
@@ -20,7 +23,7 @@ class AdrestanimController {
             return;
         }
         $action = (string) ($GLOBALS['actionName'] ?? '');
-        if ($action !== 'index' && str_starts_with($action, 'ajax')) {
+        if ($action !== 'index' && (str_starts_with($action, 'ajax') || str_ends_with($action, 'Ajax'))) {
             AuthHelper::requireAdminJson();
         }
         AuthHelper::requireAdmin();
@@ -46,9 +49,25 @@ class AdrestanimController {
 
     public function index() {
         $pageTitle = 'Hiyerarşik Adres Yönetimi';
+        $eshAdrestanimCanViewBolge = AuthHelper::sessionIsSuperAdmin();
         $eshAdrestanimCanManageIlce = AuthHelper::sessionIsSuperAdmin();
         $eshAdrestanimCanManageBolge = AuthHelper::sessionIsSuperAdmin();
         $eshAdrestanimPreselectBolgeId = '';
+        $activeMapCode = MapRoutingProviderFactory::activeCode();
+        $eshAdrestanimMapProviderLabel = MapRoutingProviderFactory::LABELS[$activeMapCode] ?? 'Harita';
+        $eshAdrestanimMapConfigured = MapRoutingGeocodeHelper::isActiveProviderConfigured();
+        $centerLon = defined('START_LNG') ? (float) START_LNG : 29.079663;
+        $centerLat = defined('START_LAT') ? (float) START_LAT : 37.783291;
+        $eshAdrestanimInlineMap = AuthHelper::sessionIsSuperAdmin() && !empty($eshAdrestanimMapConfigured);
+        $GLOBALS['eshAdrestanimMapConfig'] = [
+            'center' => [$centerLon, $centerLat],
+            'mapConfigUrl' => $eshAdrestanimInlineMap ? esh_url('Adrestanim', 'ajaxMapConfig') : '',
+            'providerConfigured' => $eshAdrestanimInlineMap,
+            'providerLabel' => $eshAdrestanimMapProviderLabel,
+            'manuelKoordinatUrl' => \App\Helpers\AppSettings::isModuleEnabled('manuel_koordinat')
+                ? esh_url('ManuelKoordinat', 'index')
+                : '',
+        ];
         $fedFilter = TenantContext::effectiveBolgeFilterId();
         if ($fedFilter !== null && $fedFilter > 0 && FederationAdresBolgeSync::columnReady()) {
             $linked = FederationAdresBolgeSync::findAdresBolgeIdByFederationId($fedFilter);
@@ -61,12 +80,27 @@ class AdrestanimController {
         include ThemeViewHelper::resolvePartial('footer');
     }
 
+    public function ajaxMapConfig(): void {
+        if (!AuthHelper::sessionIsSuperAdmin()) {
+            http_response_code(403);
+            $this->jsonOut(['ok' => false, 'error' => 'forbidden']);
+        }
+        $payload = MapRoutingAjaxHelper::mapConfigPayload();
+        if (empty($payload['ok'])) {
+            http_response_code(503);
+        }
+        $this->jsonOut($payload);
+    }
+
     /**
      * AJAX: üst kayda göre çocuk listesi [{id, adi}, ...]
      */
     public function ajaxList() {
         $tip = $this->validTip(isset($_GET['tip']) ? (string) $_GET['tip'] : 'bolge');
         $ustRaw = isset($_GET['ust_id']) ? (string) $_GET['ust_id'] : '0';
+        if ($tip === 'bolge' && !AuthHelper::sessionIsSuperAdmin()) {
+            $this->jsonOut([]);
+        }
         $ustId = $tip === 'bolge' ? '0' : trim($ustRaw);
 
         $model = new Address();
@@ -248,7 +282,7 @@ class AdrestanimController {
     }
 
     /**
-     * AJAX: kapı no için TomTom geocode; sonucu #__adrestablosu.coords yazar.
+     * AJAX: kapı no için geocode; sonucu #__adrestablosu.coords yazar.
      * POST: id (kapino kayıt id)
      */
     public function ajaxGeocodeKapino() {
@@ -282,7 +316,7 @@ class AdrestanimController {
     }
 
     /**
-     * AJAX: sokak altı kapılar — TomTom ile karşılaştır, eksik/değişmiş coords güncelle (parti).
+     * AJAX: sokak altı kapılar — geocode ile karşılaştır, eksik/değişmiş coords güncelle (parti).
      * POST: sokak_id, limit, after_id (isteğe bağlı)
      */
     public function ajaxGeocodeKapinoBulk() {

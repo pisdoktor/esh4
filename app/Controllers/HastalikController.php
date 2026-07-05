@@ -10,7 +10,7 @@ use App\Models\HastalikCat;
 use App\Models\KurumHastalik;
 
 /**
- * Hastalık kataloğu (süper yönetici) ve kurum tanı seçimi.
+ * Hastalık kataloğu (platform sahibi) ve kurum tanı seçimi.
  */
 class HastalikController {
 
@@ -23,8 +23,10 @@ class HastalikController {
     }
 
     private function requireCatalogAdmin(): void {
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            $_SESSION['error'] = 'Platform kataloğunu yalnızca süper yönetici düzenleyebilir.';
+        if (!AuthHelper::sessionIsPlatformOwner()) {
+            $_SESSION['error'] = 'Platform kataloğunu yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' düzenleyebilir.';
             header('Location: ' . esh_url('Hastalik', 'index'));
             exit;
         }
@@ -108,7 +110,7 @@ class HastalikController {
         $eshSortCfg = ['mode' => 'orderby', 'pagelink' => $pagelink];
         $isCatalogPickerMode = CatalogStoreHelper::isCatalogPickerMode();
         $saveSelectionUrl = $isCatalogPickerMode ? esh_url('Hastalik', 'saveSelection') : '';
-        $isCatalogAdmin = AuthHelper::sessionIsSuperAdmin();
+        $isCatalogAdmin = AuthHelper::sessionIsPlatformOwner();
         $pickerAssignedItems = [];
         if ($isCatalogPickerMode) {
             try {
@@ -389,15 +391,18 @@ class HastalikController {
             echo json_encode([], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        $ensureRaw = isset($_GET['ensure_ids']) ? trim((string) $_GET['ensure_ids']) : '';
-        $ensureIds = $ensureRaw === '' ? [] : array_values(array_filter(array_map('intval', explode(',', $ensureRaw))));
-        if ($q === '' && $ensureIds === [] && !\App\Models\KurumHastalik::tableExists()) {
+        $ensureIcdsRaw = isset($_GET['ensure_icds']) ? trim((string) $_GET['ensure_icds']) : '';
+        if ($ensureIcdsRaw === '' && isset($_GET['ensure_ids'])) {
+            $ensureIcdsRaw = trim((string) $_GET['ensure_ids']);
+        }
+        $ensureIcds = $ensureIcdsRaw === '' ? [] : array_values(array_filter(array_map('trim', explode(',', $ensureIcdsRaw)), static fn ($v) => $v !== ''));
+        if ($q === '' && $ensureIcds === [] && !\App\Models\KurumHastalik::tableExists()) {
             echo json_encode([], JSON_UNESCAPED_UNICODE);
             exit;
         }
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 80;
         $limit = max(10, min(200, $limit));
-        $rows = (new Hastalik())->searchAssignedForKurum($kurumId, $q, $limit, $ensureIds);
+        $rows = (new Hastalik())->searchAssignedForKurum($kurumId, $q, $limit, $ensureIcds);
         echo json_encode(Hastalik::mapRowsToTomSelectOptions($rows), JSON_UNESCAPED_UNICODE);
         exit;
     }

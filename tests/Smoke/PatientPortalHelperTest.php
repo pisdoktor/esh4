@@ -34,8 +34,9 @@ final class PatientPortalHelperTest extends TestCase
         PatientPortalHelper::clearSession();
         self::assertFalse(PatientPortalHelper::hasValidSession());
 
+        $patientId = 'aaaaaaaa-aaaa-4aaa-8aaa-000000000099';
         $patient = (object) [
-            'id' => 99,
+            'id' => $patientId,
             'tckimlik' => '12345678901',
             'kurum_id' => 1,
         ];
@@ -43,7 +44,7 @@ final class PatientPortalHelperTest extends TestCase
         self::assertTrue(PatientPortalHelper::hasValidSession());
         $claims = PatientPortalHelper::sessionClaims();
         self::assertIsArray($claims);
-        self::assertSame(99, $claims['patient_id']);
+        self::assertSame($patientId, $claims['patient_id']);
         self::assertSame('hasta', $claims['role']);
 
         PatientPortalHelper::clearSession();

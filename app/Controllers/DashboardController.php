@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Models\PlannedVisit;
 use App\Models\KonsRandevu;
 use App\Models\Visit;
@@ -244,7 +245,7 @@ class DashboardController {
         $isToday = ($currentDate == date('Y-m-d')) ? 'bg-primary-subtle border border-primary' : '';
 
         // Hücre Başlangıcı
-        $html .= "<td class='calendar-day p-1 $isToday' onclick='getDailyTasks(\"$currentDate\")' 
+        $html .= "<td class='calendar-day p-1 $isToday' data-esh-call='getDailyTasks' data-esh-call-arg='$currentDate'
                     style='cursor:pointer; height:100px; vertical-align:top; transition: 0.2s;'>";
         
         // Gün Numarası (Sağ Üstte)
@@ -321,7 +322,7 @@ class DashboardController {
         if ($href !== null && $href !== '') {
             $hrefEsc = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
 
-            return '<a href="' . $hrefEsc . '" class="' . $classes . '" onclick="event.stopPropagation();">'
+            return '<a href="' . $hrefEsc . '" class="' . $classes . ' esh-cal-task-link">'
                 . $inner
                 . '</a>';
         }
@@ -378,8 +379,8 @@ class DashboardController {
                     'soyisim' => $p['soyisim'],
                     'olumTarihi' => $result['olumTarihi'] ?? null,
                     'mesaj' => $result['mesaj'] ?? '',
-                    'view_url' => $p['hastaid'] > 0
-                        ? esh_url('Patient', 'view', ['id' => $p['hastaid']])
+                    'view_url' => !IdHelper::isEmptyEntityId($p['hastaid'] ?? null)
+                        ? esh_url('Patient', 'view', ['id' => (string) $p['hastaid']])
                         : '',
                 ];
             }
@@ -414,16 +415,14 @@ class DashboardController {
             foreach ($rows as $p) {
                 $key = BadgeHelper::patientPasifKey($p);
                 $suggestions[] = [
-                    'id' => (int) ($p->id ?? 0),
+                    'id' => (string) ($p->id ?? ''),
                     'tckimlik' => (string) ($p->tckimlik ?? ''),
                     'isim' => (string) ($p->isim ?? ''),
                     'soyisim' => (string) ($p->soyisim ?? ''),
                     'adres' => Patient::formatIlceMahalle($p),
                     'status_key' => $key,
                     'status_text' => $this->statusTextFromKey($key),
-                    'view_url' => esh_url('Patient', 'view', array (
-  'id' => '',
-)) . (int) ($p->id ?? 0),
+                    'view_url' => esh_url('Patient', 'view', ['id' => (string) ($p->id ?? '')]),
                 ];
             }
         }
@@ -434,16 +433,14 @@ class DashboardController {
             if ($one) {
                 $key = BadgeHelper::patientPasifKey($one);
                 $exact = [
-                    'id' => (int) ($one->id ?? 0),
+                    'id' => (string) ($one->id ?? ''),
                     'tckimlik' => (string) ($one->tckimlik ?? ''),
                     'isim' => (string) ($one->isim ?? ''),
                     'soyisim' => (string) ($one->soyisim ?? ''),
                     'adres' => Patient::formatIlceMahalle($one),
                     'status_key' => $key,
                     'status_text' => $this->statusTextFromKey($key),
-                    'view_url' => esh_url('Patient', 'view', array (
-  'id' => '',
-)) . (int) ($one->id ?? 0),
+                    'view_url' => esh_url('Patient', 'view', ['id' => (string) ($one->id ?? '')]),
                 ];
             }
         }
@@ -514,13 +511,13 @@ class DashboardController {
     public function geocodeAjax(): void
     {
         header('Content-Type: application/json; charset=utf-8');
-        if ((int) ($_SESSION['user_id'] ?? 0) <= 0) {
+        if (AuthHelper::sessionUserId() === null) {
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'forbidden'], JSON_UNESCAPED_UNICODE);
             exit;
         }
 
-        $rateKey = 'u' . (int) $_SESSION['user_id'];
+        $rateKey = 'u' . (AuthHelper::sessionUserId() ?? '');
         if (\App\Helpers\RateLimitHelper::tooManyAttempts(
             'tomtom_geocode',
             $rateKey,

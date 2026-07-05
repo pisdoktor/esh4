@@ -1,6 +1,6 @@
 <div class="esh-page esh-page--form esh-page-izlem container-fluid py-4">
 <?php
-$vid = (int) ($visit->id ?? 0);
+$vid = (string) ($visit->id ?? '');
 $izt = !empty($visit->izlemtarihi) ? date('Y-m-d', strtotime((string) $visit->izlemtarihi)) : date('Y-m-d');
 $zm = \App\Helpers\ZamanDilimiHelper::normalize($visit->zaman ?? null);
 if ($zm < 0 || $zm > 2) {

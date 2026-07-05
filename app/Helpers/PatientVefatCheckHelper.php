@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 use App\Models\Patient;
 
 /**
@@ -140,7 +142,7 @@ final class PatientVefatCheckHelper
         $mesaj = 'Aktif hasta muhtemel vefat olarak işaretlendi.';
         $notePrefix = $source === 'kps' ? 'KPS' : 'Belediye mezarlık';
 
-        if (!$model->load((int) ($row->id ?? 0))) {
+        if (!$model->load((string) ($row->id ?? ''))) {
             return [
                 'oldu' => 0,
                 'olumTarihi' => null,

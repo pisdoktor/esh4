@@ -1,6 +1,8 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 use App\Helpers\ThemeViewHelper;
 use App\Helpers\TenantStoreHelper;
 use App\Helpers\ValidationHelper;
@@ -216,7 +218,7 @@ class UhdsController
             exit;
         }
 
-        $uid = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+        $uid = AuthHelper::sessionUserId();
         $rec = new Uhds();
         $rec->bind([
             'randevu_tarihi' => $ymd,
@@ -226,7 +228,7 @@ class UhdsController
             'hastatckimlik' => $tc,
             'notlar' => $notlar !== '' ? $notlar : null,
             'hasta_geldi' => $hastaGeldi,
-            'olusturan_id' => $uid > 0 ? $uid : null,
+            'olusturan_id' => IdHelper::isEmptyEntityId((string) $uid) ? null : (string) $uid,
         ], true);
         TenantStoreHelper::applyKurumIdToModel($rec);
 
@@ -246,7 +248,7 @@ class UhdsController
             header('Location: ' . esh_url('Uhds', 'index'));
             exit;
         }
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $y = (int) ($_POST['y'] ?? 0);
         $m = (int) ($_POST['m'] ?? 0);
         $date = trim((string) ($_POST['date'] ?? ''));
@@ -254,7 +256,7 @@ class UhdsController
         if (!ValidationHelper::isTcLength11($retc)) {
             $retc = '';
         }
-        if ($id <= 0) {
+        if ($id === null) {
             header('Location: ' . $this->indexUrl($y, $m, $date, $retc));
             exit;
         }
@@ -275,7 +277,7 @@ class UhdsController
             exit;
         }
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $y = (int) ($_POST['y'] ?? 0);
         $m = (int) ($_POST['m'] ?? 0);
         $date = trim((string) ($_POST['date'] ?? ''));
@@ -284,7 +286,7 @@ class UhdsController
             $retc = '';
         }
 
-        if ($id <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        if ($id === null || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . $this->indexUrl($y, $m, $date, $retc));
             exit;
@@ -341,8 +343,8 @@ class UhdsController
             exit;
         }
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz randevu.';
             header('Location: ' . esh_url('Uhds', 'index'));
             exit;
@@ -367,7 +369,7 @@ class UhdsController
         $visitCreateUrl = UhdsTelehealthHelper::visitCreateUrl($appointment);
         $autoPromptVisit = OperationalSettings::uhdsTelehealthAutoPromptVisit();
         $inviteMessage = UhdsTelehealthHelper::patientInviteMessage($patientJoinUrl, $hastaLabel);
-        $patientId = $patient ? (int) ($patient->id ?? 0) : 0;
+        $patientId = $patient ? (string) ($patient->id ?? '') : '';
         $patientPhone = '';
         if ($patient !== null) {
             $patientPhone = trim((string) ($patient->ceptel1 ?? ''));
@@ -383,9 +385,9 @@ class UhdsController
         $nativeSmsShareUrl = $smsPhoneNormalized !== null && $inviteMessage !== ''
             ? 'sms:+' . $smsPhoneNormalized . '?body=' . rawurlencode($inviteMessage)
             : '';
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userId = AuthHelper::sessionUserId();
         $canUseSmsModule = \App\Services\Sms\SmsService::canUseSms($userId);
-        $smsComposeUrl = ($canUseSmsModule && $patientId > 0 && $inviteMessage !== '')
+        $smsComposeUrl = ($canUseSmsModule && $patientId !== '' && $inviteMessage !== '')
             ? esh_url('Sms', 'compose', ['hasta_id' => $patientId, 'govde' => $inviteMessage])
             : '';
 
@@ -435,7 +437,7 @@ class UhdsController
             exit;
         }
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $appointment = $this->loadAppointmentForStaff($id, false);
         if ($appointment === null) {
             http_response_code(404);
@@ -467,7 +469,7 @@ class UhdsController
             exit;
         }
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $appointment = $this->loadAppointmentForStaff($id, false);
         if ($appointment === null) {
             http_response_code(404);
@@ -510,7 +512,7 @@ class UhdsController
             exit;
         }
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $summary = trim((string) ($_POST['telehealth_summary'] ?? $_POST['summary'] ?? ''));
         $durationSeconds = max(0, (int) ($_POST['duration_seconds'] ?? 0));
         $participantCount = max(0, (int) ($_POST['participant_count'] ?? 0));
@@ -624,7 +626,11 @@ class UhdsController
             return;
         }
 
-        $id = (int) $claims['id'];
+        $id = IdHelper::normalizeRequestId($claims['id'] ?? null);
+        if ($id === null) {
+            $this->renderPatientVideoError('Bağlantı geçersiz veya süresi dolmuş. Lütfen kurumunuzdan yeni davet isteyin.');
+            return;
+        }
         $kr = new Uhds();
         if (!$kr->load($id)) {
             $this->renderPatientVideoError('Randevu bulunamadı.');
@@ -675,7 +681,12 @@ class UhdsController
             exit;
         }
 
-        $id = (int) $claims['id'];
+        $id = IdHelper::normalizeRequestId($claims['id'] ?? null);
+        if ($id === null) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'Geçersiz jeton'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         $kr = new Uhds();
         if (!$kr->load($id)) {
             http_response_code(404);
@@ -693,9 +704,10 @@ class UhdsController
         exit;
     }
 
-    private function loadAppointmentForStaff(int $id, bool $redirectOnError = true): ?object
+    private function loadAppointmentForStaff(int|string|null $id, bool $redirectOnError = true): ?object
     {
-        if ($id <= 0) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
             if ($redirectOnError) {
                 $_SESSION['error'] = 'Geçersiz randevu.';
             }
@@ -704,7 +716,7 @@ class UhdsController
         }
 
         $kr = new Uhds();
-        if (!$kr->load($id)) {
+        if (!$kr->load($rid)) {
             if ($redirectOnError) {
                 $_SESSION['error'] = 'Randevu bulunamadı.';
             }
@@ -722,7 +734,7 @@ class UhdsController
 
             return null;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient);
+        PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient);
 
         return $kr;
     }
@@ -769,7 +781,7 @@ class UhdsController
         }
         $valid = [];
         foreach ((new Istek())->getList() as $row) {
-            $id = (int) ($row->id ?? 0);
+            $id = (string) ($row->id ?? '');
             if ($id > 0 && in_array($id, $ids, true)) {
                 $valid[] = $id;
             }

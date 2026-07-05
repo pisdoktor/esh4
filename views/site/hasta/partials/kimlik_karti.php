@@ -13,10 +13,11 @@
  * @var array<int, array{bitis_tr?: string, raporyeri?: int, status?: string}> $hastalikRaporMeta
  */
 use App\Helpers\AuthHelper;
+use App\Helpers\AppSettings;
 use App\Helpers\BarthelScaleHelper;
 use App\Helpers\HastaIlacRaporStatusHelper;
 use App\Helpers\PatientClinicalFlagsHelper;
-$isMale = (($hasta->cinsiyet ?? '') === '1' || ($hasta->cinsiyet ?? '') === 'E');
+$isMale = \App\Helpers\CinsiyetHelper::isErkek($hasta->cinsiyet ?? null);
 $canManageProfilePhoto = AuthHelper::sessionIsAdmin();
 $kimlikCardBg = $isMale
     ? 'linear-gradient(135deg, #dcefff 0%, #b8dbff 48%, #8cc2ff 100%)'
@@ -45,15 +46,15 @@ if (!empty($mahallePlanMeta)) {
                 <?php endif; ?>
                 <?php if ($canManageProfilePhoto): ?>
                     <form action="<?= htmlspecialchars(esh_url('Patient', 'uploadPatientPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" enctype="multipart/form-data" class="mt-2" data-esh-required-legend="off" data-esh-required-markers="off">
-                        <input type="hidden" name="id" value="<?= (int) $hasta->id ?>">
+                        <input type="hidden" name="id" value="<?= (string) $hasta->id ?>">
                         <input type="file" name="profil_foto" class="form-control form-control-sm mb-1" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
                         <div class="d-flex gap-1">
                             <button type="submit" class="btn btn-outline-primary btn-sm flex-fill"><i class="fa-solid fa-camera me-1"></i> Güncelle</button>
                         </div>
                     </form>
                     <?php if ($patientPhotoUrl !== ''): ?>
-                        <form action="<?= htmlspecialchars(esh_url('Patient', 'deletePatientPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="mt-1" onsubmit="return confirm('Profil fotoğrafını silmek istediğinize emin misiniz?');">
-                            <input type="hidden" name="id" value="<?= (int) $hasta->id ?>">
+                        <form action="<?= htmlspecialchars(esh_url('Patient', 'deletePatientPhoto'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="mt-1" data-esh-confirm="Profil fotoğrafını silmek istediğinize emin misiniz?">
+                            <input type="hidden" name="id" value="<?= (string) $hasta->id ?>">
                             <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-trash me-1"></i> Sil</button>
                         </form>
                     <?php endif; ?>
@@ -257,12 +258,12 @@ if (!empty($mahallePlanMeta)) {
                 <div class="col-md-5 col-lg-4">
                     <div class="vstack gap-3 h-100">
                         <div class="esh-kimlik-field esh-kimlik-coords">
-                            <div class="fw-bold text-muted small mb-1">Koordinatlar</div>
+                            <div class="fw-bold text-muted small mb-1">Kapı koordinatı</div>
                             <div class="text-primary font-monospace small mb-2"><?= htmlspecialchars((string) ($hasta->coords ?: 'Girilmemiş'), ENT_QUOTES, 'UTF-8') ?></div>
                             <?php if (AuthHelper::sessionIsAdmin()): ?>
                                 <div class="d-flex flex-wrap gap-2 esh-kimlik-coords-actions">
                                     <form action="<?= htmlspecialchars(esh_url('Patient', 'resolvePatientCoords'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="d-inline-block mb-0">
-                                        <input type="hidden" name="id" value="<?= (int) $hasta->id ?>">
+                                        <input type="hidden" name="id" value="<?= (string) $hasta->id ?>">
                                         <button type="submit" class="btn btn-sm fw-semibold shadow-sm esh-coords-btn esh-coords-btn--bul" title="Adresten koordinat bul ve kaydet">
                                             <i class="fa-solid fa-map-pin me-1" aria-hidden="true"></i>Bul
                                         </button>
@@ -270,6 +271,11 @@ if (!empty($mahallePlanMeta)) {
                                     <?php if ($hasta->coords): ?>
                                         <a href="https://www.google.com/maps?q=<?= htmlspecialchars((string) $hasta->coords, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm fw-semibold shadow-sm esh-coords-btn esh-coords-btn--git" title="Haritada aç">
                                             <i class="fa-solid fa-diamond-turn-right me-1" aria-hidden="true"></i>Git
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (AppSettings::isModuleEnabled('manuel_koordinat') && trim((string) ($hasta->kapino ?? '')) !== ''): ?>
+                                        <a href="<?= htmlspecialchars(esh_url('ManuelKoordinat', 'index', ['hasta_id' => (string) $hasta->id]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm fw-semibold shadow-sm esh-coords-btn esh-coords-btn--duzelt" title="Haritadan koordinat düzelt">
+                                            <i class="fa-solid fa-map-location-dot me-1" aria-hidden="true"></i>Haritada düzelt
                                         </a>
                                     <?php endif; ?>
                                 </div>
@@ -328,11 +334,11 @@ if (!empty($mahallePlanMeta)) {
                         <?php
                         $hTanParts = [];
                         foreach ($hastalikCardItems as $hi) {
-                            $hid = (int) ($hi->id ?? 0);
+                            $icd = \App\Models\Patient::normalizeHastalikIcd((string) ($hi->icd ?? ''));
                             $lab = htmlspecialchars((string) ($hi->ad ?? ''), ENT_QUOTES, 'UTF-8');
-                            if (!empty($hastalikRaporVar[$hid])) {
+                            if ($icd !== '' && !empty($hastalikRaporVar[$icd])) {
                                 $raporTitle = 'Bu tanı için rapor bilgisi kayıtlı';
-                                $meta = $hastalikRaporMeta[$hid] ?? null;
+                                $meta = $hastalikRaporMeta[$icd] ?? null;
                                 $raporStatus = is_array($meta) ? (string) ($meta['status'] ?? HastaIlacRaporStatusHelper::STATUS_RAPORLU) : HastaIlacRaporStatusHelper::STATUS_RAPORLU;
                                 if (is_array($meta) && !empty($meta['bitis_tr'])) {
                                     $raporTitle .= ' — Bitiş: ' . $meta['bitis_tr'];

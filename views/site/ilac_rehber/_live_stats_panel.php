@@ -38,5 +38,5 @@ $showImportBadge = !empty($inProgressImportLog);
         </p>
     </div>
 </section>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/ilacrehber-progress.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/ilacrehber-progress.js') ?>
 <?php endif; ?>

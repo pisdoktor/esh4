@@ -17,7 +17,7 @@ $eshTargetLevel = isset($user) && isset($user->isadmin)
 $eshUserBolgeId = isset($user) && isset($user->bolge_id) && $user->bolge_id !== null && (int) $user->bolge_id > 0
     ? (int) $user->bolge_id
     : 0;
-$eshBolgeOptions = [FormHelper::makeOption('', 'Tüm bölgeler (platform geneli)')];
+$eshBolgeOptions = [FormHelper::makeOption('', 'Bölge seçiniz…')];
 foreach ((new FederationRegion())->getList(true) as $bolgeRow) {
     $bid = (int) ($bolgeRow->id ?? 0);
     if ($bid <= 0) {
@@ -38,10 +38,11 @@ foreach ((new FederationRegion())->getList(true) as $bolgeRow) {
         'class' => 'form-select',
         'col' => '',
         'tomSelect' => false,
+        'required' => true,
     ]) ?>
-    <div class="form-text">Süper yönetici yalnızca seçilen bölgedeki kurumların verisini görür ve yönetir. Boş = tüm bölgeler.</div>
+    <div class="form-text"><?= htmlspecialchars(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), ENT_QUOTES, 'UTF-8') ?> yalnızca seçilen bölgedeki kurumların verisini görür ve yönetir. Bölge seçimi zorunludur.</div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var levelSelect = document.getElementById('eshIsadminLevelSelect');
     var bolgeWrap = document.getElementById('eshUserBolgeScopeWrap');
@@ -54,6 +55,7 @@ foreach ((new FederationRegion())->getList(true) as $bolgeRow) {
         var isSuperOnly = String(levelSelect.value) === superLevel;
         bolgeWrap.style.display = isSuperOnly ? '' : 'none';
         bolgeSelect.disabled = !isSuperOnly;
+        bolgeSelect.required = isSuperOnly;
         if (!isSuperOnly) {
             bolgeSelect.value = '';
         }

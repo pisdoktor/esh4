@@ -5,6 +5,7 @@ namespace App\Install;
 
 use App\Core\Database;
 use App\Core\DbSqlHelper;
+use App\Helpers\IdHelper;
 
 require_once __DIR__ . '/../Core/DbSqlHelper.php';
 
@@ -15,7 +16,7 @@ final class Installer
 {
     public const SUPERADMIN_USER = 'admin';
     public const SUPERADMIN_PASS = 'Admin123';
-    public const SUPERADMIN_NAME = 'Süper Yönetici';
+    public const SUPERADMIN_NAME = 'Bölge Yöneticisi';
     public const SUPERADMIN_UNVAN = 'doktor';
     public const SUPERADMIN_EMAIL = 'esh@esh.local';
     public const PLATFORM_OWNER_ISADMIN = 3;
@@ -680,7 +681,7 @@ final class Installer
 
         $adminTc = self::SUPERADMIN_TC;
         $isadmin = self::PLATFORM_OWNER_ISADMIN;
-        $hasAdminRow = $db->fetchOnePrepared('SELECT 1 AS ok FROM #__users WHERE id = ?', [1]) !== null;
+        $hasAdminRow = $db->fetchOnePrepared('SELECT 1 AS ok FROM #__users WHERE username = ?', [$adminUser]) !== null;
 
         $userData = [
             'username' => $adminUser,
@@ -695,33 +696,11 @@ final class Installer
         ];
 
         if ($hasAdminRow) {
-            $written = $db->updatePrepared('#__users', $userData, 'id = ?', [1]);
+            $written = $db->updatePrepared('#__users', $userData, 'username = ?', [$adminUser]);
         } else {
-            $userData['id'] = 1;
+            $userData['id'] = IdHelper::generateUuidV4();
             $userData['tckimlikno'] = $adminTc;
-            if ($driver === 'sqlsrv') {
-                $tableName = $db->replacePrefix('#__users');
-                $qualified = '[dbo].[' . $tableName . ']';
-                $db->execLogged('SET IDENTITY_INSERT ' . $qualified . ' ON');
-                $written = $db->insertPrepared('#__users', $userData) !== false;
-                $db->execLogged('SET IDENTITY_INSERT ' . $qualified . ' OFF');
-            } elseif ($driver === 'pgsql') {
-                $tableName = $db->replacePrefix('#__users');
-                $built = DbSqlHelper::buildInsertSql($tableName, $userData);
-                if ($built === null) {
-                    $written = false;
-                } else {
-                    $sql = preg_replace(
-                        '/^INSERT INTO/i',
-                        'INSERT INTO',
-                        $built['sql']
-                    ) ?? $built['sql'];
-                    $sql = preg_replace('/\)\s*VALUES/i', ') OVERRIDING SYSTEM VALUE VALUES', $sql) ?? $sql;
-                    $written = $db->executePrepared($sql, $built['params']);
-                }
-            } else {
-                $written = $db->insertPrepared('#__users', $userData) !== false;
-            }
+            $written = $db->insertPrepared('#__users', $userData) !== false;
         }
 
         if (!$written) {
@@ -881,6 +860,7 @@ final class Installer
         $paths = [
             $root . '/storage/backups',
             $root . '/storage/data',
+            $root . '/storage/exports',
             $root . '/logs',
             $root . '/public/uploads',
             $root . '/public/uploads/profile',
@@ -894,6 +874,9 @@ final class Installer
             if (!is_writable($p)) {
                 return 'Dizin yazılabilir değil: ' . $p;
             }
+        }
+        if (!\App\Helpers\StorageHardeningHelper::ensureExportsDirectory($root)) {
+            return 'storage/exports dizini oluşturulamadı veya .htaccess yazılamadı.';
         }
         return '';
     }

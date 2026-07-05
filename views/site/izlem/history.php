@@ -1,6 +1,7 @@
 <div class="esh-page esh-page--list esh-page-izlem container-fluid py-4">
 <?php
 use App\Helpers\FormHelper;
+use App\Helpers\CinsiyetHelper;
 
 $outer = $izlemHistoryOuterClass ?? 'container-fluid py-4';
 $card = $izlemHistoryCardClass ?? 'card border-0 esh-list-table-card';
@@ -9,7 +10,7 @@ $hist_h4_extra = trim((string) ($izlemHistoryH4Class ?? ''));
 $tc = (string) ($tc ?? '');
 $tcQ = rawurlencode($tc);
 $historyFiltersOpen = !empty($historyFiltersOpen);
-$patientIdForHeader = (int) ($patientIdForHeader ?? 0);
+$patientIdForHeader = (string) ($patientIdForHeader ?? '');
 $historyPatient = $historyPatient ?? null;
 $patientLabel = '';
 if ($historyPatient) {
@@ -19,9 +20,9 @@ if ($patientLabel === '' && !empty($visits[0])) {
     $patientLabel = trim((string) ($visits[0]->isim ?? '') . ' ' . (string) ($visits[0]->soyisim ?? ''));
 }
 $histErkek = $historyPatient
-    ? (($historyPatient->cinsiyet ?? '') === 'E' || ($historyPatient->cinsiyet ?? '') === '1')
-    : (!empty($visits[0]) && (($visits[0]->cinsiyet ?? '') === 'E' || ($visits[0]->cinsiyet ?? '') === '1'));
-$histNameColor = $histErkek ? '#0d6efd' : '#dc3545';
+    ? CinsiyetHelper::isErkek($historyPatient->cinsiyet ?? null)
+    : (!empty($visits[0]) && CinsiyetHelper::isErkek($visits[0]->cinsiyet ?? null));
+$histNameColor = CinsiyetHelper::nameColor($historyPatient->cinsiyet ?? ($visits[0]->cinsiyet ?? null));
 $histAktif = $historyPatient ? \App\Models\Patient::isAktif($historyPatient->pasif ?? null) : true;
 $historyPagelinkParams = ['tc' => $tc];
 if ($status !== '') {
@@ -155,7 +156,7 @@ $historyPagelink = esh_url('Visit', 'history', $historyPagelinkParams);
 $ek3OpenVisitId = (int) ($ek3OpenVisitId ?? 0);
 include __DIR__ . '/partials/ek3_open_modal.php';
 ?>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/visit-history.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/visit-history.js') ?>
 <?php if ($articleClass !== ''): ?>
 </article>
 <?php endif; ?>

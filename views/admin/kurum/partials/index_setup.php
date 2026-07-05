@@ -13,5 +13,5 @@ include dirname(__DIR__, 3) . '/partials/admin/list_page_open.php';
 
                     <p class="small text-muted mb-3">
                         Çoklu kurum yapılandırması. Her kurumun kendi hastaları, personeli ve referans verileri vardır.
-                        Süper yönetici tüm kurumları görür; liste filtrelemek için üst menüdeki kurum seçicisini kullanın.
+                        <?= htmlspecialchars(\App\Helpers\AuthHelper::adminLevelLabel(\App\Helpers\AuthHelper::ROLE_SUPERADMIN), ENT_QUOTES, 'UTF-8') ?> tüm kurumları görür; liste filtrelemek için üst menüdeki kurum seçicisini kullanın.
                     </p>

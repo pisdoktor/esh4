@@ -1,1 +1,0 @@
-<?php /** @var array $rows */ /** @var int $total */ /** @var float $ortalama */ ?>

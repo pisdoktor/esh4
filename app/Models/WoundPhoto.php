@@ -6,6 +6,9 @@ namespace App\Models;
  */
 class WoundPhoto extends BaseModel
 {
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
+
     public $id = null;
     public $hasta_id = null;
     public $dosya_adi = null;
@@ -27,8 +30,8 @@ class WoundPhoto extends BaseModel
     public function ensureTable(): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS #__hasta_yara_fotolar (
-            id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            hasta_id INT UNSIGNED NOT NULL,
+            id CHAR(36) NOT NULL,
+            hasta_id CHAR(36) NOT NULL,
             dosya_adi VARCHAR(255) NOT NULL,
             orijinal_ad VARCHAR(255) DEFAULT NULL,
             mime VARCHAR(100) DEFAULT NULL,
@@ -37,7 +40,7 @@ class WoundPhoto extends BaseModel
             yara_bolgesi VARCHAR(100) DEFAULT NULL,
             yara_evresi VARCHAR(50) DEFAULT NULL,
             cekim_tarihi DATETIME DEFAULT NULL,
-            yukleyen_id INT UNSIGNED DEFAULT NULL,
+            yukleyen_id CHAR(36) DEFAULT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY idx_hasta (hasta_id),
@@ -59,7 +62,7 @@ class WoundPhoto extends BaseModel
     /**
      * @return array<int, object>
      */
-    public function getByHastaId(int $hastaId): array
+    public function getByHastaId(string $hastaId): array
     {
         return $this->db->fetchObjectListPrepared(
             'SELECT f.*, u.name AS yukleyen_adi
@@ -71,7 +74,7 @@ class WoundPhoto extends BaseModel
         );
     }
 
-    public function getById(int $id): ?object
+    public function getById(string $id): ?object
     {
         return $this->db->fetchObjectPrepared(
             'SELECT * FROM #__hasta_yara_fotolar WHERE id = :id',

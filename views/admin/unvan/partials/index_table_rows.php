@@ -36,7 +36,7 @@ if (!empty($items)) {
                     <a href="<?= htmlspecialchars(esh_url('Unvan', 'edit', ['id' => (int) $row->id]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary" title="Düzenle">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form method="post" action="<?= htmlspecialchars(esh_url('Unvan', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" onsubmit="return confirm('Bu ünvanı silmek veya pasifleştirmek istediğinize emin misiniz?')">
+                    <form method="post" action="<?= htmlspecialchars(esh_url('Unvan', 'delete'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline m-0" data-esh-confirm="Bu ünvanı silmek veya pasifleştirmek istediğinize emin misiniz?">
                         <?= \App\Helpers\CsrfHelper::hiddenField() ?>
                         <input type="hidden" name="id" value="<?= (int) $row->id ?>">
                         <button type="submit" class="btn btn-outline-danger" title="<?= $isSystem ? 'Pasifleştir' : 'Sil' ?>">

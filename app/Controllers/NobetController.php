@@ -1,7 +1,9 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\OperationalSettings;
 use App\Helpers\ThemeViewHelper;
 use App\Models\NobetPlan;
@@ -24,30 +26,49 @@ class NobetController
     private function currentUser(): object
     {
         $u = new User();
-        $uid = (int) ($_SESSION['user_id'] ?? 0);
-        if ($uid > 0 && $u->load($uid)) {
+        $uid = AuthHelper::sessionUserId();
+        if ($uid !== null && !IdHelper::isEmptyEntityId($uid) && $u->load($uid)) {
             return (object) [
-                'id' => (int) $u->id,
+                'id' => (string) $u->id,
                 'name' => (string) $u->name,
                 'unvan' => (string) $u->unvan,
             ];
         }
-        return (object) ['id' => 0, 'name' => '', 'unvan' => ''];
+        return (object) ['id' => '', 'name' => '', 'unvan' => ''];
     }
 
-    /** Yalnız ayarlarda tanımlı ünvanlar; aksi halde panele yönlendir. */
+    /** Nöbet havuzu boşken gösterilecek açıklama (oturum flash + sayfa uyarısı). */
+    private function nobetEmptyPoolMessage(): string
+    {
+        $labels = [];
+        foreach (OperationalSettings::nobetAllowedUnvanlar() as $code) {
+            $labels[] = User::unvanLabel($code) . ' (' . $code . ')';
+        }
+        $listText = $labels !== [] ? implode(', ', $labels) : 'tanımlı ünvanlar';
+
+        return 'Nöbet personel havuzu boş; otomatik dağıtım yapılamaz. '
+            . 'Kurum ayarlarında seçili ünvanlar: ' . $listText . '. '
+            . 'En az bir aktif personelin ünvanı bu listeden biri olmalıdır (Kullanıcı yönetimi → ünvan alanı).';
+    }
+
+    /** Nöbet modülü açık ve ayarlarda tanımlı ünvan; aksi halde panele yönlendir. */
     private function ensureNobetMineEligible(): void
     {
-        if (!User::canAccessNobetMine()) {
+        if (User::canAccessNobetMine()) {
+            return;
+        }
+        if (!AppSettings::isModuleEnabled('nobet')) {
+            $_SESSION['error'] = 'Nöbet modülü kapalı olduğu için İzin/Mazeret ekranı kullanılamaz.';
+        } else {
             $labels = [];
             foreach (OperationalSettings::nobetAllowedUnvanlar() as $code) {
                 $labels[] = User::unvanLabel($code);
             }
             $listText = $labels !== [] ? implode(', ', $labels) : 'tanımlı ünvanlar';
             $_SESSION['error'] = 'İzin/Mazeret ekranı yalnızca şu ünvanlar için açıktır: ' . $listText . '.';
-            header('Location: ' . esh_url('Dashboard', 'index'));
-            exit;
         }
+        header('Location: ' . esh_url('Dashboard', 'index'));
+        exit;
     }
 
     private function toYmd(string $trDate): string
@@ -94,7 +115,7 @@ class NobetController
         }
         $this->ensureNobetMineEligibleJson();
         $me = $this->currentUser();
-        $izinler = $this->model->getPersonelOwnIzin((int) $me->id);
+        $izinler = $this->model->getPersonelOwnIzin((string) $me->id);
 
         ob_start();
         include ROOT_PATH . '/views/site/nobet/partials/mine_izin_table_rows.php';
@@ -117,7 +138,7 @@ class NobetController
         }
         $this->ensureNobetMineEligibleJson();
         $me = $this->currentUser();
-        $istekler = $this->model->getPersonelOwnIstek((int) $me->id);
+        $istekler = $this->model->getPersonelOwnIstek((string) $me->id);
 
         ob_start();
         include ROOT_PATH . '/views/site/nobet/partials/mine_istek_table_rows.php';
@@ -148,7 +169,7 @@ class NobetController
         if ($bas === '' || $bit === '' || $bas < date('Y-m-d')) {
             $_SESSION['error'] = 'Geçerli bir tarih aralığı giriniz.';
         } else {
-            $this->model->saveIzin((int) $me->id, $bas, $bit, $sebep);
+            $this->model->saveIzin((string) $me->id, $bas, $bit, $sebep);
             $_SESSION['success'] = 'İzin kaydedildi.';
         }
         header('Location: ' . esh_url('Nobet', 'mine'));
@@ -165,7 +186,7 @@ class NobetController
         if ($bas === '' || $bit === '' || $bas < date('Y-m-d')) {
             $_SESSION['error'] = 'Geçerli bir tarih aralığı giriniz.';
         } else {
-            $this->model->saveIstek((int) $me->id, $bas, $bit, $aciklama);
+            $this->model->saveIstek((string) $me->id, $bas, $bit, $aciklama);
             $_SESSION['success'] = 'Nöbet isteği kaydedildi.';
         }
         header('Location: ' . esh_url('Nobet', 'mine'));
@@ -178,7 +199,7 @@ class NobetController
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('Nobet', 'mine'));
         $me = $this->currentUser();
         $id = (int) ($_POST['id'] ?? 0);
-        $rows = $this->model->getPersonelOwnIzin((int) $me->id);
+        $rows = $this->model->getPersonelOwnIzin((string) $me->id);
         foreach ($rows as $r) {
             if ((int) ($r->id ?? 0) === $id) {
                 $this->model->deleteIzin($id);
@@ -196,7 +217,7 @@ class NobetController
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('Nobet', 'mine'));
         $me = $this->currentUser();
         $id = (int) ($_POST['id'] ?? 0);
-        $rows = $this->model->getPersonelOwnIstek((int) $me->id);
+        $rows = $this->model->getPersonelOwnIstek((string) $me->id);
         foreach ($rows as $r) {
             if ((int) ($r->id ?? 0) === $id) {
                 $this->model->deleteIstek($id);
@@ -217,6 +238,8 @@ class NobetController
         if ($yil < 2000 || $yil > 2100) { $yil = (int) date('Y'); }
 
         $personeller = $this->model->getPersonnelForNobet();
+        $nobetHavuzBos = $personeller === [];
+        $nobetHavuzUyari = $nobetHavuzBos ? $this->nobetEmptyPoolMessage() : '';
         $izinlerAktif = $this->model->getIzinList(true);
         $izinlerGecmis = $this->model->getIzinList(false);
         $istekler = $this->model->getIstekList();
@@ -258,20 +281,39 @@ class NobetController
         $this->ensureAdmin();
         $ay = (int) ($_POST['ay'] ?? date('n'));
         $yil = (int) ($_POST['yil'] ?? date('Y'));
+        if ($ay < 1 || $ay > 12) {
+            $ay = (int) date('n');
+        }
+        if ($yil < 2000 || $yil > 2100) {
+            $yil = (int) date('Y');
+        }
+
+        $redirect = esh_url('Nobet', 'index', ['ay' => $ay, 'yil' => $yil]);
+        if ($this->model->getPersonnelForNobet() === []) {
+            $_SESSION['error'] = $this->nobetEmptyPoolMessage();
+            header('Location: ' . $redirect);
+            exit;
+        }
+
         $n = $this->model->rebuildMonthNobet($ay, $yil);
-        $_SESSION['success'] = 'Nöbet dağıtımı tamamlandı. Eklenen kayıt: ' . (int) $n;
-        header('Location: ' . esh_url('Nobet', 'index', ['ay' => $ay, 'yil' => $yil]));
+        if ($n <= 0) {
+            $_SESSION['warning'] = 'Nöbet dağıtımı tamamlandı ancak hiç kayıt eklenemedi. '
+                . 'İzin, muafiyet veya günlük nöbetçi slot ayarlarını kontrol edin.';
+        } else {
+            $_SESSION['success'] = 'Nöbet dağıtımı tamamlandı. Eklenen kayıt: ' . (int) $n;
+        }
+        header('Location: ' . $redirect);
         exit;
     }
 
     public function saveIzin()
     {
         $this->ensureAdmin();
-        $pid = (int) ($_POST['personel_id'] ?? 0);
+        $pid = IdHelper::normalizeRequestId($_POST['personel_id'] ?? null);
         $bas = $this->toYmd((string) ($_POST['baslangic_tarihi'] ?? ''));
         $bit = $this->toYmd((string) ($_POST['bitis_tarihi'] ?? ''));
         $sebep = trim((string) ($_POST['sebep'] ?? ''));
-        if ($pid > 0 && $bas !== '' && $bit !== '') {
+        if ($pid !== null && $bas !== '' && $bit !== '') {
             $this->model->saveIzin($pid, $bas, $bit, $sebep);
             $_SESSION['success'] = 'İzin kaydedildi.';
         } else {
@@ -284,11 +326,11 @@ class NobetController
     public function saveIstek()
     {
         $this->ensureAdmin();
-        $pid = (int) ($_POST['personel_id'] ?? 0);
+        $pid = IdHelper::normalizeRequestId($_POST['personel_id'] ?? null);
         $bas = $this->toYmd((string) ($_POST['baslangic_tarihi'] ?? ''));
         $bit = $this->toYmd((string) ($_POST['bitis_tarihi'] ?? ''));
         $aciklama = trim((string) ($_POST['aciklama'] ?? ''));
-        if ($pid > 0 && $bas !== '' && $bit !== '') {
+        if ($pid !== null && $bas !== '' && $bit !== '') {
             $this->model->saveIstek($pid, $bas, $bit, $aciklama);
             $_SESSION['success'] = 'Nöbet isteği kaydedildi.';
         } else {
@@ -349,7 +391,7 @@ class NobetController
     {
         $this->ensureAdmin();
         header('Content-Type: application/json; charset=utf-8');
-        $pid = (int) ($_POST['pid'] ?? 0);
+        $pid = IdHelper::normalizeRequestId($_POST['pid'] ?? null) ?? '';
         $tarih = $this->toYmd((string) ($_POST['tarih'] ?? ''));
         echo json_encode($this->model->addNobet($pid, $tarih), JSON_UNESCAPED_UNICODE);
         exit;

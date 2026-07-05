@@ -35,7 +35,7 @@ $eshCanRemovePhoto = $eshUser->hasRemovableProfilePhoto();
         <?php if ($eshCanRemovePhoto): ?>
             <form action="<?= htmlspecialchars(esh_url('User', 'removephoto'), ENT_QUOTES, 'UTF-8') ?>" method="post"
                   class="position-absolute top-0 start-0 m-0"
-                  onsubmit="return confirm('Profil fotoğrafınız silinecek. Emin misiniz?');">
+                  data-esh-confirm="Profil fotoğrafınız silinecek. Emin misiniz?">
                 <button type="submit"
                         class="btn btn-danger btn-sm rounded-circle shadow-sm"
                         title="Profil fotoğrafını sil"

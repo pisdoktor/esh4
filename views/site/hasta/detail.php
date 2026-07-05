@@ -6,18 +6,18 @@
                 <a href="<?= htmlspecialchars(esh_url('Patient', 'unified', ['status' => 'active']), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm px-3" aria-label="Hasta listesine dön">
                     <i class="fa-solid fa-arrow-left me-1" aria-hidden="true"></i> Geri
                 </a>
-                <button type="button" class="btn btn-danger btn-sm px-3 shadow-sm"<?= !empty($pasifDosyaKapali) ? ' disabled aria-disabled="true" title="Pasif dosyada MERNİS sorgusu yapılamaz"' : ' onclick="tekliMernisSorgula(\'' . htmlspecialchars((string) $hasta->tckimlik, ENT_QUOTES, 'UTF-8') . '\')"' ?> aria-label="MERNİS ile vefat sorgula">
+                <button type="button" class="btn btn-danger btn-sm px-3 shadow-sm"<?= !empty($pasifDosyaKapali) ? ' disabled aria-disabled="true" title="Pasif dosyada MERNİS sorgusu yapılamaz"' : ' data-esh-call="tekliMernisSorgula" data-esh-call-self="1" data-esh-call-arg="' . htmlspecialchars((string) $hasta->tckimlik, ENT_QUOTES, 'UTF-8') . '"' ?> aria-label="MERNİS ile vefat sorgula">
                     <i class="fa-solid fa-sync me-1" aria-hidden="true"></i> MERNİS Sorgula
                 </button>
 
-                <?php if (\App\Services\MesajService::canUseMessaging((int) ($_SESSION['user_id'] ?? 0))): ?>
-                <a href="<?= htmlspecialchars(esh_url('Mesaj', 'patientThread', ['id' => (int) ($hasta->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-info btn-sm px-3 shadow-sm text-white" title="Hasta hakkında mesajlaş">
+                <?php if (\App\Services\MesajService::canUseMessaging(\App\Helpers\AuthHelper::sessionUserId() ?? '')): ?>
+                <a href="<?= htmlspecialchars(esh_url('Mesaj', 'patientThread', ['id' => (string) ($hasta->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-info btn-sm px-3 shadow-sm text-white" title="Hasta hakkında mesajlaş">
                     <i class="fa-solid fa-comments me-1" aria-hidden="true"></i> Mesajlar
                 </a>
                 <?php endif; ?>
 
-                <?php if (\App\Services\Sms\SmsService::canUseSms((int) ($_SESSION['user_id'] ?? 0))): ?>
-                <a href="<?= htmlspecialchars(esh_url('Sms', 'quickFromPatient', ['hasta_id' => (int) ($hasta->id ?? 0)]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary btn-sm px-3 shadow-sm" title="Hastaya SMS gönder">
+                <?php if (\App\Services\Sms\SmsService::canUseSms(\App\Helpers\AuthHelper::sessionUserId())): ?>
+                <a href="<?= htmlspecialchars(esh_url('Sms', 'quickFromPatient', ['hasta_id' => (string) ($hasta->id ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-primary btn-sm px-3 shadow-sm" title="Hastaya SMS gönder">
                     <i class="fa-solid fa-comment-sms me-1" aria-hidden="true"></i> SMS
                 </a>
                 <?php endif; ?>
@@ -128,7 +128,7 @@ if (!empty($allNotes) && is_array($allNotes)):
     <div class="p-3 bg-white rounded border border-warning shadow-sm mb-3 position-relative note-item">
     <button type="button" 
             class="btn btn-link text-danger position-absolute top-0 end-0 m-1 p-1" 
-            onclick="deleteNote(this, <?php echo $hasta->id; ?>, <?php echo $index; ?>)"
+            data-esh-call="deleteNote" data-esh-call-self="1" data-esh-call-args="[<?php echo (string) $hasta->id; ?>,<?php echo (int) $index; ?>]"
             title="Notu Sil">
         <i class="fa-solid fa-trash-can shadow-sm"></i>
     </button>
@@ -201,7 +201,7 @@ endif;
 </div>
             
             <div class="modal-footer bg-light border-0">
-                <button type="button" class="btn btn-outline-danger btn-sm border-0" onclick="clearNotesArea()">
+                <button type="button" class="btn btn-outline-danger btn-sm border-0" data-esh-call="clearNotesArea">
                     <i class="fa-solid fa-trash-can me-1"></i> Tümünü Sil
                 </button>
                 <div class="ms-auto">
@@ -235,7 +235,7 @@ if (!empty($allNotes) && is_array($allNotes)):
     <div class="p-3 bg-white rounded border border-warning shadow-sm mb-3 position-relative note-item">
     <button type="button" 
             class="btn btn-link text-danger position-absolute top-0 end-0 m-1 p-1" 
-            onclick="deleteNote(this, <?php echo $hasta->id; ?>, <?php echo $index; ?>)"
+            data-esh-call="deleteNote" data-esh-call-self="1" data-esh-call-args="[<?php echo (string) $hasta->id; ?>,<?php echo (int) $index; ?>]"
             title="Notu Sil">
         <i class="fa-solid fa-trash-can shadow-sm"></i>
     </button>
@@ -267,7 +267,7 @@ endif;
 <div id="patient-detail-config"
      data-has-notes="<?= (strlen((string) ($hasta->notes ?? '')) > 3) ? '1' : '0' ?>"
      data-open-modal="<?= htmlspecialchars((string) ($_GET['open_modal'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-     data-patient-id="<?= (int) ($hasta->id ?? 0) ?>"
+     data-patient-id="<?= (string) ($hasta->id ?? '') ?>"
      data-clinical-toggle="<?= \App\Models\Patient::isAktif($hasta->pasif ?? null) ? '1' : '0' ?>"
      hidden></div>
 <?php if (!empty($eshPatientEditModalsReady)): ?>

@@ -1,6 +1,7 @@
 <?php
 namespace App\Helpers;
 
+use App\Helpers\AuthHelper;
 use App\Models\User;
 
 class UIHelper {
@@ -16,8 +17,8 @@ class UIHelper {
      */
     public static function renderTopMenu($currentController, $currentAction) {
         $navAvatarUrl = User::defaultProfileImageWebUrl();
-        $navUserId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($navUserId > 0) {
+        $navUserId = AuthHelper::sessionUserId() ?? '';
+        if (!IdHelper::isEmptyEntityId($navUserId)) {
             $navUser = new User();
             if ($navUser->load($navUserId)) {
                 $navAvatarUrl = $navUser->profileImageWebUrl();
@@ -134,7 +135,7 @@ class UIHelper {
                     </li>
                     <?php endif; ?>
 
-                    <?php if (\App\Services\MesajService::canUseMessaging((int) ($_SESSION['user_id'] ?? 0)) && AuthHelper::can('mesajlasma.read')): ?>
+                    <?php if (\App\Services\MesajService::canUseMessaging((AuthHelper::sessionUserId() ?? '')) && AuthHelper::can('mesajlasma.read')): ?>
                     <li class="nav-item">
                         <a class="nav-link px-3 position-relative <?= ($currentController == 'Mesaj') ? 'active fw-bold border-bottom border-primary border-3' : '' ?>"
                            href="<?= htmlspecialchars(esh_url('Mesaj', 'index'), ENT_QUOTES, 'UTF-8') ?>"
@@ -194,7 +195,7 @@ class UIHelper {
                             <?= esh_csrf_field() ?>
                             <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             <label class="visually-hidden" for="eshBolgeFilter">Bölge filtresi</label>
-                            <select name="bolge_id" id="eshBolgeFilter" class="form-select form-select-sm" style="max-width:11rem" onchange="this.form.submit()">
+                            <select name="bolge_id" id="eshBolgeFilter" class="form-select form-select-sm" style="max-width:11rem" data-esh-auto-submit>
                                 <option value="0">Tüm bölgeler</option>
                                 <?php foreach ($eshBolgeFilterList as $bf): ?>
                                     <option value="<?= (int) ($bf->id ?? 0) ?>"<?= $eshBolgeFilterActive === (int) ($bf->id ?? 0) ? ' selected' : '' ?>>
@@ -210,7 +211,7 @@ class UIHelper {
                             <?= esh_csrf_field() ?>
                             <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             <label class="visually-hidden" for="eshKurumFilter">Kurum filtresi</label>
-                            <select name="kurum_id" id="eshKurumFilter" class="form-select form-select-sm" style="max-width:11rem" onchange="this.form.submit()">
+                            <select name="kurum_id" id="eshKurumFilter" class="form-select form-select-sm" style="max-width:11rem" data-esh-auto-submit>
                                 <option value="0">Tüm kurumlar</option>
                                 <?php foreach ($eshKurumFilterList as $kf): ?>
                                     <option value="<?= (int) ($kf->id ?? 0) ?>"<?= $eshKurumFilterActive === (int) ($kf->id ?? 0) ? ' selected' : '' ?>>
@@ -242,10 +243,10 @@ class UIHelper {
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 py-2 rounded-3" aria-labelledby="userMenu">
                             <li><a class="dropdown-item py-2" href="<?= htmlspecialchars(esh_url('User', 'index'), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-circle-user me-2 opacity-75"></i>Profilim</a></li>
                             <li><a class="dropdown-item py-2" href="<?= htmlspecialchars(esh_url('User', 'edit'), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-sliders me-2 opacity-75"></i>Hesap Ayarları</a></li>
-                            <?php if (\App\Services\MesajService::canUseMessaging((int) ($_SESSION['user_id'] ?? 0))): ?>
+                            <?php if (\App\Services\MesajService::canUseMessaging((AuthHelper::sessionUserId() ?? ''))): ?>
                             <?php
                                 $eshMesajMenuUnread = 0;
-                                $eshMesajMenuUserId = (int) ($_SESSION['user_id'] ?? 0);
+                                $eshMesajMenuUserId = (AuthHelper::sessionUserId() ?? '');
                                 if ($eshMesajMenuUserId > 0) {
                                     $eshMesajMenuUnread = (new \App\Services\MesajService())->countUnread($eshMesajMenuUserId);
                                 }
@@ -256,9 +257,13 @@ class UIHelper {
                             ?>
                             <li><a class="dropdown-item py-2<?= ($currentController == 'Mesaj') ? ' active fw-semibold' : '' ?>" href="<?= htmlspecialchars(esh_url('Mesaj', 'index'), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-inbox me-2 opacity-75"></i><span id="esh-mesaj-menu-label"><?= htmlspecialchars($eshMesajMenuLabel, ENT_QUOTES, 'UTF-8') ?></span></a></li>
                             <?php endif; ?>
-                            <?php if (\App\Models\User::canAccessNobetMine()): ?>
-                            <li><a class="dropdown-item py-2<?= ($currentController == 'Nobet' && $currentAction == 'mine') ? ' active fw-semibold' : '' ?>" href="<?= htmlspecialchars(esh_url('Nobet', 'mine'), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-calendar-minus me-2 opacity-75"></i>İzin/Mazeret</a></li>
-                            <?php endif; ?>
+                            <?php
+                                $eshNobetMineEnabled = \App\Models\User::canAccessNobetMine();
+                                $eshNobetMineActive = ($currentController == 'Nobet' && $currentAction == 'mine');
+                            ?>
+                            <li><a class="dropdown-item py-2<?= $eshNobetMineActive ? ' active fw-semibold' : '' ?><?= !$eshNobetMineEnabled ? ' disabled' : '' ?>"
+                                   href="<?= $eshNobetMineEnabled ? htmlspecialchars(esh_url('Nobet', 'mine'), ENT_QUOTES, 'UTF-8') : '#' ?>"
+                                   <?= !$eshNobetMineEnabled ? ' aria-disabled="true" tabindex="-1"' : '' ?>><i class="fa-solid fa-calendar-minus me-2 opacity-75"></i>İzin/Mazeret</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger fw-bold py-2" href="<?= htmlspecialchars(esh_url('Auth', 'logout'), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-power-off me-2"></i>Güvenli Çıkış</a></li>
                         </ul>
@@ -275,18 +280,18 @@ class UIHelper {
     }
 
     /**
-     * Bakım modu aktifken süper yöneticiye navbar altında uyarı şeridi.
+     * Bakım modu aktifken sistem yöneticisine navbar altında uyarı şeridi.
      */
     public static function renderMaintenanceModeBanner(): void
     {
-        if (!AuthHelper::sessionIsSuperAdmin() || !OperationalSettings::isMaintenanceModeEnabled()) {
+        if (!AuthHelper::sessionIsPlatformOwner() || !OperationalSettings::isMaintenanceModeEnabled()) {
             return;
         }
-        $settingsUrl = esh_url('Settings', 'index', ['tab' => 'guvenlik']);
+        $settingsUrl = esh_url('Settings', 'index', ['tab' => 'bakim']);
         ?>
     <div class="alert alert-warning border-0 rounded-0 mb-0 py-2 small text-center" role="alert">
         <i class="fa-solid fa-screwdriver-wrench me-1"></i>
-        <strong>Bakım modu aktif</strong> — yalnızca süper yönetici erişebilir.
+        <strong>Bakım modu aktif</strong> — yalnızca <?= htmlspecialchars(mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?> erişebilir.
         <a href="<?= htmlspecialchars($settingsUrl, ENT_QUOTES, 'UTF-8') ?>" class="alert-link ms-1">Ayarları aç</a>
     </div>
         <?php
@@ -608,10 +613,10 @@ class UIHelper {
      */
     public static function patientStatsCardLink(object $row, string $extraClasses = ''): string
     {
-        $id = (int) ($row->id ?? 0);
+        $id = IdHelper::normalizeRequestId($row->id ?? null);
         $name = trim((string) ($row->isim ?? '') . ' ' . (string) ($row->soyisim ?? ''));
         $nameEsc = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-        if ($id < 1) {
+        if ($id === null) {
             return $nameEsc;
         }
         $href = esh_url('Patient', 'view', ['id' => $id]);
@@ -720,7 +725,7 @@ class UIHelper {
             ? 'btn-group btn-group-sm flex-wrap w-100'
             : 'btn-group flex-wrap w-100';
         $fn = htmlspecialchars($fieldName, ENT_QUOTES, 'UTF-8');
-        $onChange = $autoSubmitForm ? ' onchange="if(this.form){this.form.submit();}"' : '';
+        $autoSubmitAttr = $autoSubmitForm ? ' data-esh-auto-submit' : '';
 
         $blocks = [
             ['key' => 'unset', 'val' => '', 'cls' => 'outline-secondary', 'icon' => 'fa-solid fa-minus', 'label' => 'Belirtilmedi'],
@@ -733,7 +738,7 @@ class UIHelper {
             $vid = $idBase . '-hg' . $idx;
             $checked = ($b['key'] === $selKey) ? ' checked' : '';
             $valAttr = $b['val'] === '' ? ' value=""' : ' value="' . htmlspecialchars((string) $b['val'], ENT_QUOTES, 'UTF-8') . '"';
-            $html .= '<input type="radio" class="btn-check" name="' . $fn . '" id="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '"' . $valAttr . $checked . ' autocomplete="off"' . $onChange . '>';
+            $html .= '<input type="radio" class="btn-check" name="' . $fn . '" id="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '"' . $valAttr . $checked . ' autocomplete="off"' . $autoSubmitAttr . '>';
             $html .= '<label class="btn btn-' . htmlspecialchars($b['cls'], ENT_QUOTES, 'UTF-8') . $py . '" for="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '">';
             $html .= '<i class="' . htmlspecialchars($b['icon'], ENT_QUOTES, 'UTF-8') . ' me-1"></i>' . htmlspecialchars($b['label'], ENT_QUOTES, 'UTF-8') . '</label>';
         }
@@ -768,7 +773,7 @@ class UIHelper {
             ? 'btn-group btn-group-sm flex-wrap w-100'
             : 'btn-group flex-wrap w-100';
         $fn = htmlspecialchars($fieldName, ENT_QUOTES, 'UTF-8');
-        $onChange = $autoSubmitForm ? ' onchange="if(this.form){this.form.submit();}"' : '';
+        $autoSubmitAttr = $autoSubmitForm ? ' data-esh-auto-submit' : '';
 
         $blocks = [
             ['key' => 'unset', 'val' => '', 'cls' => 'outline-secondary', 'icon' => 'fa-solid fa-minus', 'label' => 'Belirtilmedi'],
@@ -781,7 +786,7 @@ class UIHelper {
             $vid = $idBase . '-ym' . $idx;
             $checked = ($b['key'] === $selKey) ? ' checked' : '';
             $valAttr = $b['val'] === '' ? ' value=""' : ' value="' . htmlspecialchars((string) $b['val'], ENT_QUOTES, 'UTF-8') . '"';
-            $html .= '<input type="radio" class="btn-check" name="' . $fn . '" id="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '"' . $valAttr . $checked . ' autocomplete="off"' . $onChange . '>';
+            $html .= '<input type="radio" class="btn-check" name="' . $fn . '" id="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '"' . $valAttr . $checked . ' autocomplete="off"' . $autoSubmitAttr . '>';
             $html .= '<label class="btn btn-' . htmlspecialchars($b['cls'], ENT_QUOTES, 'UTF-8') . $py . '" for="' . htmlspecialchars($vid, ENT_QUOTES, 'UTF-8') . '">';
             $html .= '<i class="' . htmlspecialchars($b['icon'], ENT_QUOTES, 'UTF-8') . ' me-1"></i>' . htmlspecialchars($b['label'], ENT_QUOTES, 'UTF-8') . '</label>';
         }

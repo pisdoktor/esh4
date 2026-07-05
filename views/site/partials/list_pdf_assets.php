@@ -8,12 +8,12 @@ if (!\App\Helpers\AuthHelper::sessionIsAdmin()) {
 
 ?>
 
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/esh-list-pdf.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/esh-list-pdf.js') ?>
 
 <?= \App\Helpers\CdnAssetHelper::pdfMakeScriptsHtml() ?>
 
 <?= \App\Helpers\CdnAssetHelper::sheetJsScriptsHtml() ?>
 
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/esh-list-excel.js', ENT_QUOTES, 'UTF-8') ?>"></script>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/pages/js/esh-fetch-list-export.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/esh-list-excel.js') ?>
+<?= esh_csp_script_src_tag(ASSETS_URL . '/pages/js/esh-fetch-list-export.js') ?>
 

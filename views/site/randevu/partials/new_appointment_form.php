@@ -71,7 +71,7 @@ use App\Helpers\FormHelper;
         <i class="fa-solid fa-plus me-1"></i> Randevu ekle
     </button>
 </form>
-<script type="application/json" id="esh-randevu-kota-config"><?= json_encode([
+<script<?= esh_csp_nonce_attr() ?> type="application/json" id="esh-randevu-kota-config"><?= json_encode([
     'date' => $selectedDate,
     'branches' => $bransKotaMap,
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>

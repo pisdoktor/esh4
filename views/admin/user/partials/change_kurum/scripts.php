@@ -1,4 +1,4 @@
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 (function () {
     var copyCb = document.getElementById('eshUserCopyRole');
     var roleWrap = document.getElementById('eshUserNakilRoleWrap');

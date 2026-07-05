@@ -7,7 +7,7 @@
  */
 use App\Helpers\FormHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 ?>
 <div id="wound-upload" class="esh-wound-upload mt-4 pt-4 border-top">
     <?php if (!empty($pasifDosyaKapali)): ?>

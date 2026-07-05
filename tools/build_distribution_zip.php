@@ -177,7 +177,7 @@ $readme = <<<'MD'
 
 - Kurulum: tarayıcıdan `public/install.php` sihirbazı (`config/config.local.example.php` şablonu).
 - `config/config.local.php` ve `config/install.lock` pakette yoktur; hedefte sıfırdan kurulum veya kendi dosyalarınızı kopyalayın.
-- Veritabanı şeması: `database/schemas/schema.sql` ve `docs/VERSIONING.md`; adres senkronu: süper yönetici AdresFetch.
+- Veritabanı şeması: `database/schemas/schema.sql` ve `docs/VERSIONING.md`; adres senkronu: bölge yöneticisi AdresFetch.
 
 Bu dosya `tools/build_distribution_zip.php` tarafından üretilmiştir.
 MD;

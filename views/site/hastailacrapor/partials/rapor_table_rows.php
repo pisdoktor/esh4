@@ -10,10 +10,10 @@ use App\Helpers\DateHelper;
 /** @var int $patientId */
 
 if (empty($rows)): ?>
-    <tr><td colspan="6" class="text-center text-muted py-4">Birleşik tanı listesi boş. Hasta kartında veya TC eşleşen kullanıcıda tanı id'leri tanımlayın.</td></tr>
+    <tr><td colspan="6" class="text-center text-muted py-4">Birleşik tanı listesi boş. Hasta kartında tanı (ICD) tanımlayın.</td></tr>
 <?php else:
     foreach ($rows as $i => $r):
-        $hid = (int) ($r->hastalik_id ?? 0);
+        $icd = \App\Models\Patient::normalizeHastalikIcd((string) ($r->hastalik_icd ?? ''));
         $raporId = isset($r->rapor_id) && $r->rapor_id !== null && $r->rapor_id !== '' ? (int) $r->rapor_id : 0;
         $rowMeta = $rowMetas[$i] ?? ['raporlu' => false, 'badge' => 'secondary', 'badgeText' => 'Raporlu değil'];
         $raporlu = $rowMeta['raporlu'];
@@ -52,7 +52,7 @@ if (empty($rows)): ?>
             ?>
             <?= \App\Helpers\FormHelper::listActionsGroup(
                 '<button type="button" class="btn btn-sm btn-outline-primary hastailacrapor-edit-rapor-btn" data-bs-toggle="modal" data-bs-target="#hastailacRaporModal" title="Düzenle"'
-                . ' data-hastalik-id="' . $hid . '"'
+                . ' data-hastalik-icd="' . htmlspecialchars($icd, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-hastalik-adi="' . htmlspecialchars((string) ($r->hastalikadi ?? ''), ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-rapor-id="' . $raporId . '"'
                 . ' data-rapor="' . ($raporlu ? '1' : '0') . '"'

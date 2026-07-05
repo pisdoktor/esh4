@@ -174,7 +174,12 @@
                     <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" id="patientFormSubmit">
                         <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i> Kaydı Tamamla
                     </button>
-                    <a href="<?= htmlspecialchars(esh_url('Patient', 'view', ['id' => (int) $patient->id]), ENT_QUOTES, "UTF-8") ?>" class="btn btn-outline-secondary btn-lg rounded-pill">İptal</a>
+                    <?php
+                    $eshEditCancelUrl = \App\Helpers\BadgeHelper::patientPasifKey($patient) === 'waiting'
+                        ? esh_url('Patient', 'unified', ['status' => 'waiting'])
+                        : esh_url('Patient', 'view', ['id' => (string) ($patient->id ?? '')]);
+                    ?>
+                    <a href="<?= htmlspecialchars($eshEditCancelUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-lg rounded-pill">İptal</a>
                 </div>
             </div>
         </div>
@@ -187,6 +192,6 @@ $editMainIlceOptionsInner = $__editMainIlce[1] ?? '';
 ?>
 <div id="patient-edit-config"
      data-main-ilce-options="<?= htmlspecialchars($editMainIlceOptionsInner, ENT_QUOTES, 'UTF-8') ?>"
-     data-patient-id="<?= (int) ($patient->id ?? 0) ?>"
+     data-patient-id="<?= (string) ($patient->id ?? '') ?>"
      data-yupas-guvence-ids="<?= htmlspecialchars((string) ($yupasGuvenceIdCsv ?? ''), ENT_QUOTES, 'UTF-8') ?>"
      hidden></div>

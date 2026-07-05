@@ -11,7 +11,7 @@ $pctInt = (int) ($eshDoluluk['pct_int'] ?? 0);
 $color = (string) ($eshDoluluk['color'] ?? 'secondary');
 $barW = max(0, min(100, $pctInt));
 $groups = $eshDoluluk['groups'] ?? [];
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <span class="badge bg-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?> esh-hasta-doluluk__badge">

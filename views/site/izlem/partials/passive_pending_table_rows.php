@@ -18,7 +18,7 @@ if (!empty($plans)) {
         $tel = trim((string) ($p->ceptel1 ?? '')) !== ''
             ? trim((string) $p->ceptel1)
             : trim((string) ($p->ceptel2 ?? ''));
-        $planId = (int) ($p->id ?? 0);
+        $planId = (string) ($p->id ?? '');
         $splitSide = \App\Models\PlannedVisit::passivePendingSplitSide(
             (string) ($p->planlanantarih ?? ''),
             (string) ($p->pasiftarihi ?? '')
@@ -33,7 +33,7 @@ if (!empty($plans)) {
         ?>
         <tr class="<?= htmlspecialchars(trim($rowClass), ENT_QUOTES, 'UTF-8') ?>" data-passive-split="<?= htmlspecialchars($splitSide, ENT_QUOTES, 'UTF-8') ?>">
             <td class="text-center">
-                <input type="checkbox" class="form-check-input passive-plan-check" name="ids[]" value="<?= $planId ?>" data-split="<?= htmlspecialchars($splitSide, ENT_QUOTES, 'UTF-8') ?>">
+                <input type="checkbox" class="form-check-input passive-plan-check" name="ids[]" value="<?= htmlspecialchars($planId, ENT_QUOTES, 'UTF-8') ?>" data-split="<?= htmlspecialchars($splitSide, ENT_QUOTES, 'UTF-8') ?>">
             </td>
             <td class="text-center p-1">
                 <?= \App\Helpers\UIHelper::patientSummaryButtons(
@@ -46,7 +46,7 @@ if (!empty($plans)) {
             <td>
                 <?php
                 $eshMenuRows = \App\Helpers\BadgeHelper::plannedVisitPassivePendingMenuEntries($p, $deleteRetq);
-                $eshPvErkek = ($p->cinsiyet ?? '') === 'E' || ($p->cinsiyet ?? '') === '1';
+                $eshPvErkek = \App\Helpers\CinsiyetHelper::isErkek($p->cinsiyet ?? null);
                 ?>
                 <div class="dropdown">
                     <a class="patient-link dropdown-toggle d-inline-block text-decoration-none fw-semibold"

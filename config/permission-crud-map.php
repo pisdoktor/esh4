@@ -5,10 +5,12 @@ declare(strict_types=1);
  * Modül bazlı CRUD → controller action eşlemesi.
  * İzin slug: {module_key}.{crud}
  *
+ * Personel RBAC dışı yönetim modülleri: config/permission-level-only-modules.php
+ *
  * admin_bypass: isadmin=1 yöneticiler bu modülde tam CRUD bypass alır.
  * rbac: false ise personel için izin kontrolü uygulanmaz (her zaman izinli).
- * platform: isadmin=3 sistem sahibi — *.platform slug eşlemesi.
- * Oturum seviyeleri: 0=personel, 1=admin, 2=süper yönetici, 3=sistem sahibi.
+ * platform: isadmin=3 sistem yöneticisi — *.platform slug eşlemesi.
+ * Oturum seviyeleri: 0=personel, 1=kurum yöneticisi, 2=bölge yöneticisi, 3=sistem yöneticisi.
  */
 return [
     'dashboard' => [
@@ -39,15 +41,17 @@ return [
                 'edit', 'bedit', 'saveBarthel', 'changeactive', 'passiveToWaiting',
                 'deletedToWaiting', 'saveKapino', 'saveSokak',
                 'updateNotes', 'uploadPatientPhoto', 'uploadWoundPhoto',
-                'toggleClinicalFlag',
+                'toggleClinicalFlag', 'died',
             ],
             'delete' => [
                 'deletewaiting', 'deletedied', 'deleteNote', 'deletePatientPhoto',
-                'deleteWoundPhoto', 'deleteBarthel', 'died',
+                'deleteWoundPhoto', 'deleteBarthel',
             ],
             'admin' => [
                 'listdeleted', 'listdied', 'bulkDiedScan', 'changeKurum',
                 'storeKurum',
+                'incoming', 'incomingRows', 'review', 'approve', 'approveIlDisi',
+                'reject', 'cancel',
             ],
         ],
     ],
@@ -219,7 +223,7 @@ return [
             'create' => ['send', 'startDm'],
             'update' => ['markRead', 'restore', 'moveToTrash'],
             'delete' => ['purge'],
-            'admin' => ['broadcast', 'broadcastSend'],
+            'platform' => ['broadcast', 'broadcastSend'],
         ],
     ],
     'sms_bildirim' => [

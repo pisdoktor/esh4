@@ -627,7 +627,7 @@ final class StatsReportPdfBlockExports {
             $catKeys
         ), ['Toplam']);
         $rows = [];
-        foreach (['K', 'E', '?'] as $gk) {
+        foreach ([CinsiyetHelper::KADIN, CinsiyetHelper::ERKEK, '?'] as $gk) {
             $row = $byGender[$gk] ?? [];
             $line = [BmiHelper::genderLabel($gk)];
             $tot = 0;

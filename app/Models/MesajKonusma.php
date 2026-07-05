@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Helpers\IdHelper;
 use App\Core\Database;
 
 /**
@@ -62,7 +63,7 @@ class MesajKonusma extends BaseModel
     /**
      * @return list<object>
      */
-    public function getMailboxForUser(int $userId, string $mailbox = 'inbox', int $limit = 50): array
+    public function getMailboxForUser(string $userId, string $mailbox = 'inbox', int $limit = 50): array
     {
         $this->repairMembersForUser($userId);
 
@@ -76,9 +77,9 @@ class MesajKonusma extends BaseModel
     /**
      * @return list<object>
      */
-    public function getInboxForUser(int $userId, int $limit = 50): array
+    public function getInboxForUser(string $userId, int $limit = 50): array
     {
-        if ($userId <= 0) {
+        if ($userId === null) {
             return [];
         }
         $limit = max(1, min(100, $limit));
@@ -106,9 +107,9 @@ class MesajKonusma extends BaseModel
     /**
      * @return list<object>
      */
-    public function getSentForUser(int $userId, int $limit = 50): array
+    public function getSentForUser(string $userId, int $limit = 50): array
     {
-        if ($userId <= 0) {
+        if ($userId === null) {
             return [];
         }
         $limit = max(1, min(100, $limit));
@@ -142,9 +143,9 @@ class MesajKonusma extends BaseModel
     /**
      * @return list<object>
      */
-    public function getTrashForUser(int $userId, int $limit = 50): array
+    public function getTrashForUser(string $userId, int $limit = 50): array
     {
-        if ($userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return [];
         }
         $limit = max(1, min(100, $limit));
@@ -167,9 +168,9 @@ class MesajKonusma extends BaseModel
         return is_array($list) ? $list : [];
     }
 
-    public function moveToTrash(int $konusmaId, int $userId): bool
+    public function moveToTrash(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return false;
         }
 
@@ -179,9 +180,9 @@ class MesajKonusma extends BaseModel
         );
     }
 
-    public function restoreFromTrash(int $konusmaId, int $userId): bool
+    public function restoreFromTrash(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return false;
         }
 
@@ -191,9 +192,9 @@ class MesajKonusma extends BaseModel
         );
     }
 
-    public function purgeFromTrash(int $konusmaId, int $userId): bool
+    public function purgeFromTrash(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return false;
         }
 
@@ -203,9 +204,9 @@ class MesajKonusma extends BaseModel
         );
     }
 
-    public function restoreIfTrashed(int $konusmaId, int $userId): void
+    public function restoreIfTrashed(string $konusmaId, string $userId): void
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return;
         }
         $this->db->executePrepared(
@@ -214,9 +215,9 @@ class MesajKonusma extends BaseModel
         );
     }
 
-    public function isTrashedForUser(int $konusmaId, int $userId): bool
+    public function isTrashedForUser(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !self::supportsTrash()) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !self::supportsTrash()) {
             return false;
         }
         $row = $this->getMemberRow($konusmaId, $userId);
@@ -227,7 +228,7 @@ class MesajKonusma extends BaseModel
         return !empty($row->silindi_at);
     }
 
-    public function findById(int $id): ?object
+    public function findById(string $id): ?object
     {
         return $this->db->fetchObjectPrepared(
             'SELECT * FROM #__mesaj_konusmalar WHERE id = ? LIMIT 1',
@@ -235,13 +236,14 @@ class MesajKonusma extends BaseModel
         ) ?: null;
     }
 
-    public function findDmPair(int $userA, int $userB): ?object
+    public function findDmPair(string $userA, string $userB): ?object
     {
-        $low = min($userA, $userB);
-        $high = max($userA, $userB);
-        if ($low <= 0 || $high <= 0 || $low === $high) {
+        $userA = IdHelper::normalizeRequestId($userA);
+        $userB = IdHelper::normalizeRequestId($userB);
+        if ($userA === null || $userB === null) {
             return null;
         }
+        [$low, $high] = strcmp($userA, $userB) <= 0 ? [$userA, $userB] : [$userB, $userA];
 
         return $this->db->fetchObjectPrepared(
             'SELECT * FROM #__mesaj_konusmalar WHERE tip = ? AND dm_kucuk_id = ? AND dm_buyuk_id = ? LIMIT 1',
@@ -249,9 +251,9 @@ class MesajKonusma extends BaseModel
         ) ?: null;
     }
 
-    public function findByHastaId(int $hastaId): ?object
+    public function findByHastaId(string $hastaId): ?object
     {
-        if ($hastaId <= 0) {
+        if (IdHelper::isEmptyEntityId($hastaId)) {
             return null;
         }
 
@@ -261,9 +263,9 @@ class MesajKonusma extends BaseModel
         ) ?: null;
     }
 
-    public function touchLastMessage(int $konusmaId, string $at = ''): void
+    public function touchLastMessage(string $konusmaId, string $at = ''): void
     {
-        if ($konusmaId <= 0) {
+        if (IdHelper::isEmptyEntityId($konusmaId)) {
             return;
         }
         $ts = $at !== '' ? $at : date('Y-m-d H:i:s');
@@ -273,9 +275,9 @@ class MesajKonusma extends BaseModel
         );
     }
 
-    public function isMember(int $konusmaId, int $userId): bool
+    public function isMember(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
 
@@ -285,18 +287,19 @@ class MesajKonusma extends BaseModel
         ) !== null;
     }
 
-    public function addMember(int $konusmaId, int $userId): bool
+    public function addMember(string $konusmaId, string $userId): bool
     {
-        if ($konusmaId <= 0 || $userId <= 0 || !$this->isActivatedUser($userId)) {
+        if (IdHelper::isEmptyEntityId($konusmaId) || IdHelper::isEmptyEntityId($userId) || !$this->isActivatedUser($userId)) {
             return false;
         }
         if ($this->isMember($konusmaId, $userId)) {
             return true;
         }
         $id = $this->db->insertPrepared('#__mesaj_konusma_uyeler', [
+            'id' => IdHelper::generateUuidV4(),
             'konusma_id' => $konusmaId,
             'user_id' => $userId,
-            'son_okunan_mesaj_id' => 0,
+            'son_okunan_mesaj_id' => null,
         ]);
 
         return $id !== false;
@@ -305,13 +308,13 @@ class MesajKonusma extends BaseModel
     /**
      * Konuşma tipine göre kullanıcının üye olması gerekiyorsa ekler (eksik üye satırları için).
      */
-    public function ensureImplicitMember(object $konusma, int $userId): bool
+    public function ensureImplicitMember(object $konusma, string $userId): bool
     {
-        if ($userId <= 0 || !$this->isActivatedUser($userId)) {
+        if (IdHelper::isEmptyEntityId($userId) || !$this->isActivatedUser($userId)) {
             return false;
         }
-        $konusmaId = (int) ($konusma->id ?? 0);
-        if ($konusmaId <= 0) {
+        $konusmaId = (string) ($konusma->id ?? '');
+        if (IdHelper::isEmptyEntityId($konusmaId)) {
             return false;
         }
         if ($this->isMember($konusmaId, $userId)) {
@@ -320,8 +323,8 @@ class MesajKonusma extends BaseModel
 
         $tip = (string) ($konusma->tip ?? '');
         if ($tip === 'dm') {
-            $low = (int) ($konusma->dm_kucuk_id ?? 0);
-            $high = (int) ($konusma->dm_buyuk_id ?? 0);
+            $low = (string) ($konusma->dm_kucuk_id ?? '');
+            $high = (string) ($konusma->dm_buyuk_id ?? '');
             if ($userId !== $low && $userId !== $high) {
                 return false;
             }
@@ -332,7 +335,7 @@ class MesajKonusma extends BaseModel
         }
 
         if ($tip === 'patient' || $tip === 'system') {
-            if ((int) ($konusma->olusturan_id ?? 0) === $userId) {
+            if (IdHelper::idsMatch($konusma->olusturan_id ?? null, $userId)) {
                 return $this->addMember($konusmaId, $userId);
             }
             $sent = $this->db->loadResultPrepared(
@@ -349,9 +352,9 @@ class MesajKonusma extends BaseModel
     /**
      * Gelen/giden kutusu için eksik üye kayıtlarını mevcut konuşma ve mesaj verisinden tamamlar.
      */
-    public function repairMembersForUser(int $userId): void
+    public function repairMembersForUser(string $userId): void
     {
-        if ($userId <= 0 || !self::tableReady() || !$this->isActivatedUser($userId)) {
+        if (IdHelper::isEmptyEntityId($userId) || !self::tableReady() || !$this->isActivatedUser($userId)) {
             return;
         }
 
@@ -361,16 +364,16 @@ class MesajKonusma extends BaseModel
             ['dm', $userId, $userId]
         );
         foreach ($dmRows as $row) {
-            $kid = (int) ($row['id'] ?? 0);
-            $low = (int) ($row['dm_kucuk_id'] ?? 0);
-            $high = (int) ($row['dm_buyuk_id'] ?? 0);
-            if ($kid <= 0) {
+            $kid = (string) ($row['id'] ?? '');
+            $low = (string) ($row['dm_kucuk_id'] ?? '');
+            $high = (string) ($row['dm_buyuk_id'] ?? '');
+            if ($kid === '') {
                 continue;
             }
-            if ($low > 0) {
+            if ($low !== '') {
                 $this->addMember($kid, $low);
             }
-            if ($high > 0) {
+            if ($high !== '') {
                 $this->addMember($kid, $high);
             }
         }
@@ -380,8 +383,8 @@ class MesajKonusma extends BaseModel
             [$userId]
         );
         foreach ($sentRows as $row) {
-            $kid = (int) ($row['konusma_id'] ?? 0);
-            if ($kid > 0) {
+            $kid = (string) ($row['konusma_id'] ?? '');
+            if ($kid !== '') {
                 $this->addMember($kid, $userId);
             }
         }
@@ -391,14 +394,14 @@ class MesajKonusma extends BaseModel
             [$userId]
         );
         foreach ($createdRows as $row) {
-            $kid = (int) ($row['id'] ?? 0);
-            if ($kid > 0) {
+            $kid = (string) ($row['id'] ?? '');
+            if ($kid !== '') {
                 $this->addMember($kid, $userId);
             }
         }
     }
 
-    public function getMemberRow(int $konusmaId, int $userId): ?object
+    public function getMemberRow(string $konusmaId, string $userId): ?object
     {
         return $this->db->fetchObjectPrepared(
             'SELECT * FROM #__mesaj_konusma_uyeler WHERE konusma_id = ? AND user_id = ? LIMIT 1',
@@ -406,9 +409,9 @@ class MesajKonusma extends BaseModel
         ) ?: null;
     }
 
-    private function isActivatedUser(int $userId): bool
+    private function isActivatedUser(string $userId): bool
     {
-        if ($userId <= 0) {
+        if (IdHelper::isEmptyEntityId($userId)) {
             return false;
         }
         $u = new User();

@@ -26,7 +26,7 @@
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" id="dashboard-tc-lookup-btn">
                     <i class="fa-solid fa-magnifying-glass me-1"></i>Ara
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="var i=document.getElementById('dashboard-tc-lookup-input'); if(i){i.value=''; i.focus();}">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-esh-action="clear-focus" data-esh-clear-input="#dashboard-tc-lookup-input">
                     <i class="fa-solid fa-eraser me-1"></i>Temizle
                 </button>
             </div>

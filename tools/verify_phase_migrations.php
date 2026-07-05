@@ -48,8 +48,10 @@ $checks = [
     ['kind' => 'table', 'label' => $prefix . 'cds_ack', 'migration' => 'database/migrate_esh_cds_ack.sql'],
     ['kind' => 'column', 'label' => $prefix . 'izlemler.checkin_accuracy', 'migration' => 'database/migrate_esh_izlemler_checkin_accuracy.sql'],
     ['kind' => 'column', 'label' => $prefix . 'hastalar.esys_hasta_ref', 'migration' => 'database/migrate_esh_esys_refs.sql'],
+    ['kind' => 'column_absent', 'label' => $prefix . 'hastalar.coords', 'migration' => 'database/migrate_esh_hastalar_drop_coords.sql', 'optional' => true],
     ['kind' => 'table', 'label' => $prefix . 'hasta_barthel', 'migration' => 'database/migrate_esh_hasta_barthel.sql', 'optional' => true],
     ['kind' => 'table', 'label' => $prefix . 'stok_malzeme', 'migration' => 'database/migrate_esh_stok_tables.sql', 'optional' => true],
+    ['kind' => 'table', 'label' => $prefix . 'skrs_guvence_map', 'migration' => 'database/migrate_esh_skrs_sidecar.sql', 'optional' => true],
 ];
 
 function tableExists(\App\Core\Database $db, string $table): bool
@@ -91,6 +93,10 @@ foreach ($checks as $check) {
         $parts = explode('.', $label, 2);
         $passed = count($parts) === 2 && columnExists($db, $parts[0], $parts[1]);
         $detail = $passed ? 'kolon mevcut' : 'kolon eksik';
+    } elseif ($check['kind'] === 'column_absent') {
+        $parts = explode('.', $label, 2);
+        $passed = count($parts) === 2 && !columnExists($db, $parts[0], $parts[1]);
+        $detail = $passed ? 'kolon kaldırılmış (kapı coords)' : 'legacy hasta.coords hâlâ var';
     }
 
     $status = $passed ? 'OK' : ($optional ? 'SKIP' : 'FAIL');

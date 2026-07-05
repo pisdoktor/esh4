@@ -1,2 +1,0 @@
-<h4 class="fw-bold text-danger mb-2"><i class="fa-solid fa-triangle-exclamation me-2"></i>Kayıt tarihinden önce ilk izlem</h4>
-    <?php require dirname(__DIR__, 4) . '/partials/admin/stats_page_intro.php'; ?>

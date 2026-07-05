@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Helpers\AuditLogHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\CsrfHelper;
 use App\Helpers\OperationalSettings;
 use App\Helpers\PaginationHelper;
@@ -14,13 +15,13 @@ use App\Models\AuditLog;
 use App\Models\Kurum;
 
 /**
- * KVKK / iç denetim — işlem günlüğü (yönetici).
+ * KVKK / iç denetim — işlem günlüğü (süper yönetici).
  */
 class AuditLogController
 {
     public function __construct()
     {
-        AuthHelper::requireAdmin();
+        AuthHelper::requireSuperAdmin();
     }
 
     /**
@@ -36,10 +37,11 @@ class AuditLogController
             }
         }
 
-        $userId = 0;
+        $userId = '';
         $userRaw = trim((string) ($_GET['user_id'] ?? ''));
-        if ($userRaw !== '' && ctype_digit($userRaw) && (int) $userRaw > 0) {
-            $userId = (int) $userRaw;
+        $userNorm = IdHelper::normalizeRequestId($userRaw !== '' ? $userRaw : null);
+        if ($userNorm !== null) {
+            $userId = $userNorm;
         }
 
         $entityRef = ValidationHelper::tcDigitsOnly((string) ($_GET['entity_ref'] ?? ''));
@@ -162,7 +164,6 @@ class AuditLogController
 
     public function exportCsv(): void
     {
-        AuthHelper::requireAdmin();
         if (!AuditLog::tableReady()) {
             $_SESSION['error'] = 'İşlem günlüğü tablosu kurulu değil.';
             header('Location: ' . esh_url('AuditLog', 'index'));

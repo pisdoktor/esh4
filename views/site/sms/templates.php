@@ -67,7 +67,7 @@
         </div>
     </div>
 </div>
-<script>
+<script<?= esh_csp_nonce_attr() ?>>
 window.ESH_SMS_TEMPLATES = {
     sablonMap: <?= json_encode((object) ($smsSablonMap ?? []), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_HEX_TAG | JSON_HEX_AMP) ?>
 };

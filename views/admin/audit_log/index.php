@@ -54,7 +54,7 @@ $exportCsvUrl = \App\Helpers\UrlHelper::fromRequestParams(array_merge(
             <?php if (AuthHelper::sessionIsPlatformOwner()): ?>
             <form method="post" action="<?= htmlspecialchars(esh_url('AuditLog', 'purgeRetention'), ENT_QUOTES, 'UTF-8') ?>"
                   class="d-inline"
-                  onsubmit="return confirm('Saklama süresini aşan tüm denetim kayıtları silinecek. Devam?');">
+                  data-esh-confirm="Saklama süresini aşan tüm denetim kayıtları silinecek. Devam?">
                 <?= \App\Helpers\CsrfHelper::hiddenField() ?>
                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">
                     <i class="fa-solid fa-broom me-1"></i>Eski kayıtları temizle

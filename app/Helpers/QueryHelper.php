@@ -35,9 +35,9 @@ class QueryHelper
     /**
      * Son izlem tarihi — deferred join öncesi ID sayfalama sorgusunda da kullanılabilir.
      */
-    public static function patientSonIzlemDateSqlExpr(): string
+    public static function patientSonIzlemDateSqlExpr(bool $matchPatientKurum = false): string
     {
-        $izK = TenantSqlHelper::izMatchesPatientKurumSql('i');
+        $izK = TenantSqlHelper::izMatchesPatientKurumSql('i', $matchPatientKurum);
 
         return '(SELECT i.izlemtarihi FROM #__izlemler i WHERE i.hastatckimlik = h.tckimlik AND i.yapildimi = 1'
             . $izK . ' ORDER BY i.izlemtarihi DESC LIMIT 1)';

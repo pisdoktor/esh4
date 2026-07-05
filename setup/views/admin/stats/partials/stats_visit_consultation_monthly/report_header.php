@@ -1,2 +1,0 @@
-<h4 class="fw-bold mb-3"><i class="fa-solid fa-stethoscope text-primary me-2"></i>İzlemde konsültasyon aylık dökümü</h4>
-    <?php require dirname(__DIR__, 4) . '/partials/admin/stats_page_intro.php'; ?>

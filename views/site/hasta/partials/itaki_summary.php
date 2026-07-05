@@ -8,7 +8,7 @@
  */
 use App\Helpers\ItakiScaleHelper;
 
-$hastaId = (int) ($hasta->id ?? 0);
+$hastaId = (string) ($hasta->id ?? '');
 $itakiUrl = esh_url('Patient', 'itaki', ['id' => $hastaId]);
 $count = (int) ($itakiCount ?? 0);
 $latest = $itakiLatest ?? null;

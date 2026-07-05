@@ -1,9 +1,10 @@
 <?php
 /** @var list<object> $items */
 /** @var MesajService $service */
+use App\Helpers\AuthHelper;
 use App\Services\MesajService;
 
-$viewerId = (int) ($_SESSION['user_id'] ?? 0);
+$viewerId = AuthHelper::sessionUserId() ?? '';
 $service = $service ?? new MesajService();
 $mailbox = $mailbox ?? ($mailboxType ?? 'inbox');
 
@@ -21,7 +22,7 @@ if (empty($items)): ?>
     </div>
 <?php else: ?>
     <?php foreach ($items as $row):
-        $kid = (int) ($row->id ?? 0);
+        $kid = (string) ($row->id ?? '');
         $unread = $mailbox === 'inbox' ? (int) ($row->unread_count ?? 0) : 0;
         $title = $service->conversationDisplayTitle($row, $viewerId);
         $tip = (string) ($row->tip ?? '');
@@ -62,15 +63,15 @@ if (empty($items)): ?>
                 <?php endif; ?>
                 <?php if ($mailbox === 'trash'): ?>
                 <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-outline-success js-mesaj-restore" data-konusma-id="<?= $kid ?>" title="Geri yükle">
+                    <button type="button" class="btn btn-outline-success js-mesaj-restore" data-konusma-id="<?= htmlspecialchars($kid, ENT_QUOTES, 'UTF-8') ?>" title="Geri yükle">
                         <i class="fa-solid fa-rotate-left"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-danger js-mesaj-purge" data-konusma-id="<?= $kid ?>" title="Kalıcı sil">
+                    <button type="button" class="btn btn-outline-danger js-mesaj-purge" data-konusma-id="<?= htmlspecialchars($kid, ENT_QUOTES, 'UTF-8') ?>" title="Kalıcı sil">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
                 <?php elseif ($mailbox !== 'sent'): ?>
-                <button type="button" class="btn btn-sm btn-outline-secondary js-mesaj-trash" data-konusma-id="<?= $kid ?>" title="Çöp kutusuna taşı">
+                <button type="button" class="btn btn-sm btn-outline-secondary js-mesaj-trash" data-konusma-id="<?= htmlspecialchars($kid, ENT_QUOTES, 'UTF-8') ?>" title="Çöp kutusuna taşı">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
                 <?php endif; ?>

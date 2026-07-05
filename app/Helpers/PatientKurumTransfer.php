@@ -11,6 +11,7 @@ namespace App\Helpers;
 
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 
 use App\Models\Kurum;
 
@@ -50,9 +51,9 @@ final class PatientKurumTransfer
 
 
 
-        $hastaId = (int) ($patient->id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($patient->id ?? null);
 
-        if ($hastaId <= 0) {
+        if ($hastaId === null) {
 
             return false;
 
@@ -82,7 +83,9 @@ final class PatientKurumTransfer
 
         if (!AuthHelper::sessionIsSuperAdmin()) {
 
-            return 'Bu işlem yalnızca süper yönetici tarafından yapılabilir.';
+            return 'Bu işlem yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' tarafından yapılabilir.';
 
         }
 
@@ -162,9 +165,9 @@ final class PatientKurumTransfer
 
 
 
-        $hastaId = (int) ($patient->id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($patient->id ?? null);
 
-        if ($hastaId > 0 && PatientNakilRequest::hasPending($hastaId)) {
+        if ($hastaId !== null && PatientNakilRequest::hasPending($hastaId)) {
 
             return 'Bu hasta için bekleyen nakil talebi var.';
 
@@ -246,7 +249,7 @@ final class PatientKurumTransfer
 
      */
 
-    public static function apply(object $patient, int $newKurumId, ?int $actingUserId = null): int|bool
+    public static function apply(object $patient, int $newKurumId, ?string $actingUserId = null): string|bool
 
     {
 
@@ -272,9 +275,9 @@ final class PatientKurumTransfer
 
 
 
-        $patientId = (int) ($patient->id ?? 0);
+        $patientId = IdHelper::normalizeRequestId($patient->id ?? null);
 
-        if ($patientId <= 0 || trim((string) ($patient->tckimlik ?? '')) === '') {
+        if ($patientId === null || trim((string) ($patient->tckimlik ?? '')) === '') {
 
             return false;
 
@@ -320,7 +323,7 @@ final class PatientKurumTransfer
 
 
 
-        if ($actingUserId !== null && $actingUserId > 0) {
+        if ($actingUserId !== null && $actingUserId !== '') {
 
             PatientNakilRequest::logInstantApprovedTransfer(
 
@@ -362,11 +365,13 @@ final class PatientKurumTransfer
 
      */
 
-    public static function movePatientToKurum(int $hastaId, int $newKurumId): bool
+    public static function movePatientToKurum(string $hastaId, int $newKurumId): bool
 
     {
 
-        if ($hastaId <= 0 || $newKurumId <= 0) {
+        $hastaId = IdHelper::normalizeRequestId($hastaId);
+
+        if ($hastaId === null || $newKurumId <= 0) {
 
             return false;
 

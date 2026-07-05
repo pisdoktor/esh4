@@ -3,6 +3,7 @@ namespace App\Models;
 
 use App\Helpers\AgeBandHelper;
 use App\Helpers\BmiHelper;
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\CatalogScopeSqlHelper;
 use App\Helpers\IslemIdSettings;
 use App\Helpers\KonsBransIstekHelper;
@@ -13,6 +14,7 @@ use App\Helpers\CatalogStoreHelper;
 use App\Helpers\TenantContext;
 use App\Helpers\TenantSqlHelper;
 use App\Helpers\ZamanDilimiHelper;
+use App\Models\Patient;
 
 class Stats extends BaseModel {
     
@@ -74,8 +76,8 @@ class Stats extends BaseModel {
     public function getMahalleStats() {
         $query = "SELECT m.adi as mahalle_adi, il.adi as ilce_adi, 
                   COUNT(h.id) as toplam_hasta,
-                  SUM(CASE WHEN h.cinsiyet = 'E' THEN 1 ELSE 0 END) as erkek_sayisi,
-                  SUM(CASE WHEN h.cinsiyet = 'K' THEN 1 ELSE 0 END) as kadin_sayisi
+                  SUM(CASE WHEN h.cinsiyet = '1' THEN 1 ELSE 0 END) as erkek_sayisi,
+                  SUM(CASE WHEN h.cinsiyet = '2' THEN 1 ELSE 0 END) as kadin_sayisi
                   FROM #__hastalar as h
                   LEFT JOIN #__adrestablosu as m ON m.id = h.mahalle
                   LEFT JOIN #__adrestablosu as il ON il.id = h.ilce
@@ -90,8 +92,8 @@ class Stats extends BaseModel {
      */
     public function getKayitYiliStats() {
     $query = "SELECT YEAR(kayittarihi) as kayityili, 
-              SUM(CASE WHEN cinsiyet = 'E' THEN 1 ELSE 0 END) as erkek_sayisi,
-              SUM(CASE WHEN cinsiyet = 'K' THEN 1 ELSE 0 END) as kadin_sayisi,
+              SUM(CASE WHEN cinsiyet = '1' THEN 1 ELSE 0 END) as erkek_sayisi,
+              SUM(CASE WHEN cinsiyet = '2' THEN 1 ELSE 0 END) as kadin_sayisi,
               COUNT(id) as toplam_sayi
               FROM #__hastalar 
               WHERE pasif = '0' AND kayittarihi IS NOT NULL AND kayittarihi != '0000-00-00'" . TenantSqlHelper::andBare() . "
@@ -106,8 +108,8 @@ class Stats extends BaseModel {
     public function getKayitAyiStats() {
     // Hem yıl hem ay bilgisi alarak grupluyoruz
     $query = "SELECT YEAR(kayittarihi) as kayityili, MONTH(kayittarihi) as kayitay, 
-              SUM(CASE WHEN cinsiyet = 'E' THEN 1 ELSE 0 END) as erkek_sayisi,
-              SUM(CASE WHEN cinsiyet = 'K' THEN 1 ELSE 0 END) as kadin_sayisi,
+              SUM(CASE WHEN cinsiyet = '1' THEN 1 ELSE 0 END) as erkek_sayisi,
+              SUM(CASE WHEN cinsiyet = '2' THEN 1 ELSE 0 END) as kadin_sayisi,
               COUNT(id) as toplam_sayi
               FROM #__hastalar 
               WHERE pasif = '0' AND kayittarihi IS NOT NULL AND kayittarihi != '0000-00-00'" . TenantSqlHelper::andBare() . "
@@ -124,8 +126,8 @@ class Stats extends BaseModel {
                   COUNT(id) as toplam,
                   SUM(CASE WHEN pasif = '0' THEN 1 ELSE 0 END) as aktif,
                   SUM(CASE WHEN pasif = '1' THEN 1 ELSE 0 END) as pasif,
-                  SUM(CASE WHEN (cinsiyet = 'E' OR cinsiyet = '1') AND pasif = '0' THEN 1 ELSE 0 END) as erkek,
-                  SUM(CASE WHEN (cinsiyet = 'K' OR cinsiyet = '2') AND pasif = '0' THEN 1 ELSE 0 END) as kadin
+                  SUM(CASE WHEN cinsiyet = '1' AND pasif = '0' THEN 1 ELSE 0 END) as erkek,
+                  SUM(CASE WHEN cinsiyet = '2' AND pasif = '0' THEN 1 ELSE 0 END) as kadin
                   FROM #__hastalar WHERE 1=1" . TenantSqlHelper::andBare();
         return $this->db->fetchObjectPrepared($query);
     }
@@ -165,13 +167,13 @@ class Stats extends BaseModel {
             [CatalogStoreHelper::PLATFORM_KURUM_ID]
         ) ?: [];
 
-        $diseaseById = [];
+        $diseaseByIcd = [];
         foreach ($diseaseMapRows as $r) {
             $id = (int) ($r->id ?? 0);
             if ($id <= 0) {
                 continue;
             }
-            $icd = trim((string) ($r->icd ?? ''));
+            $icd = Patient::normalizeHastalikIcd((string) ($r->icd ?? ''));
             $adi = trim((string) ($r->hastalikadi ?? ''));
             $label = $adi;
             if ($icd !== '' && $adi !== '') {
@@ -182,7 +184,10 @@ class Stats extends BaseModel {
             if ($label === '') {
                 $label = 'Tanı #' . $id;
             }
-            $diseaseById[$id] = (object) [
+            if ($icd === '') {
+                continue;
+            }
+            $diseaseByIcd[$icd] = (object) [
                 'id' => $id,
                 'icd' => $icd,
                 'hastalikadi' => $adi,
@@ -192,16 +197,9 @@ class Stats extends BaseModel {
 
         $counts = [];
         foreach ($rows as $row) {
-            $csv = trim((string) ($row->hastaliklar ?? ''));
-            if ($csv === '') {
-                continue;
-            }
-            $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', str_replace(' ', '', $csv))))));
-            foreach ($ids as $hid) {
-                if ($hid <= 0) {
-                    continue;
-                }
-                $counts[$hid] = ($counts[$hid] ?? 0) + 1;
+            $icds = Patient::parseHastalikCsvToIcds($row->hastaliklar ?? null);
+            foreach ($icds as $icd) {
+                $counts[$icd] = ($counts[$icd] ?? 0) + 1;
             }
         }
 
@@ -211,18 +209,18 @@ class Stats extends BaseModel {
 
         arsort($counts);
         $out = [];
-        foreach ($counts as $hid => $count) {
-            $meta = $diseaseById[$hid] ?? (object) [
-                'id' => $hid,
-                'icd' => '',
+        foreach ($counts as $icd => $count) {
+            $meta = $diseaseByIcd[$icd] ?? (object) [
+                'id' => 0,
+                'icd' => $icd,
                 'hastalikadi' => '',
-                'etiket' => 'Tanı #' . $hid,
+                'etiket' => $icd,
             ];
             $out[] = (object) [
-                'id' => (int) $hid,
-                'icd' => (string) ($meta->icd ?? ''),
+                'id' => (int) ($meta->id ?? 0),
+                'icd' => (string) ($meta->icd ?? $icd),
                 'hastalikadi' => (string) ($meta->hastalikadi ?? ''),
-                'etiket' => (string) ($meta->etiket ?? ''),
+                'etiket' => (string) ($meta->etiket ?? $icd),
                 'sayi' => (int) $count,
             ];
         }
@@ -255,7 +253,7 @@ class Stats extends BaseModel {
                              WHERE hl.cat = c.id
                                {$hlPlatform}
                                {$hlScope}
-                               AND FIND_IN_SET(hl.id, REPLACE(h.hastaliklar, ' ', '')) > 0
+                               AND FIND_IN_SET(hl.icd, REPLACE(h.hastaliklar, ' ', '')) > 0
                         )) AS hasta_sayisi,
                     (SELECT COUNT(*)
                        FROM #__hastaliklar hl2
@@ -266,7 +264,7 @@ class Stats extends BaseModel {
                             SELECT 1 FROM #__hastalar h2
                              WHERE h2.pasif = '0'
                                {$h2Kurum}
-                               AND FIND_IN_SET(hl2.id, REPLACE(h2.hastaliklar, ' ', '')) > 0
+                               AND FIND_IN_SET(hl2.icd, REPLACE(h2.hastaliklar, ' ', '')) > 0
                         )) AS tani_kayitli_sayisi
                FROM #__hastalikcat c
                ORDER BY hasta_sayisi DESC, c.id ASC"
@@ -316,15 +314,8 @@ class Stats extends BaseModel {
 
         $data = [];
         foreach ($liste as $li) {
-            foreach (explode(',', (string) $li) as $idRaw) {
-                $idRaw = trim($idRaw);
-                if ($idRaw === '') {
-                    continue;
-                }
-                $nid = (int) $idRaw;
-                if ($nid > 0) {
-                    $data[] = $nid;
-                }
+            foreach (Patient::parseHastalikCsvToIcds((string) $li) as $icd) {
+                $data[] = $icd;
             }
         }
         $counts = $data === [] ? [] : array_count_values($data);
@@ -341,8 +332,16 @@ class Stats extends BaseModel {
 
     public function countPatientsWithHastalikId(int $hid): int {
         $hid = max(1, $hid);
-        $sql = "SELECT COUNT(id) FROM #__hastalar WHERE pasif = '0' AND FIND_IN_SET(?, hastaliklar)" . TenantSqlHelper::andBare();
-        return (int) $this->db->loadResultPrepared($sql, [$hid]);
+        $icd = Patient::normalizeHastalikIcd((string) $this->db->loadResultPrepared(
+            'SELECT icd FROM #__hastaliklar WHERE id = ? AND kurum_id = ? LIMIT 1',
+            [$hid, CatalogStoreHelper::PLATFORM_KURUM_ID]
+        ));
+        if ($icd === '') {
+            return 0;
+        }
+        $sql = "SELECT COUNT(id) FROM #__hastalar WHERE pasif = '0' AND FIND_IN_SET(?, REPLACE(hastaliklar, ' ', ''))" . TenantSqlHelper::andBare();
+
+        return (int) $this->db->loadResultPrepared($sql, [$icd]);
     }
 
     /**
@@ -350,6 +349,13 @@ class Stats extends BaseModel {
      */
     public function getPatientsWithHastalikId(int $hid, string $orderFragment, int $limit, int $offset): array {
         $hid = max(1, $hid);
+        $icd = Patient::normalizeHastalikIcd((string) $this->db->loadResultPrepared(
+            'SELECT icd FROM #__hastaliklar WHERE id = ? AND kurum_id = ? LIMIT 1',
+            [$hid, CatalogStoreHelper::PLATFORM_KURUM_ID]
+        ));
+        if ($icd === '') {
+            return [];
+        }
         $limit = max(1, min(200, $limit));
         $offset = max(0, $offset);
         $izK = $this->izSubK();
@@ -359,10 +365,10 @@ class Stats extends BaseModel {
             FROM #__hastalar AS h
             LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
             LEFT JOIN #__adrestablosu AS ilc ON ilc.id = h.ilce
-            WHERE FIND_IN_SET(" . $hid . ", h.hastaliklar) AND h.pasif = '0'" . TenantSqlHelper::andEquals('h') . "
+            WHERE FIND_IN_SET(?, REPLACE(h.hastaliklar, ' ', '')) AND h.pasif = '0'" . TenantSqlHelper::andEquals('h') . "
             ORDER BY " . $orderFragment . "
             LIMIT " . (int) $offset . ", " . (int) $limit;
-        $list = $this->db->fetchObjectListPrepared($sql);
+        $list = $this->db->fetchObjectListPrepared($sql, [$icd]);
 
         return is_array($list) ? $list : [];
     }
@@ -2194,16 +2200,16 @@ class Stats extends BaseModel {
         $query1 = "SELECT 
                     COUNT(id) as total_reached,
                     IFNULL(SUM(CASE WHEN pasif = '0' THEN 1 ELSE 0 END), 0) as active_total,
-                    IFNULL(SUM(CASE WHEN pasif = '0' AND (cinsiyet = 'E' OR cinsiyet = '1') THEN 1 ELSE 0 END), 0) as active_male,
-                    IFNULL(SUM(CASE WHEN pasif = '0' AND (cinsiyet = 'K' OR cinsiyet = '2') THEN 1 ELSE 0 END), 0) as active_female,
+                    IFNULL(SUM(CASE WHEN pasif = '0' AND cinsiyet = '1' THEN 1 ELSE 0 END), 0) as active_male,
+                    IFNULL(SUM(CASE WHEN pasif = '0' AND cinsiyet = '2' THEN 1 ELSE 0 END), 0) as active_female,
                     IFNULL(SUM(CASE WHEN pasif = '0' AND bagimlilik = '2' THEN 1 ELSE 0 END), 0) as fully_dependent
                   FROM #__hastalar
                   WHERE pasif IN ('1','0','-1','-3')" . TenantSqlHelper::andBare();
         $stats = $this->db->fetchObjectPrepared($query1) ?: $emptyGeneral;
 
         $query2 = "SELECT 
-                    IFNULL(SUM(CASE WHEN (cinsiyet = 'E' OR cinsiyet = '1') THEN 1 ELSE 0 END), 0) as new_male,
-                    IFNULL(SUM(CASE WHEN (cinsiyet = 'K' OR cinsiyet = '2') THEN 1 ELSE 0 END), 0) as new_female
+                    IFNULL(SUM(CASE WHEN cinsiyet = '1' THEN 1 ELSE 0 END), 0) as new_male,
+                    IFNULL(SUM(CASE WHEN cinsiyet = '2' THEN 1 ELSE 0 END), 0) as new_female
                   FROM #__hastalar 
                   WHERE pasif = '0'
                   AND kayittarihi IS NOT NULL AND kayittarihi != '0000-00-00'
@@ -2214,8 +2220,8 @@ class Stats extends BaseModel {
         $pt = $this->sqlPasifTarihiAsDate();
         $monthStartQ = $this->db->quote($yearStr . '-' . $monthPadded . '-01');
         $query3 = "SELECT 
-                    IFNULL(SUM(CASE WHEN (cinsiyet = 'E' OR cinsiyet = '1') THEN 1 ELSE 0 END), 0) as exit_male,
-                    IFNULL(SUM(CASE WHEN (cinsiyet = 'K' OR cinsiyet = '2') THEN 1 ELSE 0 END), 0) as exit_female
+                    IFNULL(SUM(CASE WHEN cinsiyet = '1' THEN 1 ELSE 0 END), 0) as exit_male,
+                    IFNULL(SUM(CASE WHEN cinsiyet = '2' THEN 1 ELSE 0 END), 0) as exit_female
                   FROM #__hastalar
                   WHERE pasif = '1' 
                   AND {$pt} BETWEEN {$monthStartQ} AND LAST_DAY({$monthStartQ})" . TenantSqlHelper::andBare();
@@ -2660,8 +2666,8 @@ class Stats extends BaseModel {
         $catKeys = BmiHelper::categoryKeys();
         $categories = BmiHelper::emptyCategoryCounts();
         $byGender = [
-            'E' => BmiHelper::emptyCategoryCounts(),
-            'K' => BmiHelper::emptyCategoryCounts(),
+            CinsiyetHelper::ERKEK => BmiHelper::emptyCategoryCounts(),
+            CinsiyetHelper::KADIN => BmiHelper::emptyCategoryCounts(),
             '?' => BmiHelper::emptyCategoryCounts(),
         ];
         $byAge = [];
@@ -2673,8 +2679,8 @@ class Stats extends BaseModel {
         $computable = 0;
         $invalidAnthro = 0;
         $bmiSum = 0.0;
-        $bmiSumByGender = ['E' => 0.0, 'K' => 0.0, '?' => 0.0];
-        $bmiCountByGender = ['E' => 0, 'K' => 0, '?' => 0];
+        $bmiSumByGender = [CinsiyetHelper::ERKEK => 0.0, CinsiyetHelper::KADIN => 0.0, '?' => 0.0];
+        $bmiCountByGender = [CinsiyetHelper::ERKEK => 0, CinsiyetHelper::KADIN => 0, '?' => 0];
 
         foreach ($rows as $row) {
             $hasBoy = $row->boy !== null && (float) $row->boy > 0;
@@ -2730,7 +2736,7 @@ class Stats extends BaseModel {
 
         $avgBmi = $computable > 0 ? round($bmiSum / $computable, 1) : 0.0;
         $avgByGender = [];
-        foreach (['E', 'K', '?'] as $gk) {
+        foreach ([CinsiyetHelper::KADIN, CinsiyetHelper::ERKEK, '?'] as $gk) {
             $cnt = (int) $bmiCountByGender[$gk];
             $avgByGender[$gk] = [
                 'label' => BmiHelper::genderLabel($gk),
@@ -3582,9 +3588,7 @@ class Stats extends BaseModel {
                 $buckets['0']['adet']++;
                 continue;
             }
-            $ids = array_filter(array_map('trim', explode(',', $raw)), static function ($id) {
-                return $id !== '' && $id !== '0';
-            });
+            $ids = Patient::parseHastalikCsvToIcds($raw);
             $n = count($ids);
             $sumTanilar += $n;
             if ($n === 0) {

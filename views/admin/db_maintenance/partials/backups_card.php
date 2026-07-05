@@ -120,7 +120,7 @@ $mysqldumpDisabled = $mysqldumpOk ? '' : ' disabled';
                             <td><?= \App\Helpers\DateHelper::unixToTrDotDateTimeOrEmpty(!empty($b['mtime']) ? (int) $b['mtime'] : null) ?></td>
                             <td class="text-end pe-3 text-nowrap">
                                 <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars(esh_url('DbMaintenance', 'download', ['file' => rawurlencode((string) ($b['name'] ?? ''))]), ENT_QUOTES, 'UTF-8') ?>"><i class="fa-solid fa-download"></i></a>
-                                <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'deleteBackup'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" onsubmit="return confirm('Bu yedek silinsin mi?');">
+                                <form method="post" action="<?= htmlspecialchars(esh_url('DbMaintenance', 'deleteBackup'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline" data-esh-confirm="Bu yedek silinsin mi?">
                                     <input type="hidden" name="maint_token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
                                     <input type="hidden" name="file" value="<?= htmlspecialchars((string) ($b['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>

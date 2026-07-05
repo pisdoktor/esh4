@@ -80,7 +80,7 @@
                 </div>
             </div>
             <details class="small text-muted mt-3">
-                <summary class="user-select-none">CLI ile toplu temizlik (süper yönetici)</summary>
+                <summary class="user-select-none">CLI ile toplu temizlik (<?= htmlspecialchars(mb_strtolower(\App\Helpers\AuthHelper::adminLevelLabel(\App\Helpers\AuthHelper::ROLE_SUPERADMIN), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>)</summary>
                 <p class="mb-1 mt-2">Binlerce kayıt için tarayıcı yerine sunucuda:</p>
                 <pre class="small bg-light border rounded p-2 mb-0"><code>php tools/purge_orphan_addresses.php --dry-run --tip=all
 php tools/purge_orphan_addresses.php --tip=kapino

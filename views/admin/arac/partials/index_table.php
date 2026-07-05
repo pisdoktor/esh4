@@ -3,8 +3,7 @@
  * Araç listesi tablo kabuğu (thead + yükleme satırı).
  * @var string $indexRowsFetchUrl
  */
-$eshAracShowKurumCol = \App\Helpers\AuthHelper::sessionIsSuperAdmin();
-$eshAracListColspan = $eshAracShowKurumCol ? 5 : 4;
+$eshAracListColspan = 5;
 ?>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
@@ -13,9 +12,7 @@ $eshAracListColspan = $eshAracShowKurumCol ? 5 : 4;
                             <?= \App\Helpers\UIHelper::renderSortTh('ID', 'id', $ordering, $eshSortCfg) ?>
                             <?= \App\Helpers\UIHelper::renderSortTh('Plaka', 'plaka', $ordering, $eshSortCfg) ?>
                             <?= \App\Helpers\UIHelper::renderSortTh('Araç bilgisi', 'arac_bilgisi', $ordering, $eshSortCfg) ?>
-                            <?php if ($eshAracShowKurumCol): ?>
                             <th>Kurum</th>
-                            <?php endif; ?>
                             <th width="150" class="text-center">İşlemler</th>
                         </tr>
                     </thead>

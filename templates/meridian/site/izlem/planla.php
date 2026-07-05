@@ -116,7 +116,7 @@
                 </div>
 
                 <div class="mt-4 pt-3 border-top d-flex flex-wrap justify-content-between gap-2 align-items-center">
-                    <button type="button" onclick="history.back()" class="btn btn-outline-secondary px-4 rounded-pill">Vazgeç</button>
+                    <button type="button" data-esh-action="history-back" class="btn btn-outline-secondary px-4 rounded-pill">Vazgeç</button>
                     <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm fw-semibold">
                         <i class="fa-solid fa-circle-check me-2"></i>Planı oluştur
                     </button>

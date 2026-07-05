@@ -4,7 +4,7 @@
     var form = document.getElementById('esh-mesaj-send-form');
     var textarea = document.getElementById('esh-mesaj-govde');
     var sendBtn = document.getElementById('esh-mesaj-send-btn');
-    var sinceId = parseInt(cfg.sinceId, 10) || 0;
+    var sinceId = String(cfg.sinceId || '').trim();
     var pollTimer = null;
     var pollMs = 5000;
 
@@ -60,9 +60,9 @@
             if (data.has_new && data.html) {
                 appendHtml(data.html);
             }
-            if (data.last_id && parseInt(data.last_id, 10) > sinceId) {
-                sinceId = parseInt(data.last_id, 10);
-                scrollEl.setAttribute('data-since-id', String(sinceId));
+            if (data.last_id && String(data.last_id) !== sinceId) {
+                sinceId = String(data.last_id);
+                scrollEl.setAttribute('data-since-id', sinceId);
             }
             if (typeof data.unread_total !== 'undefined') {
                 updateNavBadge(data.unread_total);
@@ -112,9 +112,9 @@
                 if (data.html) {
                     appendHtml(data.html);
                 }
-                if (data.mesaj_id && parseInt(data.mesaj_id, 10) > sinceId) {
-                    sinceId = parseInt(data.mesaj_id, 10);
-                    scrollEl.setAttribute('data-since-id', String(sinceId));
+                if (data.mesaj_id && String(data.mesaj_id) !== sinceId) {
+                    sinceId = String(data.mesaj_id);
+                    scrollEl.setAttribute('data-since-id', sinceId);
                 }
             }).catch(function () {
                 if (window.toastr) {
@@ -152,7 +152,7 @@
         if (!btn || !url) {
             return;
         }
-        var kid = parseInt(btn.getAttribute('data-konusma-id') || cfg.konusmaId, 10);
+        var kid = String(btn.getAttribute('data-konusma-id') || cfg.konusmaId || '').trim();
         btn.addEventListener('click', function () {
             if (options.confirm && !window.confirm(options.confirm)) {
                 return;

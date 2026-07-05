@@ -19,7 +19,7 @@ class EsysBridgeController
 {
     public function __construct()
     {
-        AuthHelper::requireAdmin();
+        AuthHelper::requirePlatformOwner();
         if (!EsysComplianceHelper::enabled()) {
             $_SESSION['error'] = 'ESYS referans sütunları kurulu değil. Önce migrate_esh_esys_refs.sql çalıştırın.';
             header('Location: ' . esh_url('EsysCompliance', 'index'));

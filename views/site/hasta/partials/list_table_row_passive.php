@@ -7,7 +7,7 @@
     </td>
     <td>
         <div class="dropdown">
-            <a class="dropdown-toggle text-decoration-none small esh-patient-name-link <?= (($patient->cinsiyet ?? '') === '1' || ($patient->cinsiyet ?? '') === 'E') ? 'esh-patient-gender-male' : 'esh-patient-gender-female' ?>" href="#" data-bs-toggle="dropdown">
+            <a class="dropdown-toggle text-decoration-none small esh-patient-name-link <?= \App\Helpers\CinsiyetHelper::patientNameCssClass($patient->cinsiyet ?? null) ?>" href="#" data-bs-toggle="dropdown">
                 <?= htmlspecialchars($patient->isim . ' ' . $patient->soyisim) ?>
             </a>
             <div class="mt-1">

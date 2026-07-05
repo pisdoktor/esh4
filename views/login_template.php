@@ -21,8 +21,8 @@ if ($__lt === '') {
     <?= esh_csrf_meta(); ?>
     <?= \App\Helpers\CdnAssetHelper::minimalAuthLayoutStylesHtml() ?>
 <?php \App\Helpers\ThemeViewHelper::renderLoginStylesheetsHtml($__lt); ?>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-input-uppercase.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
-    <script defer src="<?= htmlspecialchars(SITEURL . '/public/assets/form-submit-guard.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-input-uppercase.js', 'defer') ?>
+    <?= esh_csp_script_src_tag(SITEURL . '/public/assets/form-submit-guard.js', 'defer') ?>
 </head>
 <body class="page-login page-login-theme-<?= htmlspecialchars($__lt, ENT_QUOTES, 'UTF-8'); ?>">
     <div class="card login-card login-card-split">
@@ -37,7 +37,7 @@ if ($__lt === '') {
                 <div class="alert alert-warning d-flex align-items-start small mb-3" role="alert">
                     <i class="fa-solid fa-screwdriver-wrench me-2 mt-1"></i>
                     <div>
-                        <strong>Site bakımda.</strong> Yalnızca süper yönetici girişi kabul edilir.
+                        <strong>Site bakımda.</strong> Yalnızca <?= htmlspecialchars(mb_strtolower(\App\Helpers\AuthHelper::adminLevelLabel(\App\Helpers\AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?> girişi kabul edilir.
                         <?php if (OperationalSettings::maintenanceMessage() !== ''): ?>
                             <span class="d-block mt-1 mb-0"><?= htmlspecialchars(OperationalSettings::maintenanceMessage(), ENT_QUOTES, 'UTF-8') ?></span>
                         <?php endif; ?>

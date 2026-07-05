@@ -1,8 +1,8 @@
 <?php
 /** @var object $patient */
 /** @var list<object> $branslar */
-/** @var array<int, string> $hastalikAdById */
-/** @var array<int, string> $hastalikOptions */
+/** @var array<string, string> $hastalikAdByIcd */
+/** @var array<string, string> $hastalikOptions */
 
 $bransById = [];
 foreach ($branslar as $__b) {
@@ -10,11 +10,11 @@ foreach ($branslar as $__b) {
 }
 unset($__b);
 
-$patientId = (int) ($patient->id ?? 0);
+$patientId = (string) ($patient->id ?? '');
 $tcRaw = (string) ($patient->tckimlik ?? '');
 $patientDisplayName = trim((string) ($patient->isim ?? '') . ' ' . (string) ($patient->soyisim ?? ''));
 $pasifEtiket = !empty($patient->pasif) ? ' (dosya kapalı / pasif)' : '';
-$hastalikAdById = $hastalikAdById ?? [];
+$hastalikAdByIcd = $hastalikAdByIcd ?? [];
 $hastalikOptions = $hastalikOptions ?? [];
 
 $cntRaporlu = 0;

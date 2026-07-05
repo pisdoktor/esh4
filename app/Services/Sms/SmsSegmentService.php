@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services\Sms;
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 use App\Helpers\ZamanDilimiHelper;
 use App\Models\Pansuman;
@@ -49,8 +50,8 @@ final class SmsSegmentService
      */
     private function tekHasta(array $params): array
     {
-        $id = (int) ($params['hasta_id'] ?? 0);
-        if ($id <= 0) {
+        $id = IdHelper::normalizeRequestId($params['hasta_id'] ?? null);
+        if ($id === null) {
             return [];
         }
         $hasta = (new Patient())->getById($id);
@@ -71,8 +72,8 @@ final class SmsSegmentService
         $out = [];
         $patient = new Patient();
         foreach ($ids as $id) {
-            $hid = (int) $id;
-            if ($hid <= 0) {
+            $hid = IdHelper::normalizeRequestId($id);
+            if ($hid === null) {
                 continue;
             }
             $hasta = $patient->getById($hid);
@@ -105,8 +106,8 @@ final class SmsSegmentService
             $slot = $plans[$slotKey] ?? [];
             foreach (['planli', 'ilkziyaret', 'pansuman'] as $group) {
                 foreach (($slot[$group] ?? []) as $item) {
-                    $hid = (int) ($item->hastaid ?? 0);
-                    if ($hid <= 0) {
+                    $hid = IdHelper::normalizeRequestId($item->hastaid ?? null);
+                    if ($hid === null) {
                         continue;
                     }
                     $byId[$hid] = [
@@ -119,8 +120,8 @@ final class SmsSegmentService
             }
         }
         foreach ($plans['nakiller'] ?? [] as $item) {
-            $hid = (int) ($item->hastaid ?? 0);
-            if ($hid <= 0) {
+            $hid = IdHelper::normalizeRequestId($item->hastaid ?? null);
+            if ($hid === null) {
                 continue;
             }
             $byId[$hid] = [
@@ -145,8 +146,8 @@ final class SmsSegmentService
         $rows = $pansuman->getPansumanList('', (string) $day, 5000, 0);
         $byId = [];
         foreach ($rows as $h) {
-            $hid = (int) ($h->id ?? 0);
-            if ($hid > 0) {
+            $hid = IdHelper::normalizeRequestId($h->id ?? null);
+            if ($hid !== null) {
                 $byId[$hid] = ['islem' => 'Pansuman', 'tarih' => date('d.m.Y')];
             }
         }
@@ -166,8 +167,8 @@ final class SmsSegmentService
         $rows = $pansuman->getPansumanList($search, $filterDay, 5000, 0);
         $byId = [];
         foreach ($rows as $h) {
-            $hid = (int) ($h->id ?? 0);
-            if ($hid > 0) {
+            $hid = IdHelper::normalizeRequestId($h->id ?? null);
+            if ($hid !== null) {
                 $byId[$hid] = ['islem' => 'Pansuman'];
             }
         }
@@ -196,8 +197,8 @@ final class SmsSegmentService
         $byId = [];
         if (is_array($rows)) {
             foreach ($rows as $h) {
-                $hid = (int) ($h->hid ?? 0);
-                if ($hid <= 0) {
+                $hid = IdHelper::normalizeRequestId($h->hid ?? null);
+                if ($hid === null) {
                     continue;
                 }
                 $degisim = (string) ($h->sonda_degisim_tarihi ?? '');
@@ -229,8 +230,8 @@ final class SmsSegmentService
         $byId = [];
         if (is_array($list)) {
             foreach ($list as $row) {
-                $hid = (int) ($row->hid ?? 0);
-                if ($hid > 0) {
+                $hid = IdHelper::normalizeRequestId($row->hid ?? null);
+                if ($hid !== null) {
                     $byId[$hid] = [
                         'tarih' => date('d.m.Y', strtotime($date)),
                         'islem' => 'Planlı izlem',
@@ -259,8 +260,8 @@ final class SmsSegmentService
         $byId = [];
         if (is_array($list)) {
             foreach ($list as $row) {
-                $hid = (int) ($row->hid ?? 0);
-                if ($hid > 0) {
+                $hid = IdHelper::normalizeRequestId($row->hid ?? null);
+                if ($hid !== null) {
                     $z = ZamanDilimiHelper::label(ZamanDilimiHelper::normalize($row->zaman ?? 1));
                     $byId[$hid] = [
                         'tarih' => date('d.m.Y', strtotime($date)),
@@ -289,8 +290,8 @@ final class SmsSegmentService
         $byId = [];
         if (is_array($list)) {
             foreach ($list as $row) {
-                $hid = (int) ($row->hid ?? 0);
-                if ($hid > 0) {
+                $hid = IdHelper::normalizeRequestId($row->hid ?? null);
+                if ($hid !== null) {
                     $byId[$hid] = ['islem' => 'Bekleyen kayıt'];
                 }
             }
@@ -300,7 +301,7 @@ final class SmsSegmentService
     }
 
     /**
-     * @param array<int, array<string, string>> $byId
+     * @param array<string, array<string, string>> $byId
      * @return list<array{hasta:object,meta:array<string,string>}>
      */
     private function loadPatientsByMeta(array $byId): array
@@ -311,7 +312,7 @@ final class SmsSegmentService
         $patient = new Patient();
         $out = [];
         foreach ($byId as $hid => $meta) {
-            $hasta = $patient->getById((int) $hid);
+            $hasta = $patient->getById($hid);
             if ($hasta) {
                 $out[] = ['hasta' => $hasta, 'meta' => $meta];
             }

@@ -4,13 +4,14 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\IdHelper;
 use App\Helpers\TenantSqlHelper;
 
 class SmsGonderim extends BaseModel
 {
     public $id = null;
     public $kurum_id = 0;
-    public $olusturan_id = 0;
+    public $olusturan_id = null;
     public $segment_tipi = 'tek_hasta';
     public $segment_param_json = null;
     public $sablon_id = null;
@@ -41,19 +42,23 @@ class SmsGonderim extends BaseModel
         }
     }
 
-    public function createBatch(array $data): int
+    public function createBatch(array $data): string|false
     {
         if (!self::tableReady()) {
-            return 0;
+            return false;
+        }
+        if (!isset($data['id']) || IdHelper::isEmptyEntityId($data['id'] ?? null)) {
+            $data['id'] = IdHelper::generateUuidV4();
         }
         $id = $this->db->insertPrepared('#__sms_gonderim', $data);
 
-        return $id !== false ? (int) $id : 0;
+        return $id !== false ? (string) $id : false;
     }
 
-    public function updateStats(int $id, string $durum, int $toplam, int $basarili, int $basarisiz): bool
+    public function updateStats(int|string $id, string $durum, int $toplam, int $basarili, int $basarisiz): bool
     {
-        if ($id <= 0) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null) {
             return false;
         }
 
@@ -62,7 +67,7 @@ class SmsGonderim extends BaseModel
             'toplam' => $toplam,
             'basarili' => $basarili,
             'basarisiz' => $basarisiz,
-        ], 'id = ?', [$id]);
+        ], 'id = ?', [$rid]);
     }
 
     /**
@@ -94,16 +99,17 @@ class SmsGonderim extends BaseModel
         return is_array($list) ? $list : [];
     }
 
-    public function findById(int $id): ?object
+    public function findById(int|string|null $id): ?object
     {
-        if ($id <= 0 || !self::tableReady()) {
+        $rid = IdHelper::normalizeRequestId($id);
+        if ($rid === null || !self::tableReady()) {
             return null;
         }
         $row = $this->db->fetchOnePrepared(
             'SELECT g.*, u.name AS olusturan_adi FROM #__sms_gonderim g
              LEFT JOIN #__users u ON u.id = g.olusturan_id
              WHERE g.id = ? LIMIT 1',
-            [$id]
+            [$rid]
         );
 
         return is_object($row) ? $row : null;

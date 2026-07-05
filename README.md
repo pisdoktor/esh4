@@ -2,6 +2,8 @@
 
 Türkiye'de evde sağlık hizmetleri yönetimi için geliştirilmiş web uygulaması. PHP 8 tabanlı özel MVC çatısı; varsayılan veritabanı **MySQL/MariaDB** (PostgreSQL, SQL Server, SQLite ve Oracle şemaları da mevcuttur).
 
+Bu depo, sıfır sunucu kurulumu için hazırlanmış temiz dağıtım paketidir (geliştirme artıkları, yerel config ve log yedekleri dahil değildir).
+
 ## Depo yapısı
 
 | Dizin | Açıklama |
@@ -9,31 +11,20 @@ Türkiye'de evde sağlık hizmetleri yönetimi için geliştirilmiş web uygulam
 | `app/` | Controller, Model, Service ve Helper sınıfları |
 | `config/` | Uygulama yapılandırması (`config.local.php` git dışıdır) |
 | `database/` | Şema, seed ve migrasyon dosyaları |
-| `public/` | Web kökü (`index.php`, statik varlıklar) |
+| `public/` | Web kökü (`index.php`, statik varlıklar, `install.php`) |
 | `views/` | PHP view şablonları |
-| `tools/` | CLI yardımcı betikleri (test, kurulum aynası, export) |
-| **`setup/`** | **Sıfır sunucu kurulum paketi** (temiz ayna; aşağıya bakın) |
+| `tools/` | CLI yardımcı betikleri (test, export, bakım) |
 
 ## Hızlı kurulum (üretim)
 
-`setup/` klasörü, geliştirme artıkları olmadan dağıtıma hazır dosya aynasıdır.
-
-1. `setup/` **içeriğini** (klasörün kendisini değil) web sunucusu köküne kopyalayın.
+1. Depo içeriğini web sunucusu köküne kopyalayın veya klonlayın.
 2. Tarayıcıdan `public/install.php` kurulum sihirbazını açın.
 3. Veritabanı türünü seçin; şema ve seed otomatik uygulanır, `config/config.local.php` oluşturulur.
 4. Kurulum sonrası `public/install.php` dosyasını kaldırın veya erişimi kilitleyin.
 
-Ayrıntılar: [`setup/README.txt`](setup/README.txt)
+Ayrıntılar: [`README.txt`](README.txt) · Dosya listesi: [`DOSYALAR.txt`](DOSYALAR.txt)
 
-### Kurulum paketini yenileme (geliştiriciler)
-
-Ana projeden `setup/` aynasını güncellemek için:
-
-```bash
-php tools/build_setup_mirror.php
-```
-
-Tam paket (ek depolama içeriği dahil): `php tools/build_setup_mirror.php --full`
+Desteklenen veritabanı sürücüleri: `mysql`, `sqlsrv`, `pgsql`, `sqlite`, `oci`
 
 ## Geliştirme ortamı
 

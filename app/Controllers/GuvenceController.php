@@ -6,12 +6,12 @@ use App\Helpers\ThemeViewHelper;
 use App\Models\Guvence;
 
 /**
- * Sağlık güvencesi yönetimi (platform geneli — yalnızca süper yönetici).
+ * Sağlık güvencesi yönetimi (platform geneli katalog — yalnızca platform sahibi).
  */
 class GuvenceController {
 
     public function __construct() {
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
     }
     
     /**
@@ -49,11 +49,7 @@ class GuvenceController {
             echo json_encode(['ok' => false, 'error' => 'Oturum gerekli'], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        if (!AuthHelper::sessionIsSuperAdmin()) {
-            http_response_code(403);
-            echo json_encode(['ok' => false, 'error' => 'Yetkisiz'], JSON_UNESCAPED_UNICODE);
-            exit;
-        }
+        AuthHelper::requirePlatformOwnerJson();
 
         $sort = \App\Helpers\QueryHelper::catalogSort(
             \App\Helpers\QueryHelper::catalogIdNameAllowed('id', 'guvenceadi'),

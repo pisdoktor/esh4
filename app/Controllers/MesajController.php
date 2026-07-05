@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Helpers\AppSettings;
 use App\Helpers\AuthHelper;
 use App\Helpers\ThemeViewHelper;
@@ -32,7 +33,7 @@ class MesajController
         }
 
         $userId = $this->currentUserId();
-        if ($userId > 0 && !MesajService::canUseMessaging($userId)) {
+        if ($userId !== null && !MesajService::canUseMessaging($userId)) {
             $message = MesajService::isActiveUser($userId)
                 ? 'Mesajlaşma yalnızca yöneticiler içindir.'
                 : 'Pasif hesaplar mesajlaşmayı kullanamaz.';
@@ -45,9 +46,9 @@ class MesajController
         }
     }
 
-    private function currentUserId(): int
+    private function currentUserId(): ?string
     {
-        return (int) ($_SESSION['user_id'] ?? 0);
+        return AuthHelper::sessionUserId();
     }
 
     private function jsonOut(array $payload, int $code = 200): void
@@ -56,6 +57,25 @@ class MesajController
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($payload, JSON_UNESCAPED_UNICODE);
         exit;
+    }
+
+    /**
+     * @param list<object> $messages
+     */
+    private function maxMessageIdFromList(array $messages, ?string $floorId = null): ?string
+    {
+        $lastId = $floorId;
+        foreach ($messages as $m) {
+            $mid = isset($m->id) ? (string) $m->id : '';
+            if ($mid === '') {
+                continue;
+            }
+            if ($lastId === null || strcmp($mid, (string) $lastId) > 0) {
+                $lastId = $mid;
+            }
+        }
+
+        return $lastId;
     }
 
     private function normalizeMailbox(string $raw): string
@@ -116,7 +136,7 @@ class MesajController
     public function inboxRows(): void
     {
         $this->ensureModule();
-        if ($this->currentUserId() <= 0) {
+        if ($this->currentUserId() === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
@@ -136,8 +156,8 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        $konusmaId = (int) ($_GET['id'] ?? 0);
-        if ($konusmaId <= 0) {
+        $konusmaId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($konusmaId === null) {
             $_SESSION['error'] = 'Konuşma seçilmedi.';
             header('Location: ' . esh_url('Mesaj', 'index'));
             exit;
@@ -161,14 +181,14 @@ class MesajController
         $isTrashed = $this->service->isTrashedForUser($konusmaId, $userId);
         $messages = $this->mesajModel->getMessages($konusmaId);
         $lastId = $this->mesajModel->getLastMessageId($konusmaId);
-        if ($lastId > 0 && !$isTrashed) {
+        if ($lastId !== null && !$isTrashed) {
             $this->service->markRead($konusmaId, $userId, $lastId);
         }
 
         $pageTitle = $this->service->conversationDisplayTitle($konusma, $userId);
         $threadTitle = $pageTitle;
         $konusmaId = $konusmaId;
-        $hastaId = (int) ($konusma->hasta_id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($konusma->hasta_id ?? null) ?? '';
         $threadRowsFetchUrl = esh_url('Mesaj', 'threadRows', ['id' => $konusmaId]);
         $sendUrl = esh_url('Mesaj', 'send');
         $markReadUrl = esh_url('Mesaj', 'markRead');
@@ -187,12 +207,12 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
-        $konusmaId = (int) ($_GET['id'] ?? 0);
-        $sinceId = (int) ($_GET['since_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        $sinceId = IdHelper::normalizeRequestId($_GET['since_id'] ?? null);
 
         try {
             $this->service->assertCanAccessConversation($userId, $konusmaId);
@@ -202,24 +222,19 @@ class MesajController
 
         $messages = $this->mesajModel->getMessages($konusmaId, $sinceId);
         $viewerId = $userId;
+        $lastId = $sinceId === null
+            ? $this->mesajModel->getLastMessageId($konusmaId)
+            : $this->maxMessageIdFromList($messages);
 
         ob_start();
         include ROOT_PATH . '/views/site/mesaj/partials/thread_messages.php';
         $html = ob_get_clean();
 
-        $lastId = 0;
-        foreach ($messages as $m) {
-            $mid = (int) ($m->id ?? 0);
-            if ($mid > $lastId) {
-                $lastId = $mid;
-            }
-        }
-
         $this->jsonOut([
             'ok' => true,
             'html' => $html,
             'last_id' => $lastId,
-            'append' => $sinceId > 0,
+            'append' => $sinceId !== null,
         ]);
     }
 
@@ -227,24 +242,28 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
-        $konusmaId = (int) ($_POST['konusma_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_POST['konusma_id'] ?? null);
         $body = (string) ($_POST['govde'] ?? $_POST['body'] ?? '');
+        if ($konusmaId === null) {
+            $this->jsonOut(['ok' => false, 'mesaj' => 'Konuşma seçilmedi.'], 400);
+        }
 
         $result = $this->service->sendMessage($konusmaId, $userId, $body);
         if (!$result['ok']) {
             $this->jsonOut($result, 400);
         }
 
-        $msg = $this->mesajModel->db->fetchObjectPrepared(
+        $mesajId = IdHelper::normalizeRequestId($result['mesaj_id'] ?? null);
+        $msg = $mesajId !== null ? $this->mesajModel->db->fetchObjectPrepared(
             'SELECT m.*, u.name AS gonderen_adi FROM #__mesajlar m
              LEFT JOIN #__users u ON u.id = m.gonderen_id
              WHERE m.id = ? LIMIT 1',
-            [(int) $result['mesaj_id']]
-        );
+            [$mesajId]
+        ) : null;
         $messages = $msg ? [$msg] : [];
         $viewerId = $userId;
 
@@ -254,7 +273,7 @@ class MesajController
 
         $this->jsonOut([
             'ok' => true,
-            'mesaj_id' => (int) $result['mesaj_id'],
+            'mesaj_id' => $mesajId ?? '',
             'html' => $html,
         ]);
     }
@@ -263,12 +282,15 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
-        $konusmaId = (int) ($_POST['konusma_id'] ?? 0);
-        $lastMessageId = (int) ($_POST['last_message_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_POST['konusma_id'] ?? null);
+        $lastMessageId = IdHelper::normalizeRequestId($_POST['last_message_id'] ?? null);
+        if ($konusmaId === null || $lastMessageId === null) {
+            $this->jsonOut(['ok' => false, 'mesaj' => 'Geçersiz istek.'], 400);
+        }
 
         try {
             $this->service->markRead($konusmaId, $userId, $lastMessageId);
@@ -284,7 +306,7 @@ class MesajController
             $this->jsonOut(['ok' => true, 'unread_total' => 0]);
         }
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
         if (!MesajService::canUseMessaging($userId)) {
@@ -298,12 +320,12 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
-        $konusmaId = (int) ($_GET['id'] ?? 0);
-        $sinceId = (int) ($_GET['since_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        $sinceId = IdHelper::normalizeRequestId($_GET['since_id'] ?? null);
 
         try {
             $this->service->assertCanAccessConversation($userId, $konusmaId);
@@ -313,19 +335,13 @@ class MesajController
 
         $messages = $this->mesajModel->getMessages($konusmaId, $sinceId);
         $viewerId = $userId;
-        $lastId = $sinceId;
+        $lastId = $this->maxMessageIdFromList($messages, $sinceId);
 
         ob_start();
         include ROOT_PATH . '/views/site/mesaj/partials/thread_messages.php';
         $html = ob_get_clean();
 
-        foreach ($messages as $m) {
-            $mid = (int) ($m->id ?? 0);
-            if ($mid > $lastId) {
-                $lastId = $mid;
-            }
-        }
-        if ($lastId > $sinceId) {
+        if ($lastId !== null && ($sinceId === null || strcmp((string) $lastId, (string) $sinceId) > 0)) {
             $this->service->markRead($konusmaId, $userId, $lastId);
         }
 
@@ -333,7 +349,7 @@ class MesajController
             'ok' => true,
             'html' => $html,
             'last_id' => $lastId,
-            'has_new' => $lastId > $sinceId,
+            'has_new' => $lastId !== null && ($sinceId === null || strcmp((string) $lastId, (string) $sinceId) > 0),
             'unread_total' => $this->service->countUnread($userId),
         ]);
     }
@@ -354,7 +370,7 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
 
@@ -366,7 +382,7 @@ class MesajController
                 $kurumAdi = 'Platform';
             }
             $items[] = [
-                'id' => (int) ($u->id ?? 0),
+                'id' => (string) ($u->id ?? ''),
                 'name' => (string) ($u->name ?? ''),
                 'unvan' => User::unvanLabel((string) ($u->unvan ?? '')),
                 'kurum_adi' => $kurumAdi,
@@ -380,13 +396,18 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $_SESSION['error'] = 'Oturum gerekli.';
             header('Location: ' . esh_url('Mesaj', 'compose'));
             exit;
         }
 
-        $targetId = (int) ($_POST['user_id'] ?? 0);
+        $targetId = IdHelper::normalizeRequestId($_POST['user_id'] ?? null);
+        if ($targetId === null) {
+            $_SESSION['error'] = 'Alıcı seçilmedi.';
+            header('Location: ' . esh_url('Mesaj', 'compose'));
+            exit;
+        }
         try {
             $konusmaId = $this->service->getOrCreateDm($userId, $targetId);
             header('Location: ' . esh_url('Mesaj', 'thread', ['id' => $konusmaId]));
@@ -402,7 +423,12 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        $hastaId = (int) ($_GET['id'] ?? $_GET['hasta_id'] ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($_GET['id'] ?? $_GET['hasta_id'] ?? null);
+        if ($hastaId === null) {
+            $_SESSION['error'] = 'Hasta seçilmedi.';
+            header('Location: ' . esh_url('Mesaj', 'index'));
+            exit;
+        }
 
         try {
             $konusmaId = $this->service->getOrCreatePatientThread($hastaId, $userId);
@@ -419,10 +445,13 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
-        $konusmaId = (int) ($_POST['konusma_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_POST['konusma_id'] ?? null);
+        if ($konusmaId === null) {
+            $this->jsonOut(['ok' => false, 'mesaj' => 'Konuşma seçilmedi.'], 400);
+        }
         $this->jsonOut($this->service->moveToTrash($konusmaId, $userId));
     }
 
@@ -430,10 +459,13 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
-        $konusmaId = (int) ($_POST['konusma_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_POST['konusma_id'] ?? null);
+        if ($konusmaId === null) {
+            $this->jsonOut(['ok' => false, 'mesaj' => 'Konuşma seçilmedi.'], 400);
+        }
         $result = $this->service->restoreFromTrash($konusmaId, $userId);
         if ($result['ok']) {
             $result['redirect'] = esh_url('Mesaj', 'thread', ['id' => $konusmaId]);
@@ -445,17 +477,20 @@ class MesajController
     {
         $this->ensureModule();
         $userId = $this->currentUserId();
-        if ($userId <= 0) {
+        if ($userId === null) {
             $this->jsonOut(['ok' => false, 'mesaj' => 'Oturum gerekli'], 401);
         }
-        $konusmaId = (int) ($_POST['konusma_id'] ?? 0);
+        $konusmaId = IdHelper::normalizeRequestId($_POST['konusma_id'] ?? null);
+        if ($konusmaId === null) {
+            $this->jsonOut(['ok' => false, 'mesaj' => 'Konuşma seçilmedi.'], 400);
+        }
         $this->jsonOut($this->service->purgeFromTrash($konusmaId, $userId));
     }
 
     public function broadcast(): void
     {
         $this->ensureModule();
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
 
         $userModel = new User();
         $users = $userModel->getMessagingAdminList();
@@ -470,14 +505,14 @@ class MesajController
     public function broadcastSend(): void
     {
         $this->ensureModule();
-        AuthHelper::requireSuperAdmin();
+        AuthHelper::requirePlatformOwner();
 
         $adminId = $this->currentUserId();
         $title = (string) ($_POST['baslik'] ?? '');
         $body = (string) ($_POST['govde'] ?? '');
         $allUsers = !empty($_POST['tum_kullanicilar']);
         $selected = isset($_POST['user_ids']) && is_array($_POST['user_ids'])
-            ? array_map('intval', $_POST['user_ids'])
+            ? array_values(array_filter(array_map(static fn($x) => IdHelper::normalizeRequestId($x), $_POST['user_ids'])))
             : [];
 
         if ($allUsers) {
@@ -485,8 +520,8 @@ class MesajController
             $list = $userModel->getMessagingAdminList();
             $selected = [];
             foreach ($list as $u) {
-                $uid = (int) ($u->id ?? 0);
-                if ($uid > 0 && $uid !== $adminId) {
+                $uid = (string) ($u->id ?? '');
+                if ($uid !== '' && $uid !== $adminId) {
                     $selected[] = $uid;
                 }
             }

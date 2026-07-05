@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @var string $settingsToken
  * @var string $pageTitle
  * @var string $activeTab
+ * @var string $activeTabLead
  * @var list<array<string, mixed>> $islemIdRows
  * @var string $islemCatalogPath
  * @var string $appSettingsPath
@@ -24,19 +25,24 @@ declare(strict_types=1);
  * @var list<array<string, mixed>> $kpsFields
  * @var array{configured:bool,username:string,masked_password:string,updated_at:string} $kpsCredentialStatus
  * @var array{configured:bool,value:string,source:string} $kpsFirmaStatus
- * @var bool $kpsModuleEnabled
  * @var string $configLocalExample
  * @var list<string> $nobetAllowedUnvanlar
  * @var array<string, int> $nobetUnvanSlots
  * @var array<string, string> $nobetUnvanChoices
  * @var list<object> $islemler
  * @var list<string> $allowedSettingsTabs
+ * @var array<string, list<array{key:string,label:string,icon:string,description:string,badge?:string}>> $settingsNavGrouped
+ * @var list<array{key:string,label:string,icon:string,description:string,href:string,category:string,badge?:string}> $overviewCards
  * @var array{mode:string,label:string,hint:string,kurum_id?:int,bolge_id?:int}|null $settingsScopeBanner
  */
 
-$groupOrder = $groupOrder ?? ['site', 'auth', 'admin'];
+use App\Helpers\AuthHelper;
+use App\Helpers\SettingsNavCatalog;
+
+$groupOrder = $groupOrder ?? SettingsNavCatalog::MODULE_GROUP_ORDER;
 $activeTab = $activeTab ?? 'modules';
 $pageTitle = $pageTitle ?? 'Uygulama ayarları';
+$activeTabLead = $activeTabLead ?? '';
 $islemIdRows = $islemIdRows ?? [];
 $islemler = $islemler ?? [];
 $islemCatalogPath = $islemCatalogPath ?? 'public/assets/data/islem-idleri.json';
@@ -48,35 +54,18 @@ $eimzaInfoRows = $eimzaInfoRows ?? [];
 $kpsFields = $kpsFields ?? [];
 $kpsCredentialStatus = $kpsCredentialStatus ?? ['configured' => false, 'username' => '', 'masked_password' => '', 'updated_at' => ''];
 $kpsFirmaStatus = $kpsFirmaStatus ?? ['configured' => false, 'value' => '', 'source' => ''];
-$kpsModuleEnabled = $kpsModuleEnabled ?? false;
 $nobetAllowedUnvanlar = $nobetAllowedUnvanlar ?? [];
 $nobetUnvanSlots = $nobetUnvanSlots ?? [];
 $nobetUnvanChoices = $nobetUnvanChoices ?? [];
 $settingsScopeBanner = $settingsScopeBanner ?? null;
 $settingsSaveAllowed = $settingsSaveAllowed ?? true;
+$allowedSettingsTabs = $allowedSettingsTabs ?? SettingsNavCatalog::tabsForRole();
+$settingsNavGrouped = $settingsNavGrouped ?? SettingsNavCatalog::navGroupedForRole();
+$overviewCards = $overviewCards ?? [];
+$settingsPageModifier = $settingsPageModifier ?? 'esh-page-settings--extended';
+$showSaveButton = $showSaveButton ?? ($activeTab !== 'overview' && $settingsSaveAllowed);
 
-$settingsTabs = [
-    'modules' => ['label' => 'Uygulama modülleri', 'icon' => 'fa-toggle-on'],
-    'islem_ids' => ['label' => "İşlem id'leri", 'icon' => 'fa-list-ol'],
-    'harita' => ['label' => 'Harita & saha', 'icon' => 'fa-map-location-dot'],
-    'planlama' => ['label' => 'Planlama', 'icon' => 'fa-route'],
-    'kurumsal' => ['label' => 'Kurumsal', 'icon' => 'fa-building'],
-    'nobet' => ['label' => 'Nöbet', 'icon' => 'fa-calendar-week'],
-    'sms' => ['label' => 'SMS & Bildirimler', 'icon' => 'fa-comment-sms'],
-    'guvenlik' => ['label' => 'Güvenlik', 'icon' => 'fa-shield-halved'],
-    'eimza' => ['label' => 'E-imza', 'icon' => 'fa-file-signature'],
-    'kps' => ['label' => 'KPS', 'icon' => 'fa-id-card'],
-];
-
-$allowedSettingsTabs = $allowedSettingsTabs ?? array_keys($settingsTabs);
-
-$needsSettingsCss = in_array($activeTab, ['islem_ids', 'harita', 'planlama', 'kurumsal', 'nobet', 'sms', 'guvenlik', 'eimza', 'kps'], true);
-$settingsPageModifier = match ($activeTab) {
-    'islem_ids' => 'esh-page-settings--islem-ids',
-    'nobet' => 'esh-page-settings--nobet',
-    default => 'esh-page-settings--extended',
-};
-$showSaveButton = $activeTab !== 'eimza' && $settingsSaveAllowed;
+$activeTabLabel = SettingsNavCatalog::tabLabel($activeTab);
 
 $selectedCsv = static function (string $csvValue): array {
     $csvValue = trim($csvValue);
@@ -100,18 +89,34 @@ $selectedCsv = static function (string $csvValue): array {
     <nav aria-label="breadcrumb" class="mb-3 small">
         <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a href="<?= htmlspecialchars(esh_url('Dashboard', 'admin'), ENT_QUOTES, 'UTF-8') ?>">Yönetim paneli</a></li>
-            <li class="breadcrumb-item active"><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></li>
+            <li class="breadcrumb-item"><a href="<?= htmlspecialchars(SettingsNavCatalog::tabUrl('modules'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></a></li>
+            <?php if ($activeTab !== 'modules'): ?>
+                <li class="breadcrumb-item active"><?= htmlspecialchars($activeTabLabel, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php else: ?>
+                <li class="breadcrumb-item active"><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php endif; ?>
         </ol>
     </nav>
 
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-sliders text-primary me-2"></i><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h3>
-            <p class="text-muted mb-0 small"><?= \App\Helpers\AuthHelper::sessionIsPlatformOwner() ? 'Modül, harita, planlama, kurumsal ad ve güvenlik seçenekleri.' : (\App\Helpers\AuthHelper::sessionIsSuperAdmin() ? 'Modül, harita, planlama ve kurumsal ad seçenekleri.' : 'Kurumunuza özel modül, işlem id, harita, planlama, kurumsal metin ve nöbet ayarları.') ?></p>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-sliders text-primary me-2"></i><?= htmlspecialchars($activeTab === 'modules' ? $pageTitle : $activeTabLabel, ENT_QUOTES, 'UTF-8') ?>
+            </h3>
+            <?php if ($activeTabLead !== ''): ?>
+                <p class="text-muted mb-0 small"><?= htmlspecialchars($activeTabLead, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php else: ?>
+                <p class="text-muted mb-0 small"><?= AuthHelper::sessionIsPlatformOwner() ? 'Modül, saha, iletişim ve platform ayarları.' : 'Kurumunuza özel modül, planlama ve operasyonel ayarlar.' ?></p>
+            <?php endif; ?>
         </div>
+        <?php if (AuthHelper::sessionIsPlatformOwner() && $activeTab !== 'overview'): ?>
+            <a href="<?= htmlspecialchars(SettingsNavCatalog::tabUrl('overview'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-gauge-high me-1"></i>Genel bakış
+            </a>
+        <?php endif; ?>
     </div>
 
-    <?php if (is_array($settingsScopeBanner) && ($settingsScopeBanner['label'] ?? '') !== '' && in_array($activeTab, ['modules', 'islem_ids', 'harita', 'planlama', 'kurumsal', 'nobet'], true)): ?>
+    <?php if (is_array($settingsScopeBanner) && ($settingsScopeBanner['label'] ?? '') !== '' && in_array($activeTab, SettingsNavCatalog::KURUM_SCOPE_BANNER_TABS, true)): ?>
         <?php
         $scopeMode = (string) ($settingsScopeBanner['mode'] ?? '');
         $scopeAlert = match ($scopeMode) {
@@ -142,39 +147,68 @@ $selectedCsv = static function (string $csvValue): array {
         <div class="alert alert-danger small"><?= htmlspecialchars((string) $_SESSION['error'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error']); ?></div>
     <?php endif; ?>
 
-<?php include __DIR__ . '/partials/tab_nav.php'; ?>
-
-    <form method="post" action="<?= htmlspecialchars(esh_url('Settings', 'save'), ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="settings_token" value="<?= htmlspecialchars($settingsToken, ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="active_tab" value="<?= htmlspecialchars($activeTab, ENT_QUOTES, 'UTF-8') ?>">
-        <?php if ($activeTab === 'modules'): ?>
+    <div class="row g-4 esh-settings-layout">
+        <div class="col-lg-3">
+            <?php include __DIR__ . '/partials/sidebar_nav.php'; ?>
+        </div>
+        <div class="col-lg-9">
+            <?php if ($activeTab === 'overview'): ?>
+                <?php include __DIR__ . '/partials/tab_overview.php'; ?>
+            <?php else: ?>
+            <form method="post" action="<?= htmlspecialchars(esh_url('Settings', 'save'), ENT_QUOTES, 'UTF-8') ?>" class="esh-settings-form" data-esh-settings-form="1">
+                <input type="hidden" name="settings_token" value="<?= htmlspecialchars($settingsToken, ENT_QUOTES, 'UTF-8') ?>">
+                <input type="hidden" name="active_tab" value="<?= htmlspecialchars($activeTab, ENT_QUOTES, 'UTF-8') ?>">
+                <?php if (SettingsNavCatalog::tabHasDedicatedModules($activeTab)): ?>
+                    <?php
+                    $moduleSwitchTab = $activeTab;
+                    include __DIR__ . '/partials/section_tab_module_switches.php';
+                    ?>
+                <?php endif; ?>
+                <?php if ($activeTab === 'modules'): ?>
 <?php include __DIR__ . '/partials/tab_modules.php'; ?>
-        <?php elseif ($activeTab === 'islem_ids'): ?>
+                <?php elseif ($activeTab === 'islem_ids'): ?>
 <?php include __DIR__ . '/partials/tab_islem_ids.php'; ?>
-        <?php elseif ($activeTab === 'harita'): ?>
+                <?php elseif ($activeTab === 'harita'): ?>
 <?php include __DIR__ . '/partials/tab_harita.php'; ?>
-        <?php elseif ($activeTab === 'planlama'): ?>
+                <?php elseif ($activeTab === 'vardiya'): ?>
+<?php include __DIR__ . '/partials/tab_vardiya.php'; ?>
+                <?php elseif ($activeTab === 'planlama'): ?>
 <?php include __DIR__ . '/partials/tab_planlama.php'; ?>
-        <?php elseif ($activeTab === 'kurumsal'): ?>
+                <?php elseif ($activeTab === 'saha'): ?>
+<?php include __DIR__ . '/partials/tab_saha.php'; ?>
+                <?php elseif ($activeTab === 'uhds'): ?>
+<?php include __DIR__ . '/partials/tab_uhds.php'; ?>
+                <?php elseif ($activeTab === 'kurumsal'): ?>
 <?php include __DIR__ . '/partials/tab_kurumsal.php'; ?>
-        <?php elseif ($activeTab === 'nobet'): ?>
+                <?php elseif ($activeTab === 'nobet'): ?>
 <?php include __DIR__ . '/partials/tab_nobet.php'; ?>
-        <?php elseif ($activeTab === 'sms'): ?>
+                <?php elseif ($activeTab === 'sms'): ?>
 <?php include __DIR__ . '/partials/tab_sms.php'; ?>
-        <?php elseif ($activeTab === 'guvenlik'): ?>
-<?php include __DIR__ . '/partials/tab_guvenlik.php'; ?>
-        <?php elseif ($activeTab === 'kps'): ?>
+                <?php elseif ($activeTab === 'bakim'): ?>
+<?php include __DIR__ . '/partials/tab_bakim.php'; ?>
+                <?php elseif ($activeTab === 'misafir'): ?>
+<?php include __DIR__ . '/partials/tab_misafir.php'; ?>
+                <?php elseif ($activeTab === 'entegrasyon'): ?>
+<?php include __DIR__ . '/partials/tab_entegrasyon.php'; ?>
+                <?php elseif ($activeTab === 'gelismis'): ?>
+<?php include __DIR__ . '/partials/tab_gelismis.php'; ?>
+                <?php elseif ($activeTab === 'kps'): ?>
 <?php include __DIR__ . '/partials/tab_kps.php'; ?>
-        <?php elseif ($activeTab === 'eimza'): ?>
+                <?php elseif ($activeTab === 'eimza'): ?>
 <?php include __DIR__ . '/partials/tab_eimza.php'; ?>
-        <?php endif; ?>
-        <div class="d-flex justify-content-end gap-2">
-            <a href="<?= htmlspecialchars(esh_url('Dashboard', 'admin'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Vazgeç</a>
-            <?php if ($showSaveButton): ?>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fa-solid fa-floppy-disk me-1"></i>Kaydet
-                </button>
+                <?php endif; ?>
+                <div class="esh-settings-savebar sticky-bottom mt-4">
+                    <div class="d-flex justify-content-end gap-2 py-3 px-3 px-lg-0 bg-body border-top border-lg-0">
+                        <a href="<?= htmlspecialchars(esh_url('Dashboard', 'admin'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary" data-esh-settings-leave="1">Vazgeç</a>
+                        <?php if ($showSaveButton): ?>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Kaydet
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </form>
             <?php endif; ?>
         </div>
-    </form>
+    </div>
 </div>

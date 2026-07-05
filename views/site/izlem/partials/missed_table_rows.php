@@ -30,7 +30,7 @@ if (!empty($visits)) {
             <?php
             $__missActs = [
                 [
-                    'href' => esh_url('Visit', 'edit', ['id' => (int) ($v->id ?? 0)]),
+                    'href' => esh_url('Visit', 'edit', ['id' => (string) ($v->id ?? '')]),
                     'title' => 'Düzenle',
                     'icon' => 'fa-solid fa-pen',
                     'variant' => 'primary',
@@ -40,7 +40,7 @@ if (!empty($visits)) {
                 $__missActs[] = [
                     'action' => esh_url('Visit', 'delete'),
                     'hidden' => [
-                        'id' => (int) ($v->id ?? 0),
+                        'id' => (string) ($v->id ?? ''),
                         'tc' => (string) ($tc ?? ''),
                         'return' => 'missed',
                     ],

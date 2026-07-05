@@ -1,10 +1,16 @@
-<script>
-window.ESH_HARITA = {
-    patients: <?= $mapPatientsJson ?>,
-    center: [<?= htmlspecialchars((string) $centerLon, ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars((string) $centerLat, ENT_QUOTES, 'UTF-8') ?>],
-    mapConfigUrl: <?= json_encode($mapConfigUrl ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-    mapKeyUrl: <?= json_encode($mapKeyUrl ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-    routeUrl: <?= json_encode($routeUrl ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-    mahalleCombinedUrl: <?= json_encode($mahalleCombinedUrl ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-    mahalleGeoNameAllowlist: <?= json_encode($mahalleGeoNameAllowlist ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
-};
+<?php
+/**
+ * Hasta haritası istemci yapılandırması — footer'da harita-index.js öncesinde yüklenir.
+ */
+$config = $GLOBALS['eshHaritaPageConfig'] ?? null;
+if (!is_array($config)) {
+    return;
+}
+$json = json_encode(
+    $config,
+    JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+);
+if ($json === false) {
+    $json = '{}';
+}
+echo '<script' . esh_csp_nonce_attr() . '>window.ESH_HARITA=' . $json . ';</script>' . "\n";

@@ -82,24 +82,84 @@ class Hastalik extends BaseModel {
     /** @param list<object> $rows @param list<int|string> $ids @return list<object> */
     public function ensureIdsInList(array $rows, array $ids): array
     {
+        $icds = [];
+        foreach ($ids as $id) {
+            if (is_int($id) || (is_string($id) && preg_match('/^\d+$/', $id))) {
+                continue;
+            }
+            $norm = Patient::normalizeHastalikIcd((string) $id);
+            if ($norm !== '') {
+                $icds[] = $norm;
+            }
+        }
+
+        return $this->ensureIcdsInList($rows, array_merge($icds, $this->resolveIdsToIcdsForEnsure($ids)));
+    }
+
+    /**
+     * @param list<object> $rows
+     * @param list<int|string> $ids
+     * @return list<string>
+     */
+    private function resolveIdsToIcdsForEnsure(array $ids): array
+    {
+        $legacyIds = [];
+        foreach ($ids as $id) {
+            if (is_int($id) || (is_string($id) && preg_match('/^\d+$/', (string) $id))) {
+                $n = (int) $id;
+                if ($n > 0) {
+                    $legacyIds[$n] = $n;
+                }
+            }
+        }
+        if ($legacyIds === []) {
+            return [];
+        }
+        [$inSql, $inParams] = $this->db->whereInClause(array_values($legacyIds));
+        $rows = $this->db->fetchColumnListPrepared(
+            "SELECT icd FROM #__hastaliklar WHERE id IN ({$inSql}) AND TRIM(COALESCE(icd, '')) <> ''",
+            $inParams,
+            0
+        );
+        if (!is_array($rows)) {
+            return [];
+        }
+        $out = [];
+        foreach ($rows as $icd) {
+            $norm = Patient::normalizeHastalikIcd((string) $icd);
+            if ($norm !== '') {
+                $out[] = $norm;
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param list<object> $rows @param list<string> $icds @return list<object> */
+    public function ensureIcdsInList(array $rows, array $icds): array
+    {
         $existing = [];
         foreach ($rows as $row) {
-            $existing[(int) ($row->id ?? 0)] = true;
+            $icd = Patient::normalizeHastalikIcd((string) ($row->icd ?? ''));
+            if ($icd !== '') {
+                $existing[$icd] = true;
+            }
         }
         $missing = [];
-        foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id > 0 && !isset($existing[$id])) {
-                $missing[] = $id;
+        foreach ($icds as $icd) {
+            $icd = Patient::normalizeHastalikIcd((string) $icd);
+            if ($icd !== '' && !isset($existing[$icd])) {
+                $missing[] = $icd;
             }
         }
         if ($missing === []) {
             return $rows;
         }
         [$inSql, $inParams] = $this->db->whereInClause($missing);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
         $extra = $this->db->fetchObjectListPrepared(
-            "SELECT * FROM #__hastaliklar WHERE id IN ({$inSql}) ORDER BY hastalikadi ASC",
-            $inParams
+            "SELECT * FROM #__hastaliklar WHERE kurum_id = ? AND icd IN ({$inSql}) ORDER BY hastalikadi ASC",
+            $params
         );
         if (!is_array($extra) || $extra === []) {
             return $rows;
@@ -133,7 +193,7 @@ class Hastalik extends BaseModel {
     }
 
     /** @return list<object> */
-    public function searchAssignedForKurum(int $kurumId, string $q, int $limit = 30, array $ensureIds = []): array {
+    public function searchAssignedForKurum(int $kurumId, string $q, int $limit = 30, array $ensureIcds = []): array {
         if ($kurumId <= 0) {
             return [];
         }
@@ -143,15 +203,19 @@ class Hastalik extends BaseModel {
             return $this->searchCatalog($q, null, $limit);
         }
         $rows = [];
-        $ensureIds = array_values(array_unique(array_filter(array_map('intval', $ensureIds))));
-        if ($ensureIds !== []) {
-            [$inSql, $inParams] = $this->db->whereInClause($ensureIds);
+        $ensureIcds = array_values(array_unique(array_filter(array_map(
+            static fn ($v) => Patient::normalizeHastalikIcd((string) $v),
+            $ensureIcds
+        ), static fn ($v) => $v !== '')));
+        if ($ensureIcds !== []) {
+            [$inSql, $inParams] = $this->db->whereInClause($ensureIcds);
+            $params = array_merge([$kurumId, CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
             $extra = $this->db->fetchObjectListPrepared(
                 "SELECT h.* FROM #__hastaliklar h
                  INNER JOIN #__kurum_hastalik kh ON kh.hastalik_id = h.id AND kh.kurum_id = ?
-                 WHERE h.id IN ({$inSql}) AND h.kurum_id = ?
+                 WHERE h.kurum_id = ? AND h.icd IN ({$inSql})
                  ORDER BY h.hastalikadi ASC",
-                array_merge([$kurumId], $inParams, [CatalogStoreHelper::PLATFORM_KURUM_ID])
+                $params
             );
             if (is_array($extra)) {
                 $rows = $extra;
@@ -578,38 +642,31 @@ class Hastalik extends BaseModel {
     }
 
     public function getUserHastaliklar($hastaliklar) {
-        if (!empty($hastaliklar)) {
-            $ids = array_values(array_unique(array_filter(
-                array_map('intval', explode(',', (string) $hastaliklar))
-            )));
-            if ($ids === []) {
-                return [];
-            }
-            [$inSql, $inParams] = $this->db->whereInClause($ids);
-            $queryHastalik = "SELECT CONCAT(h.icd, '-', h.hastalikadi) AS ad 
-                              FROM #__hastaliklar AS h
-                              WHERE h.id IN ({$inSql}) ORDER BY ad";
-
-            return $this->db->fetchColumnListPrepared($queryHastalik, $inParams);
+        $icds = Patient::parseHastalikCsvToIcds($hastaliklar ?? null);
+        if ($icds === []) {
+            return [];
         }
+        [$inSql, $inParams] = $this->db->whereInClause($icds);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+        $queryHastalik = "SELECT CONCAT(h.icd, '-', h.hastalikadi) AS ad 
+                          FROM #__hastaliklar AS h
+                          WHERE h.kurum_id = ? AND h.icd IN ({$inSql}) ORDER BY ad";
+
+        return $this->db->fetchColumnListPrepared($queryHastalik, $params);
     }
 
-    /** @return list<object{id:int|string,ad:string}> */
+    /** @return list<object{id:int,icd:string,ad:string}> */
     public function getUserHastaliklarWithIds($hastaliklar): array {
-        if (empty($hastaliklar)) {
+        $icds = Patient::parseHastalikCsvToIcds($hastaliklar ?? null);
+        if ($icds === []) {
             return [];
         }
-        $ids = array_values(array_unique(array_filter(
-            array_map('intval', explode(',', (string) $hastaliklar))
-        )));
-        if ($ids === []) {
-            return [];
-        }
-        [$inSql, $inParams] = $this->db->whereInClause($ids);
-        $queryHastalik = "SELECT h.id AS id, CONCAT(h.icd, '-', h.hastalikadi) AS ad
+        [$inSql, $inParams] = $this->db->whereInClause($icds);
+        $params = array_merge([CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+        $queryHastalik = "SELECT h.id AS id, h.icd AS icd, CONCAT(h.icd, '-', h.hastalikadi) AS ad
                           FROM #__hastaliklar AS h
-                          WHERE h.id IN ({$inSql}) ORDER BY ad";
-        $list = $this->db->fetchObjectListPrepared($queryHastalik, $inParams);
+                          WHERE h.kurum_id = ? AND h.icd IN ({$inSql}) ORDER BY ad";
+        $list = $this->db->fetchObjectListPrepared($queryHastalik, $params);
 
         return is_array($list) ? $list : [];
     }
@@ -674,18 +731,17 @@ class Hastalik extends BaseModel {
         return $out;
     }
 
-    /** @return list<array{id:int,text:string}> */
+    /** @return list<array{id:string,text:string}> */
     public static function mapRowsToTomSelectOptions(array $rows): array
     {
         $out = [];
         foreach ($rows as $row) {
-            $id = (int) ($row->id ?? 0);
-            if ($id <= 0) {
+            $icd = Patient::normalizeHastalikIcd((string) ($row->icd ?? ''));
+            if ($icd === '') {
                 continue;
             }
-            $icd = trim((string) ($row->icd ?? ''));
             $name = trim((string) ($row->hastalikadi ?? ''));
-            $out[] = ['id' => $id, 'text' => ($icd !== '' ? $icd . ' — ' : '') . $name];
+            $out[] = ['id' => $icd, 'text' => $icd . ' — ' . $name];
         }
 
         return $out;

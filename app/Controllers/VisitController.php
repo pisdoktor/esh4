@@ -11,6 +11,7 @@ use App\Models\Arac;
 use App\Models\Brans;
 use App\Models\Istek;
 use App\Helpers\DateHelper;
+use App\Helpers\CinsiyetHelper;
 use App\Helpers\IzlemYapilmamaNedenHelper;
 use App\Helpers\VisitIslemHelper;
 use App\Helpers\ZamanDilimiHelper;
@@ -19,6 +20,7 @@ use App\Helpers\KonsBransIstekHelper;
 use App\Helpers\VisitIndexPdfHelper;
 use App\Helpers\AuthHelper;
 use App\Helpers\AuditLogHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\OperationalSettings;
@@ -28,6 +30,7 @@ use App\Helpers\ClinicalDecisionSupportHelper;
 use App\Helpers\FieldVisitGeoHelper;
 use App\Helpers\CsrfHelper;
 use App\Services\Usbs\UsbsBridgeService;
+use App\Services\Esys\EsysBridgeService;
 
 class VisitController {
 
@@ -273,19 +276,19 @@ class VisitController {
         $historyPatient = $this->requirePatientAccessByTc($tc, $historyRedirect);
 
         $model = new Visit();
-        $patientIdForHeader = ($historyPatient && !empty($historyPatient->id)) ? (int) $historyPatient->id : 0;
+        $patientIdForHeader = ($historyPatient && !empty($historyPatient->id)) ? (string) $historyPatient->id : 0;
         $viewerKurumId = (int) ($historyPatient->kurum_id ?? \App\Helpers\TenantContext::assignKurumIdForStore());
 
         $total = $model->countPatientVisits($tc, $status);
         $totalPages = $total > 0 ? (int) ceil($total / $limit) : 1;
         $historyFiltersOpen = ($status !== '');
 
-        $ek3OpenVisitId = isset($_GET['ek3_open']) ? max(0, (int) $_GET['ek3_open']) : 0;
-        if ($ek3OpenVisitId > 0) {
+        $ek3OpenVisitId = IdHelper::normalizeRequestId($_GET['ek3_open'] ?? null) ?? '';
+        if ($ek3OpenVisitId !== '') {
             $ek3VisitCheck = new Visit();
             if (!$ek3VisitCheck->load($ek3OpenVisitId)
                 || preg_replace('/\D/', '', (string) $ek3VisitCheck->hastatckimlik) !== preg_replace('/\D/', '', $tc)) {
-                $ek3OpenVisitId = 0;
+                $ek3OpenVisitId = '';
             }
         }
 
@@ -344,7 +347,7 @@ class VisitController {
         \App\Helpers\CsrfHelper::requirePostMethod(esh_url('Visit', 'index'));
         $tcRaw = isset($_POST['tc']) ? trim((string) $_POST['tc']) : '';
         $tc = preg_replace('/\D/', '', $tcRaw);
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
         $returnRaw = isset($_POST['return']) ? trim((string) $_POST['return']) : '';
 
         $listUrlForTc = function (string $tc11) use ($returnRaw) {
@@ -366,7 +369,7 @@ class VisitController {
             $redirectDefault = esh_url('Visit', 'index');
         }
 
-        if ($id < 1) {
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz izlem kaydı.';
             header('Location: ' . $redirectDefault);
             exit;
@@ -422,12 +425,12 @@ class VisitController {
 )));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient);
+        PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient);
         $this->requireAktifPatientForVisit($patient);
 
-        $planId = isset($_GET['plan_id']) ? (int) $_GET['plan_id'] : 0;
+        $planId = IdHelper::normalizeRequestId($_GET['plan_id'] ?? null);
         $plan = null;
-        if ($planId > 0) {
+        if ($planId !== null) {
             $pModel = new PlannedVisit();
             if ($pModel->load($planId) && (string) $pModel->hastatckimlik === $tc) {
                 $plan = $pModel;
@@ -491,8 +494,8 @@ class VisitController {
             $preYapilan
         );
         $prePersonel = [];
-        $uid = (int) ($_SESSION['user_id'] ?? 0);
-        if ($uid > 0) {
+        $uid = AuthHelper::sessionUserId();
+        if ($uid !== null) {
             $prePersonel = [$uid];
         }
         $list['personel'] = \App\Helpers\FormHelper::selectList(
@@ -514,8 +517,8 @@ class VisitController {
                 $defaultAciklama = substr($defaultAciklama, 0, 4000);
             }
         }
-        $uhdsId = isset($_GET['uhds_id']) ? (int) $_GET['uhds_id'] : 0;
-        if ($uhdsId > 0 && $defaultAciklama === '') {
+        $uhdsId = IdHelper::normalizeRequestId($_GET['uhds_id'] ?? null);
+        if ($uhdsId !== null && $defaultAciklama === '') {
             $uhdsRow = new \App\Models\Uhds();
             if ($uhdsRow->load($uhdsId) && (string) $uhdsRow->hastatckimlik === $tc) {
                 $defaultAciklama = trim((string) ($uhdsRow->telehealth_summary ?? ''));
@@ -526,9 +529,9 @@ class VisitController {
 
         $clinicalDecisionAlerts = [];
         if (ClinicalDecisionSupportHelper::showOnVisitForm()) {
-            $patientRow = (new Patient())->getById((int) $patient->id);
+            $patientRow = (new Patient())->getById((string) $patient->id);
             if ($patientRow) {
-                $assessments = ClinicalDecisionSupportHelper::loadAssessmentBundle((int) $patient->id, $patientRow);
+                $assessments = ClinicalDecisionSupportHelper::loadAssessmentBundle((string) $patient->id, $patientRow);
                 $daysSince = ClinicalDecisionSupportHelper::daysSinceLastCompletedVisit(
                     isset($patientRow->son_yapilan_tarih) ? (string) $patientRow->son_yapilan_tarih : null
                 );
@@ -658,7 +661,7 @@ class VisitController {
             echo json_encode(['ok' => false, 'error' => 'patient'], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patientRow->id, $patientRow);
+        PatientAccessHelper::requirePatientAccess((string) $patientRow->id, $patientRow);
         $this->requireAktifPatientForVisit($patientRow);
 
         if (!isset($data['yapilan']) || $data['yapilan'] === '') {
@@ -684,19 +687,20 @@ class VisitController {
 
         AuditLogHelper::visitCreate($izlem, $patientRow);
         $this->logVisitCheckinGeofence($izlem, $patientRow);
-        $this->maybeQueueUsbsVisitNotification((int) $izlem->id);
+        $this->maybeQueueUsbsVisitNotification((string) $izlem->id);
+        $this->maybeQueueEsysVisitSync((string) $izlem->id);
 
         echo json_encode([
             'ok' => true,
-            'visit_id' => (int) $izlem->id,
+            'visit_id' => (string) $izlem->id,
             'redirect' => esh_url('Visit', 'history', ['tc' => $tcRedirect]),
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     public function edit() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz izlem kaydı.';
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
@@ -722,7 +726,7 @@ class VisitController {
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient);
+        PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient);
 
         $islemler = (new Islem())->getList();
         $personel = (new User())->getList();
@@ -734,7 +738,7 @@ class VisitController {
 
         $selPersonel = [];
         if (!empty($visit->izlemiyapan)) {
-            $selPersonel = array_filter(array_map('intval', explode(',', str_replace(' ', '', (string) $visit->izlemiyapan))));
+            $selPersonel = IdHelper::csvToEntityIds((string) $visit->izlemiyapan);
         }
 
         $list = [];
@@ -807,7 +811,7 @@ class VisitController {
         $total = $model->countPatientVisits($tc, $statusPending);
         $totalPages = $total > 0 ? (int) ceil($total / $limit) : 1;
 
-        $patientIdForHeader = (int) ($missedPatient->id ?? 0);
+        $patientIdForHeader = (string) ($missedPatient->id ?? '');
 
         $missedRowsFetchUrl = \App\Helpers\UrlHelper::fromRequestParams([
             'controller' => 'Visit',
@@ -864,8 +868,8 @@ class VisitController {
             exit;
         }
 
-        $planId = isset($_POST['plan_id']) ? (int) $_POST['plan_id'] : 0;
-        $uhdsId = isset($_POST['uhds_id']) ? (int) $_POST['uhds_id'] : 0;
+        $planId = IdHelper::normalizeRequestId($_POST['plan_id'] ?? null);
+        $uhdsId = IdHelper::normalizeRequestId($_POST['uhds_id'] ?? null);
         $data = $this->normalizeVisitFormPayload($_POST);
 
         $tcRedirect = $data['hastatckimlik'] ?? '';
@@ -885,13 +889,13 @@ class VisitController {
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
         }
-        PatientAccessHelper::requirePatientAccess((int) $patientRow->id, $patientRow);
+        PatientAccessHelper::requirePatientAccess((string) $patientRow->id, $patientRow);
         $this->requireAktifPatientForVisit($patientRow);
 
         if (!isset($data['yapilan']) || $data['yapilan'] === '') {
             $_SESSION['error'] = 'En az bir yapılan işlem seçmelisiniz.';
             $qParams = ['tc' => $tcRedirect];
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $qParams['plan_id'] = $planId;
             }
             $q = esh_url('Visit', 'create', $qParams);
@@ -903,7 +907,7 @@ class VisitController {
         if ($izlemTarihYmd !== '' && DateHelper::isYmdAfterToday($izlemTarihYmd)) {
             $_SESSION['error'] = 'İzlem tarihi bugünden ileri olamaz.';
             $qParams = ['tc' => $tcRedirect];
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $qParams['plan_id'] = $planId;
             }
             $q = esh_url('Visit', 'create', $qParams);
@@ -915,7 +919,7 @@ class VisitController {
         if ($zamanErr !== null) {
             $_SESSION['error'] = $zamanErr;
             $qParams = ['tc' => $tcRedirect];
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $qParams['plan_id'] = $planId;
             }
             header('Location: ' . esh_url('Visit', 'create', $qParams));
@@ -932,7 +936,7 @@ class VisitController {
         if ($dupMsg !== null) {
             $_SESSION['error'] = $dupMsg;
             $qParams = ['tc' => $tcRedirect];
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $qParams['plan_id'] = $planId;
             }
             header('Location: ' . esh_url('Visit', 'create', $qParams));
@@ -943,7 +947,7 @@ class VisitController {
         if ($checkinErr !== null) {
             $_SESSION['error'] = $checkinErr;
             $qParams = ['tc' => $tcRedirect];
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $qParams['plan_id'] = $planId;
             }
             header('Location: ' . esh_url('Visit', 'create', $qParams));
@@ -955,10 +959,10 @@ class VisitController {
         if ($izlem->save($data)) {
             AuditLogHelper::visitCreate($izlem, $patientRow);
             $this->logVisitCheckinGeofence($izlem, $patientRow);
-            if ($uhdsId > 0) {
+            if ($uhdsId !== null) {
                 $uhdsLink = new \App\Models\Uhds();
                 if ($uhdsLink->load($uhdsId) && (string) $uhdsLink->hastatckimlik === (string) $tcRedirect) {
-                    $uhdsLink->completeTelehealthSession($uhdsId, null, 1, (int) $izlem->id);
+                    $uhdsLink->completeTelehealthSession($uhdsId, null, 1, (string) $izlem->id);
                 }
             }
             $this->syncPatientSondaFromVisitYapilan(
@@ -968,7 +972,7 @@ class VisitController {
                 (int) ($data['yapildimi'] ?? 0)
             );
             $planMarkedOk = false;
-            if ($planId > 0) {
+            if ($planId !== null) {
                 $plan = new PlannedVisit();
                 if ($plan->load($planId) && (string) $plan->hastatckimlik === (string) $tcRedirect) {
                     $plan->bind(['durum' => 1]);
@@ -976,9 +980,10 @@ class VisitController {
                 }
             }
             $yapCsv = (string) ($data['yapilan'] ?? '');
-            $vid = (int) $izlem->id;
+            $vid = (string) $izlem->id;
             $this->maybeQueueUsbsVisitNotification($vid);
-            if ($vid > 0 && VisitIslemHelper::yapilanCsvContainsIslem($yapCsv, VisitIslemHelper::konsultasyonIslemId())) {
+            $this->maybeQueueEsysVisitSync($vid);
+            if (!IdHelper::isEmptyEntityId($vid) && VisitIslemHelper::yapilanCsvContainsIslem($yapCsv, VisitIslemHelper::konsultasyonIslemId())) {
                 $_SESSION['success'] = 'İzlem kaydedildi.'
                     . ($planMarkedOk ? ' Planlı izlem «Yapıldı» olarak işaretlendi.' : '')
                     . ' Konsültasyon için EK-3 bilgilerini girin.';
@@ -1005,8 +1010,8 @@ class VisitController {
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        if ($id < 1) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($id === null) {
             $_SESSION['error'] = 'Geçersiz izlem kaydı.';
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
@@ -1075,6 +1080,7 @@ class VisitController {
                 $this->logVisitCheckinGeofence($izlem, $patientRow);
             }
             $this->maybeQueueUsbsVisitNotification($id);
+            $this->maybeQueueEsysVisitSync($id);
             $this->syncPatientSondaFromVisitYapilan(
                 (string) ($data['hastatckimlik'] ?? ''),
                 $yapCsv,
@@ -1099,9 +1105,9 @@ class VisitController {
      * Konsültasyon seçilmiş izlem sonrası: branş / başvuru amacı / açıklama (EK-3 öncesi).
      */
     public function ek3Consult() {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $tc = isset($_GET['tc']) ? preg_replace('/\D/', '', (string) $_GET['tc']) : '';
-        if ($id < 1 || !ValidationHelper::isTcLength11($tc)) {
+        if ($id === null || !ValidationHelper::isTcLength11($tc)) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
@@ -1136,9 +1142,9 @@ class VisitController {
             $selBrans = array_values(array_unique(array_filter(array_map('intval', explode(',', str_replace(' ', '', (string) $visit->brans))))));
         }
 
-        $patientIdForHeader = (int) ($patient->id ?? 0);
+        $patientIdForHeader = (string) ($patient->id ?? '');
         $patientLabel = trim((string) ($patient->isim ?? '') . ' ' . (string) ($patient->soyisim ?? ''));
-        $histErkek = ($patient->cinsiyet ?? '') === 'E' || ($patient->cinsiyet ?? '') === '1';
+        $histErkek = CinsiyetHelper::isErkek($patient->cinsiyet ?? null);
         $histAktif = \App\Models\Patient::isAktif($patient->pasif ?? null);
         $tcQ = rawurlencode($tc);
 
@@ -1156,11 +1162,11 @@ class VisitController {
             exit;
         }
 
-        $izlemId = isset($_POST['izlem_id']) ? (int) $_POST['izlem_id'] : 0;
-        $hastaId = isset($_POST['hasta_id']) ? (int) $_POST['hasta_id'] : 0;
+        $izlemId = IdHelper::normalizeRequestId($_POST['izlem_id'] ?? null);
+        $hastaId = IdHelper::normalizeRequestId($_POST['hasta_id'] ?? null);
         $tc = isset($_POST['tc']) ? preg_replace('/\D/', '', (string) $_POST['tc']) : '';
 
-        if ($izlemId < 1 || $hastaId < 1 || !ValidationHelper::isTcLength11($tc)) {
+        if ($izlemId === null || $hastaId === null || !ValidationHelper::isTcLength11($tc)) {
             $_SESSION['error'] = 'Eksik bilgi.';
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
@@ -1168,7 +1174,7 @@ class VisitController {
 
         $ek3Redirect = esh_url('Visit', 'history', ['tc' => $tc]);
         $p = $this->requirePatientAccessByTc($tc, $ek3Redirect);
-        if ((int) $p->id !== $hastaId) {
+        if (!IdHelper::idsMatch($p->id ?? null, $hastaId)) {
             $_SESSION['error'] = 'Hasta bilgisi uyuşmuyor.';
             header('Location: ' . esh_url('Visit', 'ek3Consult', ['id' => $izlemId, 'tc' => $tc]));
             exit;
@@ -1218,8 +1224,8 @@ class VisitController {
      * EK-3 PDF önizleme / yazdır (pdfMake).
      */
     public function ek3Document() {
-        $visitId = isset($_GET['visit_id']) ? (int) $_GET['visit_id'] : 0;
-        if ($visitId < 1) {
+        $visitId = IdHelper::normalizeRequestId($_GET['visit_id'] ?? null);
+        if ($visitId === null) {
             $_SESSION['error'] = 'Geçersiz izlem.';
             header('Location: ' . esh_url('Visit', 'index'));
             exit;
@@ -1304,7 +1310,7 @@ class VisitController {
     /**
      * @return array{visit:Visit,hasta:object,bransIstekMap:array<int,int[]>,hastaliklarStr:string,muracaatArg:?string,tc:string}|null
      */
-    private function resolveEk3DocumentContext(int $visitId): ?array {
+    private function resolveEk3DocumentContext(string $visitId): ?array {
         $visit = new Visit();
         if (!$visit->load($visitId)) {
             $_SESSION['error'] = 'İzlem kaydı bulunamadı.';
@@ -1329,7 +1335,7 @@ class VisitController {
         }
 
         $patientModel = new Patient();
-        $hasta = $patientModel->loadForEk3((int) $patientRow->id);
+        $hasta = $patientModel->loadForEk3((string) $patientRow->id);
         if (!$hasta) {
             $_SESSION['error'] = 'Hasta verisi yüklenemedi.';
             header('Location: ' . esh_url('Visit', 'history', ['tc' => $tc]));
@@ -1366,7 +1372,7 @@ class VisitController {
      * @param array<int, int[]> $bransIstekMap
      * @return list<array{bransId:int,bransName:string,docUrl:string}>
      */
-    private function buildEk3TabList(int $visitId, array $bransIstekMap): array {
+    private function buildEk3TabList(string $visitId, array $bransIstekMap): array {
         $bransModel = new Brans();
         $tabs = [];
         foreach ($bransIstekMap as $bransId => $istekIds) {
@@ -1549,11 +1555,11 @@ class VisitController {
         $pid = $data['personel_id'] ?? $data['izlemiyapan'] ?? null;
         if (is_array($pid)) {
             $ids = array_filter(array_map('intval', $pid));
-            $data['izlemiyapan'] = $ids ? implode(',', $ids) : (string) (int) ($_SESSION['user_id'] ?? 0);
+            $data['izlemiyapan'] = $ids ? implode(',', $ids) : (string) (AuthHelper::sessionUserId() ?? '');
         } elseif ($pid !== null && $pid !== '') {
-            $data['izlemiyapan'] = (string) (int) $pid;
+            $data['izlemiyapan'] = (string) (AuthHelper::sessionUserId() ?? '');
         } else {
-            $data['izlemiyapan'] = (string) (int) ($_SESSION['user_id'] ?? 0);
+            $data['izlemiyapan'] = (string) (AuthHelper::sessionUserId() ?? '');
         }
 
         if (empty($data['izlemtarihi'])) {
@@ -1639,13 +1645,25 @@ class VisitController {
         return $data;
     }
 
-    private function maybeQueueUsbsVisitNotification(int $visitId): void
+    private function maybeQueueUsbsVisitNotification(string $visitId): void
     {
-        if ($visitId < 1) {
+        if (IdHelper::isEmptyEntityId($visitId)) {
             return;
         }
         try {
             (new UsbsBridgeService())->queueVisitNotification($visitId);
+        } catch (\Throwable $e) {
+            // Köprü hazırlığı — izlem kaydı başarısız olmamalı.
+        }
+    }
+
+    private function maybeQueueEsysVisitSync(string $visitId): void
+    {
+        if (IdHelper::isEmptyEntityId($visitId)) {
+            return;
+        }
+        try {
+            (new EsysBridgeService())->queueVisitOnSave($visitId);
         } catch (\Throwable $e) {
             // Köprü hazırlığı — izlem kaydı başarısız olmamalı.
         }
@@ -1812,7 +1830,7 @@ class VisitController {
             return;
         }
         $patient = new Patient();
-        if (!$patient->load((int) $row->id)) {
+        if (!$patient->load((string) $row->id)) {
             return;
         }
         if ($dec === 'off') {
@@ -1830,8 +1848,8 @@ class VisitController {
             return;
         }
         $_SESSION['error'] = 'Yalnızca aktif (pasif=0) hastalara izlem girilebilir.';
-        $id = (int) ($patient->id ?? 0);
-        header('Location: ' . ($id > 0 ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'active'])));
+        $id = (string) ($patient->id ?? '');
+        header('Location: ' . ($id !== '' ? esh_url('Patient', 'view', ['id' => $id]) : esh_url('Patient', 'unified', ['status' => 'active'])));
         exit;
     }
 
@@ -1851,6 +1869,6 @@ class VisitController {
             exit;
         }
 
-        return PatientAccessHelper::requirePatientAccess((int) $patient->id, $patient, $redirectUrl);
+        return PatientAccessHelper::requirePatientAccess((string) $patient->id, $patient, $redirectUrl);
     }
 }

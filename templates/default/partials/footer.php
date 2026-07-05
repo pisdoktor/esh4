@@ -22,7 +22,7 @@
     </footer>
 <?php include ROOT_PATH . '/views/partials/db_debug_console.php'; ?>
 <?php require ROOT_PATH . '/views/partials/footer_page_scripts.php'; ?>
-    <script>
+    <script<?= esh_csp_nonce_attr() ?>>
         // Sayfa yüklenme zamanını hesapla
         window.pageLoadStart = performance.now();
         

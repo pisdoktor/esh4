@@ -84,8 +84,19 @@ final class ClinicalDecisionSupportHelper
     /**
      * @return array{braden: ?object, itaki: ?object, harizmi: ?object, mna: ?object, barthel: ?object}
      */
-    public static function loadAssessmentBundle(int $hastaId, object $hasta): array
+    public static function loadAssessmentBundle(int|string $hastaId, object $hasta): array
     {
+        $hastaIdNorm = IdHelper::normalizeRequestId($hastaId);
+        if ($hastaIdNorm === null) {
+            return [
+                'braden' => null,
+                'itaki' => null,
+                'harizmi' => null,
+                'mna' => null,
+                'barthel' => null,
+            ];
+        }
+
         $bundle = [
             'braden' => null,
             'itaki' => null,
@@ -97,27 +108,27 @@ final class ClinicalDecisionSupportHelper
         if (PatientClinicalFlagsHelper::isBradenModuleEnabled($hasta)) {
             $model = new BradenAssessment();
             $model->ensureTable();
-            $bundle['braden'] = $model->getLatestByHastaId($hastaId);
+            $bundle['braden'] = $model->getLatestByHastaId($hastaIdNorm);
         }
         if (PatientClinicalFlagsHelper::isItakiModuleEnabled($hasta)) {
             $model = new ItakiAssessment();
             $model->ensureTable();
-            $bundle['itaki'] = $model->getLatestByHastaId($hastaId);
+            $bundle['itaki'] = $model->getLatestByHastaId($hastaIdNorm);
         }
         if (PatientClinicalFlagsHelper::isHarizmiModuleEnabled($hasta)) {
             $model = new HarizmiAssessment();
             $model->ensureTable();
-            $bundle['harizmi'] = $model->getLatestByHastaId($hastaId);
+            $bundle['harizmi'] = $model->getLatestByHastaId($hastaIdNorm);
         }
         if (PatientClinicalFlagsHelper::isMnaModuleEnabled($hasta)) {
             $model = new MnaAssessment();
             $model->ensureTable();
-            $bundle['mna'] = $model->getLatestByHastaId($hastaId);
+            $bundle['mna'] = $model->getLatestByHastaId($hastaIdNorm);
         }
         if (PatientClinicalFlagsHelper::isBarthelModuleEnabled($hasta)) {
             $model = new BarthelAssessment();
             $model->ensureTable();
-            $bundle['barthel'] = $model->getLatestByHastaId($hastaId);
+            $bundle['barthel'] = $model->getLatestByHastaId($hastaIdNorm);
         }
 
         return $bundle;
@@ -193,7 +204,7 @@ final class ClinicalDecisionSupportHelper
         }
 
         $alerts = [];
-        $hastaId = (int) ($hasta->id ?? 0);
+        $hastaId = IdHelper::normalizeRequestId($hasta->id ?? null) ?? '';
         $bradenThr = self::bradenHighThreshold();
         $fallThr = self::fallRiskThreshold();
         $mnaThr = self::mnaRiskThreshold();
@@ -209,7 +220,7 @@ final class ClinicalDecisionSupportHelper
                     'severity' => self::SEVERITY_WARNING,
                     'title' => 'Braden değerlendirmesi yok',
                     'message' => 'Aktif bası yarası işaretli hastada bası riski (Braden) ölçeği henüz girilmemiş.',
-                    'action_url' => $hastaId > 0 ? esh_url('Patient', 'braden', ['id' => $hastaId]) : null,
+                    'action_url' => $hastaId !== '' ? esh_url('Patient', 'braden', ['id' => $hastaId]) : null,
                     'action_label' => 'Braden gir',
                 ];
             } else {

@@ -173,6 +173,12 @@ final class AppSettings
 
         $kurumId = KurumCorporateSettings::writeKurumId();
         if ($kurumId !== null) {
+            foreach (self::bolgeScopedToggleModuleKeys() as $lockedKey) {
+                unset($modules[$lockedKey]);
+            }
+            if ($modules === []) {
+                return 'Kurum kapsamında yalnızca bölge/platform yönetimli modüller seçildi; kayıt yapılmadı.';
+            }
             $existing = KurumCorporateSettings::getModulesMap($kurumId);
             $merged = array_merge($existing, $modules);
             foreach (array_keys(self::$registry) as $regKey) {
@@ -220,7 +226,9 @@ final class AppSettings
             return 'Kayıt kapsamı belirlenemedi.';
         }
         if (!SettingsWriteScope::canWritePlatformDefaults()) {
-            return 'Platform varsayılanları yalnızca sistem sahibi tarafından değiştirilebilir.';
+            return 'Platform varsayılanları yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_PLATFORM_OWNER), 'UTF-8')
+                . ' tarafından değiştirilebilir.';
         }
 
         $currentFile = self::readRuntimeFile();
@@ -257,7 +265,7 @@ final class AppSettings
     /**
      * Ayar paneli için registry + mevcut durum.
      *
-     * @return list<array{key:string,label:string,description:string,group:string,enabled:bool,default:bool}>
+     * @return list<array{key:string,label:string,description:string,group:string,enabled:bool,default:bool,bolge_scoped_toggle:bool}>
      */
     public static function allForAdmin(): array
     {
@@ -274,10 +282,56 @@ final class AppSettings
                 'group' => (string) ($entry['group'] ?? 'site'),
                 'enabled' => self::isModuleEnabled($key),
                 'default' => (bool) ($entry['default'] ?? true),
+                'bolge_scoped_toggle' => self::isModuleToggleBolgeScoped($key),
             ];
         }
 
         return $rows;
+    }
+
+    public static function isModuleToggleBolgeScoped(string $key): bool
+    {
+        return in_array($key, self::bolgeScopedToggleModuleKeys(), true);
+    }
+
+    /**
+     * Ayar panelinde geçerli kayıt kapsamında modül aç/kapa düzenlenebilir mi?
+     */
+    public static function canToggleModuleInAdminScope(string $key, ?array $settingsScopeBanner): bool
+    {
+        if (!self::isModuleToggleBolgeScoped($key)) {
+            return true;
+        }
+        $mode = is_array($settingsScopeBanner) ? (string) ($settingsScopeBanner['mode'] ?? '') : '';
+
+        return in_array($mode, [SettingsWriteScope::TARGET_BOLGE, SettingsWriteScope::TARGET_PLATFORM], true);
+    }
+
+    /** @return list<string> */
+    public static function bolgeScopedToggleModuleKeys(): array
+    {
+        static $keys = null;
+        if ($keys !== null) {
+            return $keys;
+        }
+        $file = rtrim((string) ROOT_PATH, '/\\') . '/config/module-bolge-scoped-toggles.php';
+        if (!is_file($file)) {
+            $keys = [];
+
+            return $keys;
+        }
+        $loaded = include $file;
+        if (!is_array($loaded)) {
+            $keys = [];
+
+            return $keys;
+        }
+        $keys = array_values(array_filter(array_map(
+            static fn(mixed $key): string => is_string($key) ? trim($key) : '',
+            $loaded
+        ), static fn(string $key): bool => $key !== ''));
+
+        return $keys;
     }
 
     public static function groupLabel(string $group): string

@@ -25,7 +25,7 @@ foreach ($ekipler as $e) {
 }
 
 $todayTr = DateHelper::todayTr();
-$hastaId = (int) ($preHasta->id ?? 0);
+$hastaId = $preHasta ? (string) ($preHasta->id ?? '') : '';
 $hastaLabel = $preHasta
     ? trim((string) ($preHasta->isim ?? '') . ' ' . (string) ($preHasta->soyisim ?? ''))
     : '';
@@ -68,7 +68,7 @@ $lookupUrl = esh_url('Stok', 'hastaLookupAjax');
                             </div>
                             <div class="col-12">
                                 <label class="form-label small text-muted" for="esh-stok-iade-hasta-q">Hasta (opsiyonel)</label>
-                                <input type="hidden" name="hasta_id" id="esh-stok-hasta-id" value="<?= $hastaId > 0 ? $hastaId : '' ?>">
+                                <input type="hidden" name="hasta_id" id="esh-stok-hasta-id" value="<?= htmlspecialchars($hastaId, ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="text" class="form-control form-control-sm" id="esh-stok-hasta-q"
                                        value="<?= htmlspecialchars($hastaLabel, ENT_QUOTES, 'UTF-8') ?>"
                                        placeholder="TC veya ad soyad" autocomplete="off">

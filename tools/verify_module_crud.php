@@ -5,6 +5,7 @@ declare(strict_types=1);
  * Modül CRUD action → controller method doğrulama (CLI).
  *
  * Registry rotaları zorunlu (FAIL); permission-crud-map drift uyarısı (DRIFT).
+ * Orphan controller ve modül sınıflandırması kontrolleri.
  *
  *   php tools/verify_module_crud.php
  *   php tools/verify_module_crud.php --check-registry
@@ -39,6 +40,12 @@ $checkRegistry = in_array('--check-registry', $argv ?? [], true);
 $crudMap = require $root . '/config/permission-crud-map.php';
 /** @var array<string, array<string, mixed>> $registry */
 $registry = require $root . '/config/app-modules.registry.php';
+/** @var list<string> $levelOnlyModules */
+$levelOnlyModules = require $root . '/config/permission-level-only-modules.php';
+$levelOnlySet = array_fill_keys($levelOnlyModules, true);
+
+/** Registry dışı bırakılan controller'lar (bilinçli). */
+$orphanAllowlist = ['Upload'];
 
 function actionResolvable(string $class, string $action): bool
 {
@@ -55,19 +62,51 @@ function actionResolvable(string $class, string $action): bool
     return false;
 }
 
+/**
+ * @param array<string, mixed> $mod
+ */
+function moduleIsClassified(string $moduleKey, array $mod, array $crudMap, array $levelOnlySet): bool
+{
+    if (isset($crudMap[$moduleKey])) {
+        return true;
+    }
+    if (isset($levelOnlySet[$moduleKey])) {
+        return true;
+    }
+    if (($mod['toggleable'] ?? false) === true) {
+        return true;
+    }
+    $group = (string) ($mod['group'] ?? '');
+    if ($group === 'auth' || $group === 'public') {
+        return true;
+    }
+
+    return false;
+}
+
 /** @var list<array{module:string,controller:string,action:string}> $registryFails */
 $registryFails = [];
 /** @var list<array{module:string,controller:string,crud:string,action:string}> $crudDrifts */
 $crudDrifts = [];
+/** @var list<string> $orphanControllers */
+$orphanControllers = [];
+/** @var list<string> $undocumentedModules */
+$undocumentedModules = [];
 $registryActionTotal = 0;
 $crudActionTotal = 0;
 $crudOk = 0;
 
+/** @var array<string, true> $registryControllers */
+$registryControllers = [];
 foreach ($registry as $moduleKey => $mod) {
     if (!is_array($mod['routes'] ?? null)) {
         continue;
     }
     foreach ($mod['routes'] as $controllerName => $actions) {
+        if (!is_string($controllerName) || $controllerName === '') {
+            continue;
+        }
+        $registryControllers[$controllerName] = true;
         if (!is_array($actions)) {
             continue;
         }
@@ -98,6 +137,31 @@ foreach ($registry as $moduleKey => $mod) {
         }
     }
 }
+
+foreach (glob($root . '/app/Controllers/*Controller.php') ?: [] as $file) {
+    $controllerName = basename($file, 'Controller.php');
+    if ($controllerName === '') {
+        continue;
+    }
+    if (isset($registryControllers[$controllerName])) {
+        continue;
+    }
+    if (in_array($controllerName, $orphanAllowlist, true)) {
+        continue;
+    }
+    $orphanControllers[] = $controllerName;
+}
+sort($orphanControllers);
+
+foreach ($registry as $moduleKey => $mod) {
+    if (!is_array($mod)) {
+        continue;
+    }
+    if (!moduleIsClassified((string) $moduleKey, $mod, $crudMap, $levelOnlySet)) {
+        $undocumentedModules[] = (string) $moduleKey;
+    }
+}
+sort($undocumentedModules);
 
 foreach ($crudMap as $moduleKey => $def) {
     $routes = $registry[$moduleKey]['routes'] ?? [];
@@ -161,13 +225,20 @@ if ($checkRegistry) {
 }
 
 $failCount = count($registryFails);
-$ok = ($failCount === 0) && (!$checkRegistry || $registryCheckOk);
+$orphanCount = count($orphanControllers);
+$undocumentedCount = count($undocumentedModules);
+$ok = ($failCount === 0)
+    && ($orphanCount === 0)
+    && ($undocumentedCount === 0)
+    && (!$checkRegistry || $registryCheckOk);
 
 if ($jsonOut) {
     echo json_encode([
         'ok' => $ok,
         'registry_actions' => $registryActionTotal,
         'registry_failures' => $failCount,
+        'orphan_controllers' => $orphanControllers,
+        'undocumented_modules' => $undocumentedModules,
         'crud_actions' => $crudActionTotal,
         'crud_ok' => $crudOk,
         'crud_drift' => count($crudDrifts),
@@ -181,9 +252,11 @@ if ($jsonOut) {
 echo "Modül CRUD wiring doğrulama\n";
 echo str_repeat('-', 60) . "\n";
 echo sprintf(
-    "Registry action: %d | FAIL: %d | CRUD map: %d OK / %d DRIFT\n",
+    "Registry action: %d | FAIL: %d | Orphan ctrl: %d | Undoc mod: %d | CRUD map: %d OK / %d DRIFT\n",
     $registryActionTotal,
     $failCount,
+    $orphanCount,
+    $undocumentedCount,
     $crudOk,
     count($crudDrifts)
 );
@@ -202,6 +275,22 @@ if ($registryFails !== []) {
             $row['controller'],
             $row['action']
         );
+    }
+}
+
+if ($orphanControllers !== []) {
+    echo str_repeat('-', 60) . "\n";
+    echo "Registry dışı controller (FAIL — allowlist dışı):\n";
+    foreach ($orphanControllers as $controllerName) {
+        echo sprintf("  [FAIL] %sController\n", $controllerName);
+    }
+}
+
+if ($undocumentedModules !== []) {
+    echo str_repeat('-', 60) . "\n";
+    echo "Sınıflandırılmamış modül (FAIL — crud-map / level-only / toggleable / auth|public değil):\n";
+    foreach ($undocumentedModules as $moduleKey) {
+        echo sprintf("  [FAIL] %s\n", $moduleKey);
     }
 }
 

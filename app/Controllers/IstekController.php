@@ -40,7 +40,9 @@ class IstekController {
 
         if (!AuthHelper::sessionIsSuperAdmin()) {
 
-            $_SESSION['error'] = 'Platform kataloğunu yalnızca süper yönetici düzenleyebilir.';
+            $_SESSION['error'] = 'Platform kataloğunu yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' düzenleyebilir.';
 
             header('Location: ' . esh_url('Istek', 'index'));
 

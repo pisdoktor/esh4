@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
 use App\Helpers\AuthHelper;
 use App\Helpers\PatientNakilRequest;
 use App\Helpers\TenantContext;
@@ -63,9 +64,12 @@ class PatientNakilController
 
         $talepler = PatientNakilRequest::getIncomingList($kurumId);
         $kurumlar = [];
-        if (AuthHelper::sessionIsSuperAdmin() && Kurum::tableExists()) {
-            foreach (\App\Helpers\TenantContext::kurumListForScope(true) as $k) {
-                $kurumlar[(int) ($k->id ?? 0)] = (string) ($k->ad ?? '');
+        if (Kurum::tableExists()) {
+            foreach (TenantContext::kurumListForScope(true) as $k) {
+                $kid = (int) ($k->id ?? 0);
+                if ($kid > 0) {
+                    $kurumlar[$kid] = (string) ($k->ad ?? '');
+                }
             }
         }
 
@@ -77,6 +81,86 @@ class PatientNakilController
         exit;
     }
 
+    public function review(): void
+    {
+        AuthHelper::requireAdmin();
+        if (!PatientNakilRequest::tableReady()) {
+            $_SESSION['error'] = 'Nakil modülü kurulmamış.';
+            header('Location: ' . esh_url('Dashboard', 'index'));
+            exit;
+        }
+        if (!AuthHelper::sessionIsSuperAdmin()) {
+            $_SESSION['error'] = 'İl dışı nakil inceleme yalnızca '
+                . mb_strtolower(AuthHelper::adminLevelLabel(AuthHelper::ROLE_SUPERADMIN), 'UTF-8')
+                . ' tarafından yapılabilir.';
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        $id = IdHelper::normalizeRequestId($_GET['id'] ?? null);
+        $userId = AuthHelper::sessionUserId();
+        if (IdHelper::isEmptyEntityId($id) || IdHelper::isEmptyEntityId($userId)) {
+            $_SESSION['error'] = 'Geçersiz nakil kaydı.';
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        if (!PatientNakilRequest::canManageIncomingNakil($id, $userId, 'approve')) {
+            $_SESSION['error'] = 'Bu nakil talebine erişim yetkiniz yok.';
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        $nakilRow = (new HastaNakil())->fetchReviewRowById($id);
+        if ($nakilRow === null
+            || (string) ($nakilRow->tip ?? '') !== HastaNakil::TIP_IL_DISI
+            || (string) ($nakilRow->durum ?? '') !== HastaNakil::DURUM_BEKLEMEDE) {
+            $_SESSION['error'] = 'İncelenecek il dışı nakil talebi bulunamadı.';
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        $hedefBolgeId = (int) ($nakilRow->hedef_bolge_id ?? 0);
+        $eshReviewKurumlar = PatientNakilRequest::kurumListForIlDisiBolge($hedefBolgeId);
+        $eshReviewKurumlar = array_values(array_filter(
+            $eshReviewKurumlar,
+            static fn (object $k): bool => TenantContext::isKurumInScope((int) ($k->id ?? 0))
+        ));
+
+        include ThemeViewHelper::resolvePartial('header');
+        include ThemeViewHelper::resolveAreaView('site', 'hasta/nakil_review');
+        include ThemeViewHelper::resolvePartial('footer');
+    }
+
+    public function approveIlDisi(): void
+    {
+        AuthHelper::requireAdmin();
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $hedefKurumId = isset($_POST['hedef_kurum_id']) ? (int) $_POST['hedef_kurum_id'] : 0;
+        $userId = AuthHelper::sessionUserId();
+        if (IdHelper::isEmptyEntityId($id) || $hedefKurumId < 1 || IdHelper::isEmptyEntityId($userId)) {
+            $_SESSION['error'] = 'Geçersiz istek.';
+            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            exit;
+        }
+
+        $hedefHastaId = PatientNakilRequest::approveIlDisiNakil($id, $hedefKurumId, $userId);
+        if ($hedefHastaId === false) {
+            $_SESSION['error'] = 'İl dışı nakil talebi onaylanamadı.';
+            header('Location: ' . esh_url('PatientNakil', 'review', ['id' => $id]));
+            exit;
+        }
+
+        $_SESSION['success'] = 'İl dışı nakil onaylandı. Hasta seçilen kurumda bekleyen (ön kayıt) olarak açıldı.';
+        header('Location: ' . esh_url('Patient', 'bedit', ['id' => $hedefHastaId]));
+        exit;
+    }
+
     public function approve(): void
     {
         AuthHelper::requireAdmin();
@@ -85,9 +169,9 @@ class PatientNakilController
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($id < 1 || $userId < 1) {
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $userId = AuthHelper::sessionUserId();
+        if (IdHelper::isEmptyEntityId($id) || IdHelper::isEmptyEntityId($userId)) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . esh_url('PatientNakil', 'incoming'));
             exit;
@@ -122,23 +206,24 @@ class PatientNakilController
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $userId = AuthHelper::sessionUserId();
         $redNedeni = isset($_POST['red_nedeni']) ? trim((string) $_POST['red_nedeni']) : '';
-        if ($id < 1 || $userId < 1) {
+        $redirect = isset($_POST['redirect']) ? trim((string) $_POST['redirect']) : esh_url('PatientNakil', 'incoming');
+        if (IdHelper::isEmptyEntityId($id) || IdHelper::isEmptyEntityId($userId)) {
             $_SESSION['error'] = 'Geçersiz istek.';
-            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            header('Location: ' . $redirect);
             exit;
         }
 
         if (!PatientNakilRequest::reject($id, $userId, $redNedeni !== '' ? $redNedeni : null)) {
             $_SESSION['error'] = 'Nakil talebi reddedilemedi.';
-            header('Location: ' . esh_url('PatientNakil', 'incoming'));
+            header('Location: ' . $redirect);
             exit;
         }
 
         $_SESSION['success'] = 'Nakil talebi reddedildi.';
-        header('Location: ' . esh_url('PatientNakil', 'incoming'));
+        header('Location: ' . $redirect);
         exit;
     }
 
@@ -150,10 +235,10 @@ class PatientNakilController
             exit;
         }
 
-        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $id = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        $userId = AuthHelper::sessionUserId();
         $redirect = isset($_POST['redirect']) ? trim((string) $_POST['redirect']) : esh_url('Patient', 'unified', ['status' => 'passive']);
-        if ($id < 1 || $userId < 1) {
+        if (IdHelper::isEmptyEntityId($id) || IdHelper::isEmptyEntityId($userId)) {
             $_SESSION['error'] = 'Geçersiz istek.';
             header('Location: ' . $redirect);
             exit;

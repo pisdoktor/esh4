@@ -334,8 +334,10 @@ BEGIN
     CREATE TABLE [dbo].[esh_kurum_hastalik] (
   [kurum_id] INT NOT NULL,
   [hastalik_id] INT NOT NULL,
+  [icd] NVARCHAR(32) NULL,
   PRIMARY KEY ([kurum_id], [hastalik_id]),
-  INDEX [idx_kh_hastalik] ([hastalik_id])
+  INDEX [idx_kh_hastalik] ([hastalik_id]),
+  INDEX [idx_kh_kurum_icd] ([kurum_id], [icd])
     );
 END
 GO
@@ -447,15 +449,15 @@ BEGIN
   [id] INT NOT NULL IDENTITY(1,1),
   [kurum_id] INT NOT NULL DEFAULT 1,
   [hastatckimlik] NVARCHAR(11) NOT NULL,
-  [hastalikid] INT NOT NULL,
+  [hastalikicd] NVARCHAR(32) NOT NULL,
   [rapor] TINYINT(1) NOT NULL DEFAULT 0,
   [bitistarihi] DATE DEFAULT NULL,
   [brans] NVARCHAR(512) NOT NULL DEFAULT '',
   [raporyeri] TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ([id]),
-  INDEX [uk_tc_hastalik] ([hastatckimlik], [hastalikid]),
+  INDEX [uk_tc_hastalik_icd] ([hastatckimlik], [hastalikicd]),
   INDEX [idx_tc] ([hastatckimlik]),
-  INDEX [idx_hastalik] ([hastalikid]),
+  INDEX [idx_hastalik_icd] ([hastalikicd]),
   INDEX [idx_hastailacrapor_kurum] ([kurum_id])
     );
 END
@@ -472,12 +474,13 @@ BEGIN
   [etken_madde] NVARCHAR(512) NULL,
   [recete_turu] NVARCHAR(128) NULL,
   [not] NVARCHAR(MAX) NULL,
-  [hastalikid] INT NULL,
+  [hastalikicd] NVARCHAR(32) NULL,
   [sira] SMALLINT NOT NULL DEFAULT 0,
   [created_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
   [updated_at] DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
   PRIMARY KEY ([id]),
   INDEX [idx_hasta] ([hasta_id]),
+  INDEX [idx_hasta_ilac_hastalik_icd] ([hastalikicd]),
   INDEX [idx_hasta_ilaclar_kurum] ([kurum_id])
     );
 END
@@ -548,7 +551,6 @@ BEGIN
   [kapino] NVARCHAR(64) DEFAULT NULL,
   [adres_aciklama] NVARCHAR(MAX),
   [diger_adres] NVARCHAR(MAX),
-  [coords] NVARCHAR(255) DEFAULT NULL,
   [bagimlilik] NVARCHAR(10) DEFAULT NULL,
   [pasif] NVARCHAR(10) NOT NULL DEFAULT '0',
   [pasiftarihi] DATE DEFAULT NULL,
@@ -1036,6 +1038,7 @@ BEGIN
   [kaynak_hasta_id] INT NOT NULL,
   [kaynak_kurum_id] INT NOT NULL,
   [hedef_kurum_id] INT NULL DEFAULT NULL,
+  [hedef_bolge_id] INT NULL DEFAULT NULL,
   [hedef_hasta_id] INT NULL DEFAULT NULL,
   [onceki_nakil_id] INT NULL DEFAULT NULL,
   [orijinal_kaynak_hasta_id] INT NULL DEFAULT NULL,
@@ -1048,6 +1051,7 @@ BEGIN
   [red_nedeni] NVARCHAR(500) NULL DEFAULT NULL,
   PRIMARY KEY ([id]),
   INDEX [idx_hedef_durum] ([hedef_kurum_id], [durum]),
+  INDEX [idx_hedef_bolge_durum] ([hedef_bolge_id], [durum]),
   INDEX [idx_kaynak_hasta] ([kaynak_hasta_id]),
   INDEX [idx_kaynak_kurum_durum] ([kaynak_kurum_id], [durum])
     );

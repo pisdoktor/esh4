@@ -2,6 +2,8 @@
 namespace App\Models;
 
 use App\Helpers\IzlemYapilmamaNedenHelper;
+use App\Helpers\AuthHelper;
+use App\Helpers\IdHelper;
 use App\Helpers\IslemIdSettings;
 use App\Helpers\VisitIslemHelper;
 use App\Helpers\ZamanDilimiHelper;
@@ -11,6 +13,9 @@ use App\Helpers\TenantSqlHelper;
  * Planlı İzlem Modeli
  */
 class PlannedVisit extends BaseModel {
+    /** @var bool */
+    protected $uuidPrimaryKey = true;
+
     public $id = null;
     public $kurum_id = 1;
     public $hastatckimlik = null;
@@ -370,6 +375,8 @@ class PlannedVisit extends BaseModel {
         $kurumH = TenantSqlHelper::andEquals('h', 'kurum_id');
         $mpJoin = MahallePlan::joinSqlForHasta('m', 'mp', 'h');
         $bolgeSel = MahallePlan::bolgeSelectSql('mp', 'bolge');
+        $eff = Address::effectiveCoordsExpr('h', 'k');
+        $kapinoJoin = Address::kapinoJoinSql('h', 'k');
 
         $islemLabelSql = "(SELECT GROUP_CONCAT(isl.islemadi ORDER BY isl.id SEPARATOR ', ')
                 FROM #__islemler isl
@@ -387,13 +394,14 @@ class PlannedVisit extends BaseModel {
         foreach (ZamanDilimiHelper::activeVardiyaIndexes() as $i) {
             $zamanKodu = ZamanDilimiHelper::fromVardiyaIndex($i);
             // Planlanmış izlemler (nakil dışı: listede nakil id'si dışında en az bir işlem id’si)
-            $sql = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
+            $sql = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, {$eff} AS coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
                     $islemLabelSql AS islem_label
                     FROM #__pizlemler AS p
                     LEFT JOIN #__hastalar AS h ON p.hastatckimlik = h.tckimlik
                     LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                     LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
                     {$mpJoin}
+                    {$kapinoJoin}
                     WHERE p.planlanantarih = ?
                     AND {$zPlanMatch} = $zamanKodu
                     AND COALESCE(p.durum, 0) = 0
@@ -402,11 +410,12 @@ class PlannedVisit extends BaseModel {
                     ORDER BY h.mahalle ASC";
             $data[$i]['planli'] = $this->db->fetchObjectListPrepared($sql, [$date]);
             //Planlanmış ilk ziyaretler
-            $sql = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'İlk Ziyaret' as islem_label 
+            $sql = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, {$eff} AS coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'İlk Ziyaret' as islem_label 
                     FROM #__hastalar AS h
                     LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                     LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
                     {$mpJoin}
+                    {$kapinoJoin}
                     WHERE {$zHastaMatch} = $zamanKodu AND h.pasif='-3' AND h.randevutarihi = ?{$kurumH}
                     ORDER BY h.mahalle ASC";
             $data[$i]['ilkziyaret'] = $this->db->fetchObjectListPrepared($sql, [$date]);
@@ -414,11 +423,12 @@ class PlannedVisit extends BaseModel {
             // 3. Periyodik pansumanlar (pzaman 1–3; eski 0–2 kayıtları da eşlenir)
             $pzamanMatch = '(CASE WHEN CAST(COALESCE(h.pzaman, 1) AS SIGNED) BETWEEN 1 AND 3 THEN CAST(h.pzaman AS SIGNED) '
                 . 'WHEN CAST(COALESCE(h.pzaman, 1) AS SIGNED) BETWEEN 0 AND 2 THEN CAST(h.pzaman AS SIGNED) + 1 ELSE 1 END)';
-            $sqlPansuman = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'Pansuman' as islem_label 
+            $sqlPansuman = "SELECT h.id AS hastaid, h.tckimlik, h.isim, h.soyisim, h.ceptel1, {$eff} AS coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel}, 'Pansuman' as islem_label 
                             FROM #__hastalar AS h
                             LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                             LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
                             {$mpJoin}
+                            {$kapinoJoin}
                             WHERE {$pzamanMatch} = $zamanKodu 
                             AND h.pansuman = 1 
                             AND h.pasif = '0' 
@@ -432,13 +442,14 @@ class PlannedVisit extends BaseModel {
             
         }
         // Planlanmış nakiller (listedeki id’lerden biri nakil işlem id'si)
-        $sqlNakil = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, h.coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
+        $sqlNakil = "SELECT p.*, h.id AS hastaid, h.isim, h.soyisim, h.tckimlik, h.ceptel1, {$eff} AS coords, il.adi AS ilce, m.adi AS mahalle, {$bolgeSel},
                      $islemLabelSql AS islem_label
                      FROM #__pizlemler AS p
                      LEFT JOIN #__hastalar AS h ON p.hastatckimlik = h.tckimlik
                      LEFT JOIN #__adrestablosu AS il ON il.id = h.ilce
                      LEFT JOIN #__adrestablosu AS m ON m.id = h.mahalle
                      {$mpJoin}
+                     {$kapinoJoin}
                      WHERE p.planlanantarih = ?
                      AND COALESCE(p.durum, 0) = 0
                      AND h.pasif = '0'
@@ -562,7 +573,7 @@ class PlannedVisit extends BaseModel {
      */
     public function remove() {
         if ($this->id) {
-            return $this->db->executePrepared('DELETE FROM #__pizlemler WHERE id = ?', [(int) $this->id]);
+            return $this->db->executePrepared('DELETE FROM #__pizlemler WHERE id = ?', [(string) $this->id]);
         }
         return false;
     }
@@ -636,7 +647,7 @@ class PlannedVisit extends BaseModel {
         string $ymd,
         array $requestedIslemIds,
         int $requestedZaman,
-        int $excludePlanId = 0
+        int|string $excludePlanId = ''
     ): array {
         $requestedIslemIds = array_values(array_unique(array_filter(array_map('intval', $requestedIslemIds))));
         $tc = trim($tc);
@@ -651,11 +662,16 @@ class PlannedVisit extends BaseModel {
 
         $zNorm = (int) $requestedZaman;
         $zExpr = ZamanDilimiHelper::sqlNormalizeCaseExpr('zaman');
-        $excludeSql = $excludePlanId > 0 ? ' AND id <> ' . (int) $excludePlanId : '';
+        $excludePlanId = IdHelper::normalizeRequestId($excludePlanId) ?? '';
+        $excludeSql = $excludePlanId !== '' ? ' AND id <> ?' : '';
         $sql = "SELECT yapilacak FROM #__pizlemler
                 WHERE hastatckimlik = ? AND planlanantarih = ?
                   AND {$zExpr} = {$zNorm}{$excludeSql}";
-        $rows = $this->db->fetchObjectListPrepared($sql, [$tc, $ymd]);
+        $params = [$tc, $ymd];
+        if ($excludePlanId !== '') {
+            $params[] = $excludePlanId;
+        }
+        $rows = $this->db->fetchObjectListPrepared($sql, $params);
         if (!$rows) {
             return [];
         }
@@ -737,8 +753,8 @@ class PlannedVisit extends BaseModel {
     {
         $deleted = 0;
         foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id < 1) {
+            $id = IdHelper::normalizeRequestId($id);
+            if ($id === null) {
                 continue;
             }
             $row = $this->db->loadResultPrepared(
@@ -793,8 +809,8 @@ class PlannedVisit extends BaseModel {
         $aciklama = 'Pasif dosya — planlı izlem otomatik kapatma (yapılmadı).';
 
         foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id < 1) {
+            $id = IdHelper::normalizeRequestId($id);
+            if ($id === null) {
                 continue;
             }
             $row = $this->db->fetchObjectPrepared(
@@ -825,7 +841,7 @@ class PlannedVisit extends BaseModel {
             $zaman = ZamanDilimiHelper::clamp($row->zaman ?? null);
             $izlemiyapan = trim((string) ($row->planiyapan ?? ''));
             if ($izlemiyapan === '') {
-                $izlemiyapan = (string) (int) ($_SESSION['user_id'] ?? 0);
+                $izlemiyapan = (string) (AuthHelper::sessionUserId() ?? '');
             }
 
             if ($tc !== '' && $planYmd !== '' && $islemIds !== []) {
@@ -871,8 +887,8 @@ class PlannedVisit extends BaseModel {
     {
         $deleted = 0;
         foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id < 1) {
+            $id = IdHelper::normalizeRequestId($id);
+            if ($id === null) {
                 continue;
             }
             $row = $this->db->fetchObjectPrepared(

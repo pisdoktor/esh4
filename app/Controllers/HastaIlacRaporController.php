@@ -1,6 +1,8 @@
 <?php
 namespace App\Controllers;
 
+use App\Helpers\IdHelper;
+use App\Helpers\AuthHelper;
 use App\Helpers\DateHelper;
 use App\Helpers\PatientAccessHelper;
 use App\Helpers\ThemeViewHelper;
@@ -16,14 +18,14 @@ use App\Models\Patient;
 class HastaIlacRaporController {
 
     public function index(): void {
-        $patientId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId);
         if ($patient === null) {
             return;
         }
 
-        $hastalikAdById = $this->hastalikAdMapForPatient($patient);
-        $hastalikOptions = $this->hastalikOptionsFromMap($hastalikAdById);
+        $hastalikAdByIcd = $this->hastalikAdMapForPatient($patient);
+        $hastalikOptions = $this->hastalikOptionsFromMap($hastalikAdByIcd);
         $branslar = (new Brans())->getList();
         $pageTitle = 'İlaç / tanı raporu bilgileri';
 
@@ -46,7 +48,7 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $patientId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId, false);
         if ($patient === null) {
             http_response_code(404);
@@ -58,7 +60,7 @@ class HastaIlacRaporController {
         $rows = $ctx['rows'];
         $rowMetas = $ctx['rowMetas'];
         $bransById = $ctx['bransById'];
-        $patientId = (int) ($patient->id ?? 0);
+        $patientId = (string) ($patient->id ?? '');
 
         ob_start();
         include ROOT_PATH . '/views/site/hastailacrapor/partials/rapor_table_rows.php';
@@ -87,7 +89,7 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $patientId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_GET['id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId, false);
         if ($patient === null) {
             http_response_code(404);
@@ -95,7 +97,7 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $hastalikAdById = $this->hastalikAdMapForPatient($patient);
+        $hastalikAdByIcd = $this->hastalikAdMapForPatient($patient);
         $ilacModel = new HastaIlac();
         $ilacModel->ensureTable();
         $ilaclar = $ilacModel->getByHastaId($patientId);
@@ -116,7 +118,7 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $patientId = isset($_POST['patient_id']) ? (int) $_POST['patient_id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId, false);
         if ($patient === null) {
             header('Location: ' . esh_url('Patient', 'unified', array (
@@ -126,16 +128,16 @@ class HastaIlacRaporController {
         }
 
         $tc = preg_replace('/\D+/', '', (string) $patient->tckimlik);
-        $hastalikId = isset($_POST['hastalik_id']) ? (int) $_POST['hastalik_id'] : 0;
-        $allowed = Patient::mergedHastalikIdsForIlacRapor($patient);
-        if ($hastalikId < 1 || !in_array($hastalikId, $allowed, true)) {
+        $hastalikIcd = Patient::normalizeHastalikIcd((string) ($_POST['hastalik_icd'] ?? ''));
+        $allowed = Patient::mergedHastalikIcdsForIlacRapor($patient);
+        if ($hastalikIcd === '' || !in_array($hastalikIcd, $allowed, true)) {
             $_SESSION['error'] = 'Geçersiz tanı seçimi.';
             header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]));
             exit;
         }
 
         $rapor = (isset($_POST['rapor']) && (string) $_POST['rapor'] === '1') ? 1 : 0;
-        $raporRowId = isset($_POST['rapor_id']) ? (int) $_POST['rapor_id'] : 0;
+        $raporRowId = IdHelper::normalizeRequestId($_POST['rapor_id'] ?? null);
         $raporyeri = (isset($_POST['raporyeri']) && (string) $_POST['raporyeri'] === '1') ? 1 : 0;
         $bransCsv = HastaIlacRapor::normalizeBransCsv($_POST['brans'] ?? []);
 
@@ -150,7 +152,7 @@ class HastaIlacRaporController {
             }
         }
 
-        if ($rapor === 0 && $raporRowId < 1) {
+        if ($rapor === 0 && $raporRowId === null) {
             $_SESSION['success'] = 'Bu tanı için zaten rapor kaydı yok; yapılacak bir şey yok.';
             header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]));
             exit;
@@ -158,8 +160,8 @@ class HastaIlacRaporController {
 
         $model = new HastaIlacRapor();
 
-        if ($raporRowId > 0) {
-            if (!$model->findByIdForTc($raporRowId, $tc) || (int) $model->hastalikid !== $hastalikId) {
+        if ($raporRowId !== null) {
+            if (!$model->findByIdForTc($raporRowId, $tc) || Patient::normalizeHastalikIcd((string) $model->hastalikicd) !== $hastalikIcd) {
                 $_SESSION['error'] = 'Güncellenecek rapor satırı bulunamadı veya hasta ile eşleşmiyor.';
                 header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]));
                 exit;
@@ -173,7 +175,7 @@ class HastaIlacRaporController {
                 'brans' => '',
                 'raporyeri' => 0,
             ], true);
-        } elseif ($raporRowId > 0) {
+        } elseif ($raporRowId !== null) {
             $model->bind([
                 'rapor' => 1,
                 'bitistarihi' => $bitisYmd,
@@ -183,7 +185,7 @@ class HastaIlacRaporController {
         } else {
             $model->bind([
                 'hastatckimlik' => $tc,
-                'hastalikid' => $hastalikId,
+                'hastalikicd' => $hastalikIcd,
                 'rapor' => 1,
                 'bitistarihi' => $bitisYmd,
                 'brans' => $bransCsv,
@@ -202,22 +204,25 @@ class HastaIlacRaporController {
     }
 
     public function delete(): void {
-        $patientId = isset($_POST['return']) ? (int) $_POST['return'] : 0;
-        $redirect = $patientId > 0
+        $patientId = IdHelper::normalizeRequestId($_POST['return'] ?? null);
+        if ($patientId === null) {
+            $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
+        }
+        $redirect = $patientId !== null
             ? esh_url('HastaIlacRapor', 'index', ['id' => $patientId])
             : esh_url('Patient', 'unified', array (
   'status' => 'active',
 ));
         \App\Helpers\CsrfHelper::requirePostMethod($redirect);
 
-        $raporId = (int) ($_POST['id'] ?? 0);
-        if ($raporId < 1) {
+        $raporId = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($raporId === null) {
             $_SESSION['error'] = 'Geçersiz kayıt.';
             header('Location: ' . $redirect);
             exit;
         }
 
-        $patient = $patientId > 0 ? (new Patient())->getById($patientId) : null;
+        $patient = $patientId !== null ? (new Patient())->getById($patientId) : null;
         if (!$patient || empty($patient->tckimlik)) {
             $_SESSION['error'] = 'Hasta bulunamadı.';
             header('Location: ' . esh_url('Patient', 'unified', array (
@@ -252,7 +257,7 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $patientId = isset($_POST['patient_id']) ? (int) $_POST['patient_id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId, false);
         if ($patient === null) {
             header('Location: ' . esh_url('Patient', 'unified', array (
@@ -268,8 +273,8 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $hastalikid = $this->normalizeOptionalHastalikId($patient, $_POST['hastalikid'] ?? null);
-        if ($hastalikid === false) {
+        $hastalikicd = $this->normalizeOptionalHastalikIcd($patient, $_POST['hastalik_icd'] ?? $_POST['hastalikid'] ?? null);
+        if ($hastalikicd === false) {
             header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]));
             exit;
         }
@@ -284,7 +289,7 @@ class HastaIlacRaporController {
             'etken_madde' => null,
             'recete_turu' => $receteTuru,
             'not' => $not !== '' ? $not : null,
-            'hastalikid' => $hastalikid,
+            'hastalikicd' => $hastalikicd,
             'sira' => $model->nextSiraForHasta($patientId),
         ], true);
 
@@ -306,8 +311,8 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $patientId = isset($_POST['patient_id']) ? (int) $_POST['patient_id'] : 0;
-        $ilacId = isset($_POST['ilac_id']) ? (int) $_POST['ilac_id'] : 0;
+        $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
+        $ilacId = IdHelper::normalizeRequestId($_POST['ilac_id'] ?? null);
         $patient = $this->resolvePatientOrRedirect($patientId, false);
         if ($patient === null) {
             header('Location: ' . esh_url('Patient', 'unified', array (
@@ -323,15 +328,21 @@ class HastaIlacRaporController {
             exit;
         }
 
-        $hastalikid = $this->normalizeOptionalHastalikId($patient, $_POST['hastalikid'] ?? null);
-        if ($hastalikid === false) {
+        $hastalikicd = $this->normalizeOptionalHastalikIcd($patient, $_POST['hastalik_icd'] ?? $_POST['hastalikid'] ?? null);
+        if ($hastalikicd === false) {
+            header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]) . '#tab-ilaclar');
+            exit;
+        }
+
+        if ($ilacId === null) {
+            $_SESSION['error'] = 'Geçersiz ilaç kaydı.';
             header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]) . '#tab-ilaclar');
             exit;
         }
 
         $model = new HastaIlac();
         $model->ensureTable();
-        if (!$model->findByIdForHasta($ilacId, $patientId)) {
+        if (!$model->findByIdForHasta($ilacId, $patientId ?? '')) {
             $_SESSION['error'] = 'Güncellenecek ilaç kaydı bulunamadı.';
             header('Location: ' . esh_url('HastaIlacRapor', 'index', ['id' => $patientId]) . '#tab-ilaclar');
             exit;
@@ -344,7 +355,7 @@ class HastaIlacRaporController {
             'etken_madde' => null,
             'recete_turu' => $receteTuru,
             'not' => $not !== '' ? $not : null,
-            'hastalikid' => $hastalikid,
+            'hastalikicd' => $hastalikicd,
         ], true);
 
         if ($model->store()) {
@@ -358,19 +369,19 @@ class HastaIlacRaporController {
     }
 
     public function deleteIlac(): void {
-        $patientId = isset($_POST['return']) ? (int) $_POST['return'] : 0;
-        if ($patientId < 1 && isset($_POST['patient_id'])) {
-            $patientId = (int) $_POST['patient_id'];
+        $patientId = IdHelper::normalizeRequestId($_POST['return'] ?? null);
+        if ($patientId === null) {
+            $patientId = IdHelper::normalizeRequestId($_POST['patient_id'] ?? null);
         }
-        $redirect = $patientId > 0
+        $redirect = $patientId !== null
             ? esh_url('HastaIlacRapor', 'index', ['id' => $patientId]) . '#tab-ilaclar'
             : esh_url('Patient', 'unified', array (
   'status' => 'active',
 ));
         \App\Helpers\CsrfHelper::requirePostMethod($redirect);
 
-        $ilacId = (int) ($_POST['id'] ?? 0);
-        if ($ilacId < 1 || $patientId < 1) {
+        $ilacId = IdHelper::normalizeRequestId($_POST['id'] ?? null);
+        if ($ilacId === null || $patientId === null) {
             $_SESSION['error'] = 'Geçersiz kayıt.';
             header('Location: ' . $redirect);
             exit;
@@ -387,7 +398,7 @@ class HastaIlacRaporController {
 
         $model = new HastaIlac();
         $model->ensureTable();
-        if (!$model->findByIdForHasta($ilacId, $patientId)) {
+        if (!$model->findByIdForHasta($ilacId ?? '', $patientId ?? '')) {
             $_SESSION['error'] = 'Silinecek ilaç kaydı bulunamadı.';
             header('Location: ' . $redirect);
             exit;
@@ -406,8 +417,8 @@ class HastaIlacRaporController {
     /**
      * @return object|null
      */
-    private function resolvePatientOrRedirect(int $patientId, bool $redirectOnError = true): ?object {
-        if ($patientId < 1) {
+    private function resolvePatientOrRedirect(?string $patientId, bool $redirectOnError = true): ?object {
+        if (IdHelper::isEmptyEntityId($patientId)) {
             if ($redirectOnError) {
                 $_SESSION['error'] = 'Geçersiz hasta.';
                 header('Location: ' . esh_url('Patient', 'unified', array (
@@ -449,24 +460,24 @@ class HastaIlacRaporController {
 
     /**
      * @param mixed $raw
-     * @return int|null|false null = bağlantı yok; false = geçersiz tanı
+     * @return string|null|false null = bağlantı yok; false = geçersiz tanı
      */
-    private function normalizeOptionalHastalikId(object $patient, $raw) {
+    private function normalizeOptionalHastalikIcd(object $patient, $raw) {
         if ($raw === null || $raw === '' || $raw === '0' || $raw === 0) {
             return null;
         }
-        $hid = (int) $raw;
-        if ($hid < 1) {
+        $icd = Patient::normalizeHastalikIcd((string) $raw);
+        if ($icd === '') {
             return null;
         }
-        $allowed = Patient::mergedHastalikIdsForIlacRapor($patient);
-        if (!in_array($hid, $allowed, true)) {
+        $allowed = Patient::mergedHastalikIcdsForIlacRapor($patient);
+        if (!in_array($icd, $allowed, true)) {
             $_SESSION['error'] = 'Geçersiz tanı seçimi.';
 
             return false;
         }
 
-        return $hid;
+        return $icd;
     }
 
     private function normalizeReceteTuruFromPost(): ?string
@@ -483,45 +494,57 @@ class HastaIlacRaporController {
     }
 
     /**
-     * @return array<int, string>
+     * @return array<string, string>
      */
     private function hastalikAdMapForPatient(object $patient): array {
-        $hastalikIds = Patient::mergedHastalikIdsForIlacRapor($patient);
+        $hastalikIcds = Patient::mergedHastalikIcdsForIlacRapor($patient);
         $map = [];
-        if ($hastalikIds === []) {
+        if ($hastalikIcds === []) {
             return $map;
         }
 
-        $rows = (new HastaIlacRapor())->getReportRowsForPatient((string) $patient->tckimlik, $hastalikIds);
+        $rows = (new HastaIlacRapor())->getReportRowsForPatient((string) $patient->tckimlik, $hastalikIcds);
         foreach ($rows as $r) {
-            $hid = (int) ($r->hastalik_id ?? 0);
-            if ($hid > 0) {
-                $map[$hid] = (string) ($r->hastalikadi ?? '');
+            $icd = Patient::normalizeHastalikIcd((string) ($r->hastalik_icd ?? ''));
+            if ($icd !== '') {
+                $map[$icd] = (string) ($r->hastalikadi ?? '');
             }
         }
 
         $ilacModel = new HastaIlac();
         $ilacModel->ensureTable();
-        $patientId = (int) ($patient->id ?? 0);
-        $extraIds = [];
+        $patientId = (string) ($patient->id ?? '');
+        $extraIcds = [];
         foreach ($ilacModel->getByHastaId($patientId) as $il) {
-            $hid = (int) ($il->hastalikid ?? 0);
-            if ($hid > 0 && !isset($map[$hid])) {
-                $extraIds[] = $hid;
+            $icd = Patient::normalizeHastalikIcd((string) ($il->hastalikicd ?? ''));
+            if ($icd !== '' && !isset($map[$icd])) {
+                $extraIcds[] = $icd;
             }
         }
-        foreach (array_diff($hastalikIds, array_keys($map)) as $hid) {
-            $extraIds[] = (int) $hid;
+        foreach (array_diff($hastalikIcds, array_keys($map)) as $icd) {
+            $extraIcds[] = $icd;
         }
-        $extraIds = array_values(array_unique(array_filter(array_map('intval', $extraIds))));
-        if ($extraIds !== []) {
-            $placeholders = implode(',', array_fill(0, count($extraIds), '?'));
-            $db = (new Hastalik())->db;
-            foreach ($db->fetchObjectListPrepared(
-                "SELECT id, hastalikadi FROM #__hastaliklar WHERE id IN ({$placeholders})",
-                $extraIds
+        $extraIcds = array_values(array_unique(array_filter(array_map(
+            static fn ($v) => Patient::normalizeHastalikIcd((string) $v),
+            $extraIcds
+        ), static fn ($v) => $v !== '')));
+        if ($extraIcds !== []) {
+            [$inSql, $inParams] = (new Hastalik())->db->whereInClause($extraIcds);
+            $params = array_merge([\App\Helpers\CatalogStoreHelper::PLATFORM_KURUM_ID], $inParams);
+            foreach ((new Hastalik())->db->fetchObjectListPrepared(
+                "SELECT icd, hastalikadi FROM #__hastaliklar WHERE kurum_id = ? AND icd IN ({$inSql})",
+                $params
             ) as $hRow) {
-                $map[(int) $hRow->id] = (string) ($hRow->hastalikadi ?? '');
+                $icd = Patient::normalizeHastalikIcd((string) ($hRow->icd ?? ''));
+                if ($icd !== '') {
+                    $map[$icd] = (string) ($hRow->hastalikadi ?? '');
+                }
+            }
+        }
+
+        foreach ($hastalikIcds as $icd) {
+            if (!isset($map[$icd])) {
+                $map[$icd] = $icd;
             }
         }
 
@@ -529,11 +552,11 @@ class HastaIlacRaporController {
     }
 
     /**
-     * @param array<int, string> $hastalikAdById
-     * @return array<int, string>
+     * @param array<string, string> $hastalikAdByIcd
+     * @return array<string, string>
      */
-    private function hastalikOptionsFromMap(array $hastalikAdById): array {
-        $opts = $hastalikAdById;
+    private function hastalikOptionsFromMap(array $hastalikAdByIcd): array {
+        $opts = $hastalikAdByIcd;
         asort($opts, SORT_FLAG_CASE | SORT_NATURAL);
 
         return $opts;
@@ -550,10 +573,10 @@ class HastaIlacRaporController {
      * }
      */
     private function buildRaporListContext(object $patient): array {
-        $hastalikIds = Patient::mergedHastalikIdsForIlacRapor($patient);
-        $rows = $hastalikIds === []
+        $hastalikIcds = Patient::mergedHastalikIcdsForIlacRapor($patient);
+        $rows = $hastalikIcds === []
             ? []
-            : (new HastaIlacRapor())->getReportRowsForPatient((string) $patient->tckimlik, $hastalikIds);
+            : (new HastaIlacRapor())->getReportRowsForPatient((string) $patient->tckimlik, $hastalikIcds);
 
         $bransById = [];
         foreach ((new Brans())->getList() as $b) {

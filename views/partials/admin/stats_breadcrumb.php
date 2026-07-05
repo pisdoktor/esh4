@@ -21,7 +21,7 @@ if (
     $GLOBALS['eshStatsReportPdfAssets'] = true;
     require dirname(__DIR__, 2) . '/site/partials/list_pdf_assets.php';
     $GLOBALS['eshStatsReportPdfScript'] = true;
-    echo '<script>window.ESH_PAGE=window.ESH_PAGE||{};window.ESH_PAGE.statsReportAction='
+    echo '<script' . esh_csp_nonce_attr() . '>window.ESH_PAGE=window.ESH_PAGE||{};window.ESH_PAGE.statsReportAction='
         . json_encode($eshStatsPageAction, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)
         . ';</script>' . "\n";
 }

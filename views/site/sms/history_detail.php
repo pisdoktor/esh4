@@ -1,9 +1,10 @@
 <div class="esh-page container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="h4 mb-1">SMS Gönderim #<?= (int) ($gonderim->id ?? 0) ?></h1>
+            <h1 class="h4 mb-1">SMS Gönderim</h1>
             <p class="text-muted small mb-0">
-                <?= htmlspecialchars(\App\Helpers\SmsSettings::segmentLabel((string) ($gonderim->segment_tipi ?? '')), ENT_QUOTES, 'UTF-8') ?>
+                <span class="font-monospace"><?= htmlspecialchars((string) ($gonderim->id ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                · <?= htmlspecialchars(\App\Helpers\SmsSettings::segmentLabel((string) ($gonderim->segment_tipi ?? '')), ENT_QUOTES, 'UTF-8') ?>
                 · <?= htmlspecialchars((string) ($gonderim->created_at ?? ''), ENT_QUOTES, 'UTF-8') ?>
             </p>
         </div>

@@ -271,7 +271,7 @@ window.eshInitTomSelectElement = function (el, options) {
         if (el.disabled) {
             ts.disable();
         }
-        if (el.options && el.options.length > 1 && ts.options && Object.keys(ts.options).length < 1) {
+        if (el.options && el.options.length > 0 && ts.options && Object.keys(ts.options).length < 1) {
             ts.sync();
         }
         ts.refreshOptions(false);
@@ -294,6 +294,9 @@ window.eshInitTomSelect = function (root, options) {
         elements = Array.prototype.slice.call(document.querySelectorAll('.esh-tomselect'));
         if (!(options && options.includePartialModals)) {
             elements = elements.filter(function (el) {
+                if (el.closest && el.closest('[data-esh-tomselect-scope="manual"]')) {
+                    return false;
+                }
                 return !el.closest || !el.closest('.patient-partial-edit-modal');
             });
         }
