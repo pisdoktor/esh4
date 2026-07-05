@@ -16,7 +16,7 @@ final class Installer
 {
     public const SUPERADMIN_USER = 'admin';
     public const SUPERADMIN_PASS = 'Admin123';
-    public const SUPERADMIN_NAME = 'Bölge Yöneticisi';
+    public const SUPERADMIN_NAME = 'Sistem Yöneticisi';
     public const SUPERADMIN_UNVAN = 'doktor';
     public const SUPERADMIN_EMAIL = 'esh@esh.local';
     public const PLATFORM_OWNER_ISADMIN = 3;
@@ -84,7 +84,7 @@ final class Installer
     }
 
     /**
-     * Kurulum sırasında App\Core\Database katmanını yükler (composer/autoload yok).
+     * Kurulum sırasında App\ sınıflarını yükler (composer/autoload yok).
      */
     private static function bootstrapDatabaseLayer(): void
     {
@@ -92,6 +92,18 @@ final class Installer
         if ($loaded) {
             return;
         }
+        spl_autoload_register(static function (string $class): void {
+            $prefix = 'App\\';
+            $baseDir = dirname(__DIR__) . '/';
+            $len = strlen($prefix);
+            if (strncmp($prefix, $class, $len) !== 0) {
+                return;
+            }
+            $file = $baseDir . str_replace('\\', '/', substr($class, $len)) . '.php';
+            if (is_file($file)) {
+                require $file;
+            }
+        });
         require_once __DIR__ . '/../Core/Database.php';
         $loaded = true;
     }
